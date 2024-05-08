@@ -41,11 +41,11 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
 
     cfg.left_wheel_name = info_.hardware_parameters["left_wheel_name"];
     cfg.right_wheel_name = info_.hardware_parameters["right_wheel_name"];
-    cfg.loop_rate = hardware_interface::stof(info_.hardware_parameters["loop_rate"]);
+    cfg.loop_rate = std::stof(info_.hardware_parameters["loop_rate"]);
     cfg.device = info_.hardware_parameters["device"];
-    cfg.baud_rate = hardware_interface::stoi(info_.hardware_parameters["baud_rate"]);
-    cfg.timeout_ms = hardware_interface::stoi(info_.hardware_parameters["timeout_ms"]);
-    cfg.enc_counts_per_rev = hardware_interface::stoi(info_.hardware_parameters["enc_counts_per_rev"]);
+    cfg.baud_rate = std::stoi(info_.hardware_parameters["baud_rate"]);
+    cfg.timeout_ms = std::stoi(info_.hardware_parameters["timeout_ms"]);
+    cfg.enc_counts_per_rev = std::stoi(info_.hardware_parameters["enc_counts_per_rev"]);
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints)
   {
