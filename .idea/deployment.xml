@@ -12,7 +12,7 @@
       <paths name="UMRT-ARM-ROS-DEV (3922110e-6745-4e72-bdeb-44fc86fd01ca)">
         <serverdata>
           <mappings>
-            <mapping deploy="/tmp/tmp.2Tu96Q8zNw" local="$PROJECT_DIR$" />
+            <mapping deploy="/workspace/clion" local="$PROJECT_DIR$" />
           </mappings>
           <excludedPaths>
             <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug-umrt-arm-ros-dev" />
