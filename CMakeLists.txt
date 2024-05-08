@@ -9,6 +9,9 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
     add_compile_options(-Wall -Wextra)
 endif()
 
+# Fixes intellisense not finding ros2 headers https://youtrack.jetbrains.com/issue/CPP-29747/Certain-ROS2-package-headers-missing-from-Intellisense-when-using-a-Docker-toolchain
+include_directories(SYSTEM /opt/ros/$ENV{ROS_DISTRO}/include)
+
 # find dependencies
 set(THIS_PACKAGE_INCLUDE_DEPENDS
         hardware_interface
