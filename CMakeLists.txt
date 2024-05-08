@@ -28,6 +28,9 @@ endforeach()
 
 
 ## COMPILE
+target_link_libraries(arm_firmware spidev-lib++)
+
+
 add_library(
         ros2_control_demo_example_2
         SHARED
