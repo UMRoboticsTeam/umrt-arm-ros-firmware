@@ -25,7 +25,7 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-#include "include/SPIComms.hpp"
+#include "Driver.hpp"
 
 namespace ros2_control_demo_example_2
 {

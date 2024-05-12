@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" serverName="UMRT-ARM-ROS-DEV (3922110e-6745-4e72-bdeb-44fc86fd01ca)" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" serverName="UMRT-ARM-ROS-DEV (3922110e-6745-4e72-bdeb-44fc86fd01ca)" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
+    <option name="confirmBeforeUploading" value="false" />
     <serverData>
       <paths name="Remote Host (a3175e18-3e1e-4612-aba0-42ec40dd6ea7)">
         <serverdata>

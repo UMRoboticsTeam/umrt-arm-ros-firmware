@@ -28,8 +28,11 @@ endforeach()
 
 
 ## COMPILE
-target_link_libraries(arm_firmware spidev-lib++)
-
+#target_link_libraries(arm_firmware spidev-lib++)
+#add_executable(ros2_control_demo_example_2 )
+#target_link_libraries(ros2_control_demo_example_2 spidev-lib++)
+#add_library(spidev-lib++ STATIC IMPORTED)
+#set_target_properties(spidev-lib++ PROPERTIES IMPORTED_LOCATION /usr/local/lib/libspidev-lib++.a)
 
 add_library(
         ros2_control_demo_example_2
