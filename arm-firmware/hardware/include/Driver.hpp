@@ -39,7 +39,7 @@
 
 #include <cstdint>
 #include <cstring>
-#include <spidev_lib++.h>
+#include "spidev_lib/spidev_lib++.h"
 
 /// Addresses of control and status registers.
 enum HPSDRegAddr : uint8_t // Note: Changed from original to be weakly-typed

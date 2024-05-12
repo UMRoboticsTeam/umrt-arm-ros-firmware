@@ -3,8 +3,6 @@ project(arm_firmware)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(arm_firmware main.cpp)
-
 if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
     add_compile_options(-Wall -Wextra)
 endif()
@@ -18,6 +16,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
         pluginlib
         rclcpp
         rclcpp_lifecycle
+        spidev_lib
         )
 
 # find dependencies
@@ -26,26 +25,18 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
     find_package(${Dependency} REQUIRED)
 endforeach()
 
-
-## COMPILE
-#target_link_libraries(arm_firmware spidev-lib++)
-#add_executable(ros2_control_demo_example_2 )
-#target_link_libraries(ros2_control_demo_example_2 spidev-lib++)
-#add_library(spidev-lib++ STATIC IMPORTED)
-#set_target_properties(spidev-lib++ PROPERTIES IMPORTED_LOCATION /usr/local/lib/libspidev-lib++.a)
-
 add_library(
-        ros2_control_demo_example_2
+        arm_firmware
         SHARED
         hardware/diffbot_system.cpp
 )
-target_compile_features(ros2_control_demo_example_2 PUBLIC cxx_std_17)
-target_include_directories(ros2_control_demo_example_2 PUBLIC
+target_compile_features(arm_firmware PUBLIC cxx_std_17)
+target_include_directories(arm_firmware PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
-        $<INSTALL_INTERFACE:include/ros2_control_demo_example_2>
+        $<INSTALL_INTERFACE:include/arm_firmware>
         )
 ament_target_dependencies(
-        ros2_control_demo_example_2 PUBLIC
+        arm_firmware PUBLIC
         ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 
@@ -59,18 +50,18 @@ pluginlib_export_plugin_description_file(hardware_interface ros2_control_demo_ex
 # INSTALL
 install(
         DIRECTORY hardware/include/
-        DESTINATION include/ros2_control_demo_example_2
+        DESTINATION include/arm_firmware
 )
 install(
         DIRECTORY description/launch description/ros2_control description/urdf
-        DESTINATION share/ros2_control_demo_example_2
+        DESTINATION share/arm_firmware
 )
 install(
         DIRECTORY bringup/launch bringup/config
-        DESTINATION share/ros2_control_demo_example_2
+        DESTINATION share/arm_firmware
 )
-install(TARGETS ros2_control_demo_example_2
-        EXPORT export_ros2_control_demo_example_2
+install(TARGETS arm_firmware
+        EXPORT export_arm_firmware
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib
         RUNTIME DESTINATION bin
@@ -84,6 +75,6 @@ if(BUILD_TESTING)
 endif()
 
 ## EXPORTS
-ament_export_targets(export_ros2_control_demo_example_2 HAS_LIBRARY_TARGET)
+ament_export_targets(export_arm_firmware HAS_LIBRARY_TARGET)
 ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 ament_package()
