@@ -1,3 +1,6 @@
+// Pololu High-Power Stepper Motor Driver Library for Arduino
+// https://github.com/pololu/high-power-stepper-driver-arduino/tree/master
+// For interacting with https://www.pololu.com/product/3730
 #include <HighPowerStepperDriver.h>
 
 #define MAX_DRIVERS 6
