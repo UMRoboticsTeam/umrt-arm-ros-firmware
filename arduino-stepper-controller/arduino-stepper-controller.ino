@@ -22,6 +22,7 @@
 #define FULLROT_1 200
 
 
+void echo_string(char* str);
 void echo(byte command, byte argc, byte* argv);
 void set_speed(byte command, byte argc, byte* argv);
 void get_speed(byte command, byte argc, byte* argv);
@@ -34,10 +35,12 @@ void setup() {
   ConnectionManager::init();
 
   // Setup Firmata
-  Firmata.begin(SERIAL_SPEED);
+  Firmata.setFirmwareVersion(FIRMATA_FIRMWARE_MAJOR_VERSION, FIRMATA_FIRMWARE_MINOR_VERSION);
+  Firmata.attach(STRING_DATA, echo_string);
   Firmata.attach(SysexCommands::ECHO, echo);
-  Firmata.attach(SysexCommands::GET_SPEED, get_speed);
-  Firmata.attach(SysexCommands::SET_SPEED, set_speed);
+  //Firmata.attach(SysexCommands::GET_SPEED, get_speed);
+  //Firmata.attach(SysexCommands::SET_SPEED, set_speed);
+  Firmata.begin(SERIAL_SPEED);
  
   manager.add_driver(STEP_1, DIR_1, CS_1, CURRENT_1);
 
@@ -59,8 +62,18 @@ void loop() {
 }
 
 // Payload: anything
+void echo_string(char* str) {
+  Firmata.sendString(str);
+}
+
+// Payload: anything
 void echo(byte command, byte argc, byte* argv){
-  Firmata.sendSysex(SysexCommands::ECHO, argc, argv);
+  byte* arr = new byte[argc+1];
+  arr[0] = argc;
+  for (int i = 0; i < argc; ++i) { arr[i+1] = argv[i]; }
+  Firmata.sendSysex(SysexCommands::ECHO, argc+1, arr);
+  //Firmata.sendSysex(SysexCommands::ECHO, argc, argv);
+  delete[] arr;
 }
 
 // Payload:
