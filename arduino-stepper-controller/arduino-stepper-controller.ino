@@ -68,12 +68,7 @@ void echo_string(char* str) {
 
 // Payload: anything
 void echo(byte command, byte argc, byte* argv){
-  byte* arr = new byte[argc+1];
-  arr[0] = argc;
-  for (int i = 0; i < argc; ++i) { arr[i+1] = argv[i]; }
-  Firmata.sendSysex(SysexCommands::ECHO, argc+1, arr);
-  //Firmata.sendSysex(SysexCommands::ECHO, argc, argv);
-  delete[] arr;
+  Firmata.sendSysex(SysexCommands::ECHO, argc, argv);
 }
 
 // Payload:

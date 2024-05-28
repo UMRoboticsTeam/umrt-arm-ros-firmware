@@ -1,50 +1,55 @@
-import pyfirmata2 as pyfirmata2
+import pyfirmata2
+import time
 
 COM_PORT = 'COM3'
 SYSEX_COMMAND_ECHO = 0x00
 
 def pack_32(integer):
-    # Little-endian in 7 bit blocks:
-    # bbbb bbbb bbbb bbbb bbbb bbbb bbbb bbbb
-    # 4444 3333 3332 2222 2211 1111 1000 0000
-    # 
+    # Little-endian
+    #
     # e.g. for 0xDEAD_BEEF:
     # 1101 1110 1010 1101 1011 1110 1110 1111
-    # 4444 3333 3332 2222 2211 1111 1000 0000
-    # packed = [ 0x6F, 0x7D, 0x36, 0x75, 0x0D ]
+    # 3333 3333 2222 2222 1111 1111 0000 0000
+    # packed = [ 0xEF, 0xBE, 0xAD, 0xDE ]
     return bytearray([
-    integer & 0x7F, # bits [6, 0]
-    integer >> 7 & 0x7F, # bits [13, 7]
-    integer >> 14 & 0x7F, # bits [20, 14]
-    integer >> 21 & 0x7F, # bits [27, 21]
-    integer >> 28 & 0x0F]) # bits [31, 28]
+    integer & 0xFF, # bits [7, 0]
+    integer >> 8 & 0xFF, # bits [15, 8]
+    integer >> 16 & 0xFF, # bits [23, 16]
+    integer >> 24 & 0xFF]) # bits [31, 24]
 
-def unpack_32(data):
-    return (data[0] & 0x7F) | (data[1] & 0x7F) << 7 | (data[2] & 0x7F) << 14 | (data[3] & 0x7F) << 21 | (data[4] & 0x0F) << 28
+# THIS DOES NOT DECODE pack_32 OUTPUT
+# Firmata can only send 7 bit packets, so instead it sends two 7 bits that need to be reconstructed
+# This decodes Firmata output back into a 32 bit block
+def decode_32(data):
+    return data[0] | data[1] << 7 | (data[2] | data[3] << 7) << 8 | (data[4] | data[5] << 7) << 16 | (data[6] | data[7] << 7) << 24
 
 def rec_echo_text(*data):
     print(util.two_byte_iter_to_str(data))
 
 def rec_echo_int32(*data):
-    print(unpack_32(data)) # Need to only look at every other byte
+    print(decode_32(data))
 
 def rec_echo_raw(*data):
-    print(data) # Arduino returns 2 bytes
+    print(data)
 
 # Setup Firmata
 b = Arduino(COM_PORT)
-b.add_cmd_handler(0x00, rec_echo)
 it = util.Iterator(b)
 it.start()
 
 # Send text echo
+b.add_cmd_handler(0x00, rec_echo)
 b.send_sysex(SYSEX_COMMAND_ECHO, util.str_to_two_byte_iter("hello world"))
+
+time.sleep(1)
 
 # Send some numerical echos
 b.add_cmd_handler(0x00, rec_echo_int32)
 b.send_sysex(SYSEX_COMMAND_ECHO, pack_32(0xDEAD_BEEF))
 b.send_sysex(SYSEX_COMMAND_ECHO, pack_32(1000))
 b.send_sysex(SYSEX_COMMAND_ECHO, pack_32(32767))
+
+time.sleep(1)
 
 # Send the numerical echos raw
 b.add_cmd_handler(0x00, rec_echo_raw)
