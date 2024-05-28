@@ -1,24 +1,17 @@
-/* To Communicate (python commands):
- * from pySerialTransfer import pySerialTransfer as txfer
- * link = txfer.SerialTransfer(<INSERT COM PORT HERE>)
- * link.open()
- * 
- */ 
-
-
 #include "ConnectionManager.hpp"
+#include "SYSEX_COMMANDS.h"
 
 // MobaTools
 // https://github.com/MicroBahner/MobaTools/tree/master
 // For convenient driving stepper motors
 #include <MobaTools.h>
 
-// SerialTransfer
-// https://github.com/PowerBroker2/SerialTransfer/tree/master
+// Firmata 
+// https://github.com/firmata/arduino
 // For communication between USB master and Arduino
-#include <SerialTransfer.h>
+#include <Firmata.h>
 
-#define SERIAL_SPEED 115200
+#define SERIAL_SPEED 57600
 
 #define BUFF_SIZE 256
 
@@ -28,19 +21,24 @@
 #define CURRENT_1 2000
 #define FULLROT_1 200
 
+
+void echo(byte command, byte argc, byte* argv);
+void set_speed(byte command, byte argc, byte* argv);
+void get_speed(byte command, byte argc, byte* argv);
+
 ConnectionManager manager;
-SerialTransfer usb_transfer;
 MoToStepper step_1(FULLROT_1, STEPDIR);
 
 void setup() {
   // put your setup code here, to run once:
   ConnectionManager::init();
 
-  // Setup SerialTransfer
-  Serial.begin(SERIAL_SPEED);
-  usb_transfer.begin(Serial);
-  
-
+  // Setup Firmata
+  Firmata.begin(SERIAL_SPEED);
+  Firmata.attach(SysexCommands::ECHO, echo);
+  Firmata.attach(SysexCommands::GET_SPEED, get_speed);
+  Firmata.attach(SysexCommands::SET_SPEED, set_speed);
+ 
   manager.add_driver(STEP_1, DIR_1, CS_1, CURRENT_1);
 
   step_1.attach(STEP_1, DIR_1);
@@ -52,31 +50,46 @@ void setup() {
 }
 
 void loop() {
-  uint16_t send_size = 0;
-  uint16_t rec_size = 0;
-  char ack_prefix[] = "ack{";
-  char ack_suffix[] = "}\n";
-  char tx_buff[BUFF_SIZE + sizeof(ack_prefix) + sizeof(ack_suffix) - 2 + 1]; // -2 because ack_prefix and ack_suffix both have \0s + 1 because we want a \0
-  char rx_buff[BUFF_SIZE + 1]; // +1 so we have space for a \0
-  
-  // Uncomment to endlessly scream the ack_prefix
-  //send_size = usb_transfer.txObj(ack_prefix, send_size);
-  //usb_transfer.sendData(send_size);
-  
-
-  // Wait until we can receive
-  if (usb_transfer.available()){
-    // Receive the string and terminate it
-    rec_size = usb_transfer.rxObj(rx_buff, 0, BUFF_SIZE);
-    rx_buff[rec_size] = '\0';
-
-    // Construct the response and send it
-    //snprintf(tx_buff, sizeof(tx_buff), "%s%s%s", ack_prefix, rx_buff, ack_suffix);
-    snprintf(tx_buff, sizeof(tx_buff), "%s%d,%s%s", ack_prefix, rec_size, rx_buff, ack_suffix);
-    send_size = usb_transfer.txObj(tx_buff, send_size);
-    usb_transfer.sendData(send_size);
+  uint8_t ack[] = {0x6E };
+  //Firmata.sendSysex(SysexCommands::ECHO, 1, ack);
+  while (Firmata.available())
+  {
+    Firmata.processInput();
   }
-  else if (usb_transfer.status < 0){
-    // Uh oh... not sure what we can do
-  }
+}
+
+// Payload: anything
+void echo(byte command, byte argc, byte* argv){
+  Firmata.sendSysex(SysexCommands::ECHO, argc, argv);
+}
+
+// Payload:
+// [ 
+//    uint8_t motorID,
+//    int32_t speed     // Big endian; units of 10*rpm
+// ]
+void set_speed(byte command, byte argc, byte* argv){
+  // Check arguments
+  if (argc != 2) { return; }
+
+  // Calculate speed
+  int32_t speed = argv[1] << 24 | argv[2] << 16 | argv[1] << 8 | argv[0];
+
+  // TODO: Finish setting up for additional motors
+  step_1.setSpeed(speed);
+}
+
+// Payload: 
+// [ uint8_t motorID ]
+//
+// Responds:
+// [ 
+//    uint8_t motorID,
+//    int32_t speed     // Big endian; units of 10*rpm
+// ]
+void get_speed(byte command, byte argc, byte* argv){
+  // Check arguments
+  if (argc != 2) { return; }
+
+  // TODO: Write
 }
