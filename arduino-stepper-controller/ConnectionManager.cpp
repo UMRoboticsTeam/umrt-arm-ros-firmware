@@ -66,15 +66,15 @@ uint8_t ConnectionManager::add_driver(uint8_t step_pin, uint8_t dir_pin, uint8_t
 }
 
 HighPowerStepperDriver* ConnectionManager::get_driver(uint8_t index){
-  return this->drivers[index];
+  return index < this->num_drivers ? this->drivers[index] : NULL;
 }
 
 uint8_t ConnectionManager::get_step_pin(uint8_t index){
-  return this->step_pins[index];
+  return index < this->num_drivers ? this->step_pins[index] : NULL;
 }
 
 uint8_t ConnectionManager::get_dir_pin(uint8_t index){
-  return this->dir_pins[index];
+  return index < this->num_drivers ? this->dir_pins[index] : NULL;
 }
 
 ConnectionManager::~ConnectionManager(){
