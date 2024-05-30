@@ -12,7 +12,7 @@ class ConnectionManager {
 public:
   static void init();
 
-  uint8_t add_driver(uint8_t step_pin, uint8_t dir_pin, uint8_t cs_pin, uint16_t current);
+  uint8_t add_driver(uint8_t step_pin, uint8_t dir_pin, uint8_t cs_pin, uint16_t current, HPSDStepMode step_mode);
 
   HighPowerStepperDriver* get_driver(uint8_t index);
 

@@ -3,10 +3,22 @@
 
 // TODO: Consider adding a keep-alive
 // Note: Only allowed to use 0x00-0x0F, beyond that would have to nest commands
+// Multi-byte numbers are always transmitted in little-endian
 enum SysexCommands : uint8_t {
-  ECHO = 0x00, // Respond back with payload
-  SET_SPEED,   // Set the speed of a motor. First byte is motor ID, next 4 bytes are signed speed.
-  GET_SPEED    // Get the current speed of a motor. First byte is motor ID.
+  // Respond back with payload
+  // In:  [ payload (anything) ]
+  // Out: [ payload (anything) ]
+  ECHO = 0x00,      
+
+  // Set the speed of a motor
+  // In:  [ motor_id (uint8_t), speed (int16_t)]
+  // Out: [ motor_id (uint8_t), speed (int16_t)]
+  SET_SPEED = 0x01,
+
+  // Get the current speed of a motor
+  // In:  [ motor_id (uint8_t) ]
+  // Out: [ motor_id (uint8_t), speed (int16_t)]
+  GET_SPEED = 0x02
 };
 
 #endif

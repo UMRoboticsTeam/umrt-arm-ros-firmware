@@ -76,38 +76,50 @@ def on_echo_int16(*data):
 def on_echo_raw(*data):
     print(data)
 
+def test(*data):
+    print("On 0x71")
+    on_echo_text(data)
+
 # Setup Firmata
 b = Arduino(COM_PORT)
-b.add_cmd_handler(0x71, on_echo_text)
-it = util.Iterator(b)
-it.start()
+b.add_cmd_handler(0x71, test)
 
 # Send text echo
-b.add_cmd_handler(SYSEX_COMMAND_ECHO, on_echo_text)
+print(b.bytes_available())
+b.add_cmd_handler(0x00, on_echo_text)
 b.send_sysex(SYSEX_COMMAND_ECHO, util.str_to_two_byte_iter("hello world"))
+print(b.bytes_available())
+b.iterate()
 
 time.sleep(1)
 
 # Send some numerical echos
-b.add_cmd_handler(SYSEX_COMMAND_ECHO, on_echo_int32)
+b.add_cmd_handler(0x00, on_echo_int32)
 b.send_sysex(SYSEX_COMMAND_ECHO, pack_32(0xDEAD_BEEF))
+b.iterate()
 b.send_sysex(SYSEX_COMMAND_ECHO, pack_32(1000))
+b.iterate()
 b.send_sysex(SYSEX_COMMAND_ECHO, pack_32(32767))
+b.iterate()
 
 time.sleep(1)
 
 # Send the numerical echos raw
-b.add_cmd_handler(SYSEX_COMMAND_ECHO, on_echo_raw)
+b.add_cmd_handler(0x00, on_echo_raw)
 b.send_sysex(SYSEX_COMMAND_ECHO, pack_32(0xDEAD_BEEF))
+b.iterate()
 b.send_sysex(SYSEX_COMMAND_ECHO, pack_32(1000))
+b.iterate()
 b.send_sysex(SYSEX_COMMAND_ECHO, pack_32(32767))
-
-time.sleep(1)
+b.iterate()
 
 # Send speed of 2 RPM for 5 seconds, then 1 RPM in other direction for 5 seconds, then stop
 b.send_sysex(SYSEX_COMMAND_SET_SPEED, pack_16(20))
+if (b.bytes_available()): b.iterate()
 time.sleep(5)
 b.send_sysex(SYSEX_COMMAND_SET_SPEED, pack_16(-10))
+if (b.bytes_available()): b.iterate()
 time.sleep(5)
 b.send_sysex(SYSEX_COMMAND_SET_SPEED, pack_16(0))
+if (b.bytes_available()): b.iterate()
 

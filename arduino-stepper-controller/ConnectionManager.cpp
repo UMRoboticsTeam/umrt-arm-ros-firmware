@@ -23,7 +23,7 @@ static void ConnectionManager::init()
   SPI.begin();
 }
 
-uint8_t ConnectionManager::add_driver(uint8_t step_pin, uint8_t dir_pin, uint8_t cs_pin, uint16_t current){
+uint8_t ConnectionManager::add_driver(uint8_t step_pin, uint8_t dir_pin, uint8_t cs_pin, uint16_t current, HPSDStepMode step_mode){
   // Create the HighPowerStepperDriver object, and save it and its info to the arrays
   HighPowerStepperDriver* sd = new HighPowerStepperDriver();
   this->drivers[this->num_drivers] = sd;
@@ -57,7 +57,7 @@ uint8_t ConnectionManager::add_driver(uint8_t step_pin, uint8_t dir_pin, uint8_t
   sd->setCurrentMilliamps36v4(current);
 
   // Set the number of microsteps that correspond to one full step.
-  sd->setStepMode(HPSDStepMode::MicroStep32);
+  sd->setStepMode(step_mode);
 
   // Enable the motor outputs.
   sd->enableDriver();
