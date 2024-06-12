@@ -16,7 +16,7 @@
 #define STEP_1 3
 #define DIR_1 2
 #define CS_1 4
-#define CURRENT_1 2000
+#define CURRENT_1 2800
 #define FULLROT_1 200
 
 // Done as macro so don't have to create versions for int8_t, int16_t etc.
