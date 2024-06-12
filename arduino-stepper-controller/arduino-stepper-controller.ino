@@ -28,6 +28,7 @@ void echo_string(char* str);
 void echo(byte argc, byte* argv);
 void set_speed(byte argc, byte* argv);
 void get_speed(byte argc, byte* argv);
+void send_step(byte argc, byte* argv);
 int32_t decode_32(byte argc, byte* argv);
 int16_t decode_16(byte argc, byte* argv);
 void pack_32(byte* arr, int32_t integer);
@@ -95,8 +96,8 @@ void set_speed(byte argc, byte* argv){
   if (motor >= num_motors) { return; }
 
   // Decode speed
-  //int32_t speed = decode_16(argc - 1, argv + 1);
-  int32_t speed = decode_16(argc, argv);
+  //int16_t speed = decode_16(argc - 1, argv + 1);
+  int16_t speed = decode_16(argc, argv);
 
   // Send back some debugging stuff
   char buff[22];
@@ -117,6 +118,36 @@ void get_speed(byte argc, byte* argv){
   if (argc != 2) { return; }
 
   // TODO: Write
+}
+
+// Move the motor a specific number of steps (negative speed allowed)
+// Scheduled steps may be overridden by other commands
+// In:  [ motor_id (uint8_t), num_steps (uint16_t), speed (int16_t) ]
+// Out: [ motor_id (uint8_t), num_steps (uint16_t), speed (int16_t) ]
+void send_step(byte argc, byte* argv) {
+  // Check arguments
+  //if (argc != 5) { return; }
+
+  // Get motor ID
+  //uint8_t motor = argv[0];
+  uint8_t motor = 0;
+  if (motor >= num_motors) { return; }
+
+  // Decode num_steps and speed
+  //int16_t num_steps = decode_16(2, argv + 1);
+  int16_t num_steps = decode_16(2, argv);
+  //int16_t speed = decode_16(2, argv + 3);
+  int16_t speed = decode_16(2, argv + 2);
+
+  // Send back some debugging stuff
+  char buff[39];
+  // PRId16 is macro for int16_t format specifier
+  sprintf(buff, "%d: {%d, %d, %d, %d}=%" PRId16 ", %" PRId16, motor, argv[0], argv[1], speed);
+  Firmata.sendString(buff);
+  
+  // TODO: Finish setting up for additional motors
+  step_1.setSpeed(abs(speed));
+  step_1.move(SGN(speed)*num_steps);
 }
 
 // Unlike pyfirmata2, Arduino Firmata does the 8-bit-byte reconstruction for us; we don't need to combine the 7-bit byte with the next byte.
@@ -165,5 +196,6 @@ void sysex_handler(byte command, byte argc, byte* argv){
   case SysexCommands::ECHO: echo(argc, argv); break;
   case SysexCommands::SET_SPEED: set_speed(argc, argv); break;
   case SysexCommands::GET_SPEED: get_speed(argc, argv); break;
+  case SysexCommands::SEND_STEP: send_step(argc, argv); break;
   }
 }

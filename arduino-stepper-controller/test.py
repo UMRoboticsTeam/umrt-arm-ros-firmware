@@ -4,6 +4,7 @@ import time
 COM_PORT = 'COM3'
 SYSEX_COMMAND_ECHO = 0x00
 SYSEX_COMMAND_SET_SPEED = 0x01
+SYSEX_COMMAND_SEND_STEP = 0x03
 
 def pack_32(integer):
     # Little-endian
@@ -122,4 +123,11 @@ if (b.bytes_available()): b.iterate()
 time.sleep(5)
 b.send_sysex(SYSEX_COMMAND_SET_SPEED, pack_16(0))
 if (b.bytes_available()): b.iterate()
+time.sleep(1)
 
+# Step forward 20 steps at 10 RPM, then back 10 steps at 5 RPM
+b.send_sysex(SYSEX_COMMAND_SEND_STEP, pack_16(20) + pack_16(100))
+if (b.bytes_available()): b.iterate()
+time.sleep(1)
+b.send_sysex(SYSEX_COMMAND_SEND_STEP, pack_16(10) + pack_16(-50))
+if (b.bytes_available()): b.iterate()
