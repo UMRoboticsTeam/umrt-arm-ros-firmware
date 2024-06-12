@@ -1,0 +1,8 @@
+In order to work on RaspberryPi (aarch64-based), you must build your own ROS image
+Note: for now, we are using the desktop flavour of ROS Humble
+To do this:
+	git clone https://github.com/osrf/docker_images
+	cd docker_images/ros/humble/ubuntu/jammy
+	cd desktop
+	docker build -t ros-humble-desktop --platform=linux/aarch64 .
+Now we have a docker image called "ros-humble-desktop" that works on RPi
