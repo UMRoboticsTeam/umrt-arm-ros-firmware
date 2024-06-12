@@ -31,9 +31,9 @@ def pack_16(integer):
     integer >> 8 & 0xFF # bits [15, 8]
     ])
 
-def firmatafy_32(pack):
+def firmatify_32(pack):
     # Convert a packed bytearray to the 7-bit packets Firmata receives.
-    # Useful for checking a == decode_32(firmatafy_32(pack_32(a)))
+    # Useful for checking a == decode_32(firmatify_32(pack_32(a)))
     #
     # e.g.  for [0xEF, 0xBE, 0xAD, 0xDE]:
     # [1101 1110, 1010 1101, 1011 1110, 1110 1111]
@@ -52,7 +52,7 @@ def firmatafy_32(pack):
 
 def decode_32(data):
     # Decode Firmata 7-bit packets into a 32-bit integer
-    # See firmatafy_32 for an explanation of what Firmata does to packets
+    # See firmatify_32 for an explanation of what Firmata does to packets
     return data[0] | data[1] << 7 \
         | (data[2] | data[3] << 7) << 8 \
         | (data[4] | data[5] << 7) << 16 \
@@ -60,7 +60,7 @@ def decode_32(data):
 
 def decode_16(data):
     # Decode Firmata 7-bit packets into a 16-bit integer
-    # See firmatafy_32 for an explanation of what Firmata does to packets
+    # See firmatify_32 for an explanation of what Firmata does to packets
     return data[0] | data[1] << 7 \
         | (data[2] | data[3] << 7) << 8
 
