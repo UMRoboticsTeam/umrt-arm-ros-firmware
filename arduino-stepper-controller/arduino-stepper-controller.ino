@@ -80,6 +80,10 @@ void echo_string(char* str) {
 // In:  [ payload (anything) ]
 // Out: [ payload (anything) ]
 void echo(byte argc, byte* argv){
+  char buff[22];
+  sprintf(buff, "%d,%d,%d,%d,%d,%d", argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+  Firmata.sendString(buff);
+  
   Firmata.sendSysex(SysexCommands::ECHO, argc, argv);
 }
 
