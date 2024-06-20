@@ -196,6 +196,15 @@ void pack_16(byte* arr, int16_t integer){
 }
 
 void sysex_handler(byte command, byte argc, byte* argv){
+  // Since all input must be firmatified, argc must be even
+  if (argc % 2) { return; }
+  
+  // Defirmatify data in place
+  argc /= 2;
+  for (int i = 0; i < argc; ++i) {
+    argv[i] = argv[2*i] | argv[2*i + 1] << 7;
+  }
+  
   switch (command) {
   case SysexCommands::ECHO: echo(argc, argv); break;
   case SysexCommands::SET_SPEED: set_speed(argc, argv); break;

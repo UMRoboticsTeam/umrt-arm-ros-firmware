@@ -32,28 +32,24 @@ def pack_16(integer):
     integer >> 8 & 0xFF # bits [15, 8]
     ])
 
-def firmatify_32(pack):
-    # Convert a packed bytearray to the 7-bit packets Firmata receives.
-    # Useful for checking a == decode_32(firmatify_32(pack_32(a)))
+def firmatify(pack):
+    # Convert a packed bytearray to the 7-bit packets Firmata uses.
+    # Must be called on the pack provided to send_sysex
+    # Useful for checking a == decode_32(firmatify(pack_32(a)))
     #
     # e.g.  for [0xEF, 0xBE, 0xAD, 0xDE]:
     # [1101 1110, 1010 1101, 1011 1110, 1110 1111]
     # firmatafied = [ 0101 1110, 0000 0001, 0010 1101, 0000 0001, 0011 1110, 0000 0001, 0110 1111, 0000 0001 ]
     #             = [ 0x5E, 0x01, 0x2D, 0x01, 0x3E, 0x01, 0x6F, 0x01]
-    return bytearray([
-    pack[0] & 0x7F,
-    (pack[0] & 0x80) >> 7,
-    pack[1] & 0x7F,
-    (pack[1] & 0x80) >> 7,
-    pack[2] & 0x7F,
-    (pack[2] & 0x80) >> 7,
-    pack[3] & 0x7F,
-    (pack[3] & 0x80) >> 7,
-    ])
+    b = bytearray()
+    for p in pack:
+        b.append(p & 0x7F)
+        b.append((p & 0x80) >> 7)
+    return b
 
 def decode_32(data):
     # Decode Firmata 7-bit packets into a 32-bit integer
-    # See firmatify_32 for an explanation of what Firmata does to packets
+    # See firmatify for an explanation of what Firmata does to packets
     return data[0] | data[1] << 7 \
         | (data[2] | data[3] << 7) << 8 \
         | (data[4] | data[5] << 7) << 16 \
@@ -61,7 +57,7 @@ def decode_32(data):
 
 def decode_16(data):
     # Decode Firmata 7-bit packets into a 16-bit integer
-    # See firmatify_32 for an explanation of what Firmata does to packets
+    # See firmatify for an explanation of what Firmata does to packets
     return data[0] | data[1] << 7 \
         | (data[2] | data[3] << 7) << 8
 
@@ -91,28 +87,28 @@ time.sleep(1)
 
 # Send some numerical echos
 b.add_cmd_handler(SYSEX_COMMAND_ECHO, on_echo_int32)
-b.send_sysex(SYSEX_COMMAND_ECHO, pack_32(0xDEAD_BEEF))
-b.send_sysex(SYSEX_COMMAND_ECHO, pack_32(1000))
-b.send_sysex(SYSEX_COMMAND_ECHO, pack_32(32767))
+b.send_sysex(SYSEX_COMMAND_ECHO, firmatify(pack_32(0xDEAD_BEEF)))
+b.send_sysex(SYSEX_COMMAND_ECHO, firmatify(pack_32(1000)))
+b.send_sysex(SYSEX_COMMAND_ECHO, firmatify(pack_32(32767)))
 
 time.sleep(1)
 
 # Send the numerical echos raw
 b.add_cmd_handler(SYSEX_COMMAND_ECHO, on_echo_raw)
-b.send_sysex(SYSEX_COMMAND_ECHO, pack_32(0xDEAD_BEEF))
-b.send_sysex(SYSEX_COMMAND_ECHO, pack_32(1000))
-b.send_sysex(SYSEX_COMMAND_ECHO, pack_32(32767))
+b.send_sysex(SYSEX_COMMAND_ECHO, firmatify(pack_32(0xDEAD_BEEF)))
+b.send_sysex(SYSEX_COMMAND_ECHO, firmatify(pack_32(1000)))
+b.send_sysex(SYSEX_COMMAND_ECHO, firmatify(pack_32(32767)))
 
 time.sleep(1)
 
 # Send speed of 2 RPM for 5 seconds, then 1 RPM in other direction for 5 seconds, then stop
-b.send_sysex(SYSEX_COMMAND_SET_SPEED, pack_16(20))
+b.send_sysex(SYSEX_COMMAND_SET_SPEED, firmatify(pack_16(20)))
 time.sleep(5)
-b.send_sysex(SYSEX_COMMAND_SET_SPEED, pack_16(-10))
+b.send_sysex(SYSEX_COMMAND_SET_SPEED, firmatify(pack_16(-10)))
 time.sleep(5)
-b.send_sysex(SYSEX_COMMAND_SET_SPEED, pack_16(0))
+b.send_sysex(SYSEX_COMMAND_SET_SPEED, firmatify(pack_16(0)))
 
 # Step forward 20 steps at 10 RPM, then back 10 steps at 5 RPM
-b.send_sysex(SYSEX_COMMAND_SEND_STEP, pack_16(20) + pack_16(100))
+b.send_sysex(SYSEX_COMMAND_SEND_STEP, firmatify(pack_16(20) + pack_16(100)))
 time.sleep(1)
-b.send_sysex(SYSEX_COMMAND_SEND_STEP, pack_16(10) + pack_16(-50))
+b.send_sysex(SYSEX_COMMAND_SEND_STEP, firmatify(pack_16(10) + pack_16(-50)))
