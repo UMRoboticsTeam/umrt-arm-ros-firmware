@@ -146,7 +146,7 @@ void send_step(byte argc, byte* argv) {
   // Send back some debugging stuff
   char buff[39];
   // PRId16 is macro for int16_t format specifier
-  sprintf(buff, "%d: {%d, %d, %d, %d}=%" PRId16 ", %" PRId16, motor, argv[0], argv[1], speed);
+  sprintf(buff, "%d: {%d, %d, %d, %d}=%" PRId16 ", %" PRId16, motor, argv[0], argv[1], argv[2], argv[3], num_steps, speed);
   Firmata.sendString(buff);
   
   // TODO: Finish setting up for additional motors
