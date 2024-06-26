@@ -6,6 +6,8 @@ SYSEX_COMMAND_ECHO = 0x00
 SYSEX_COMMAND_SET_SPEED = 0x01
 SYSEX_COMMAND_SEND_STEP = 0x03
 
+MOTOR_IDS = [0, 1]
+
 def pack_32(integer):
     # Little-endian
     #
@@ -101,14 +103,17 @@ b.send_sysex(SYSEX_COMMAND_ECHO, firmatify(pack_32(32767)))
 
 time.sleep(1)
 
-# Send speed of 2 RPM for 5 seconds, then 1 RPM in other direction for 5 seconds, then stop
-b.send_sysex(SYSEX_COMMAND_SET_SPEED, firmatify(pack_16(20)))
-time.sleep(5)
-b.send_sysex(SYSEX_COMMAND_SET_SPEED, firmatify(pack_16(-10)))
-time.sleep(5)
-b.send_sysex(SYSEX_COMMAND_SET_SPEED, firmatify(pack_16(0)))
-
-# Step forward 20 steps at 10 RPM, then back 10 steps at 5 RPM
-b.send_sysex(SYSEX_COMMAND_SEND_STEP, firmatify(pack_16(20) + pack_16(100)))
-time.sleep(1)
-b.send_sysex(SYSEX_COMMAND_SEND_STEP, firmatify(pack_16(10) + pack_16(-50)))
+for motor in MOTOR_IDS:
+    # Send speed of 2 RPM for 5 seconds, then 1 RPM in other direction for 5 seconds, then stop
+    b.send_sysex(SYSEX_COMMAND_SET_SPEED, firmatify(bytearray([motor]) + pack_16(20)))
+    time.sleep(5)
+    b.send_sysex(SYSEX_COMMAND_SET_SPEED,  firmatify(bytearray([motor]) + pack_16(-10)))
+    time.sleep(5)
+    b.send_sysex(SYSEX_COMMAND_SET_SPEED, firmatify(bytearray([motor]) + pack_16(0)))
+    
+    # Step forward 20 steps at 10 RPM, then back 10 steps at 5 RPM
+    b.send_sysex(SYSEX_COMMAND_SEND_STEP, firmatify(bytearray([motor]) + pack_16(20) + pack_16(100)))
+    time.sleep(1)
+    b.send_sysex(SYSEX_COMMAND_SEND_STEP, firmatify(bytearray([motor]) + pack_16(10) + pack_16(-50)))
+    
+    time.sleep(1)
