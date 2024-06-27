@@ -23,9 +23,9 @@ struct MotorInfo {
   const long full_rot_steps;
 };
 constexpr MotorInfo motor_infos[] = {
-  {2, 3, 4, 2800, 200},
-  {5, 6, 7, 2800, 200},
-  {8, 9, 10, 2800, 200}
+  {3, 2, 4, 2800, 200},
+  {6, 5, 7, 2800, 200},
+  {9, 8, 10, 2800, 200}
 };
 constexpr uint8_t num_motors = sizeof(motor_infos) / sizeof(MotorInfo); // Gross, but no type_traits support for Arduino yet
 
