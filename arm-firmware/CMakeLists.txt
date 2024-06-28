@@ -16,7 +16,6 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
         pluginlib
         rclcpp
         rclcpp_lifecycle
-        spidev_lib
         )
 
 # find dependencies
