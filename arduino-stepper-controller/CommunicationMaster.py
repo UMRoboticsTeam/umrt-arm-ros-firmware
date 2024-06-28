@@ -117,3 +117,4 @@ for motor in MOTOR_IDS:
     b.send_sysex(SYSEX_COMMAND_SEND_STEP, firmatify(bytearray([motor]) + pack_16(10) + pack_16(-50)))
     
     time.sleep(1)
+
