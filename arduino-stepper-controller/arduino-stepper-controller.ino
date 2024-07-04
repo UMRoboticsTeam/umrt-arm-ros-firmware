@@ -11,9 +11,16 @@
 // For communication between USB master and Arduino
 #include <Firmata.h>
 
+// Servo
+// https://www.arduino.cc/reference/en/libraries/servo/
+// For controlling servos
+#include <Servo.h>
+
 #define SERIAL_SPEED 57600
 
 #define MAX_STEPPERS 3
+
+constexpr uint8_t SERVO_PIN = A0;
 
 struct MotorInfo {
   const uint8_t dir_pin;
@@ -47,6 +54,7 @@ void sysex_handler(byte command, byte argc, byte* argv);
 
 ConnectionManager manager;
 MoToStepper* steppers[MAX_STEPPERS];
+Servo gripper;
 //steppers[0] = new MoToStepper(FULLROT_0, STEPDIR);
 //steppers[1] = new MoToStepper(FULLROT_1, STEPDIR);
 //steppers[2] = new MoToStepper(FULLROT_2, STEPDIR);
@@ -62,6 +70,10 @@ void setup() {
     manager.add_driver(mi.step_pin, mi.dir_pin, mi.cs_pin, mi.current, STEP_MODE);
     steppers[i]->attach(mi.step_pin, mi.dir_pin);
   }
+
+  // Setup gripper servo
+  gripper.attach(SERVO_PIN);
+  gripper.write(0);
 
   // Setup Firmata
   Firmata.setFirmwareVersion(FIRMATA_FIRMWARE_MAJOR_VERSION, FIRMATA_FIRMWARE_MINOR_VERSION);
@@ -164,6 +176,21 @@ void send_step(byte argc, byte* argv) {
   steppers[motor]->move(SGN(speed) * num_steps);
 }
 
+// Set the position of the gripper servo
+// In:  [ position (uint8_t) ]
+// Out: [ position (uint8_t) ]
+void set_gripper(byte argc, byte* argv) {
+  // Check arguments
+  //if (argc != 2) { return; }
+  
+  // Retrieve new position
+  uint8_t pos = argv[1];
+  if (pos > 180) { return; } // Don't need to check less than zero since uint
+  
+  gripper.write(pos);
+  // TODO: Finish writing response
+}
+
 int32_t decode_32(byte argc, byte* argv){
     if (argc != 4) { return 0; }
     
@@ -218,5 +245,6 @@ void sysex_handler(byte command, byte argc, byte* argv){
   case SysexCommands::SET_SPEED: set_speed(argc, argv); break;
   case SysexCommands::GET_SPEED: get_speed(argc, argv); break;
   case SysexCommands::SEND_STEP: send_step(argc, argv); break;
+  case SysexCommands::SET_GRIPPER: set_gripper(argc, argv); break;
   }
 }
