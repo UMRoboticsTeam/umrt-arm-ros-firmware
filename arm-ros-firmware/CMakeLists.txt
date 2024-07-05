@@ -28,7 +28,7 @@ add_library(
         arm_firmware
         SHARED
         hardware/diffbot_system.cpp
-)
+        hardware/include/StepperAdapter.cpp)
 target_compile_features(arm_firmware PUBLIC cxx_std_17)
 target_include_directories(arm_firmware PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>

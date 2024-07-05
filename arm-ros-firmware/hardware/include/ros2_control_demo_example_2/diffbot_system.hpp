@@ -80,11 +80,6 @@ public:
 private:
   StepperAdapter steppers;
   Config cfg;
-
-  // Store the command for the simulated robot
-  std::vector<double> hw_commands_;
-  std::vector<double> hw_positions_;
-  std::vector<double> hw_velocities_;
 };
 
 }  // namespace ros2_control_demo_example_2
