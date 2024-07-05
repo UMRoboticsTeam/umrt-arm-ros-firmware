@@ -18,6 +18,13 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
         rclcpp_lifecycle
         )
 
+# Setup Boost
+find_package(Boost REQUIRED COMPONENTS log log_setup)
+include_directories(${Boost_INCLUDE_DIRS})
+
+# Setup openFrameworksArduino
+add_subdirectory(hardware/include/openFrameworksArduino)
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
@@ -28,7 +35,8 @@ add_library(
         arm_firmware
         SHARED
         hardware/diffbot_system.cpp
-        hardware/include/StepperAdapter.cpp)
+        hardware/include/StepperAdapter.cpp
+        hardware/include/StepperController.cpp)
 target_compile_features(arm_firmware PUBLIC cxx_std_17)
 target_include_directories(arm_firmware PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
@@ -38,6 +46,12 @@ ament_target_dependencies(
         arm_firmware PUBLIC
         ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
+
+target_link_libraries(arm_firmware PRIVATE ${Boost_LIBRARIES})
+target_link_libraries(arm_firmware PRIVATE openFrameworksArduino)
+target_include_directories(arm_firmware PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/hardware/include/openFrameworksArduino/src>
+        )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
