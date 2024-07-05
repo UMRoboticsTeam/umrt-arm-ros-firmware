@@ -19,38 +19,38 @@
  * library cannot have, but the consuming code must have inorder to link.
  */
 
-#ifndef ROS2_CONTROL_DEMO_EXAMPLE_2__VISIBILITY_CONTROL_H_
-#define ROS2_CONTROL_DEMO_EXAMPLE_2__VISIBILITY_CONTROL_H_
+#ifndef ARM_FIRMWARE__VISIBILITY_CONTROL_H_
+#define ARM_FIRMWARE__VISIBILITY_CONTROL_H_
 
 // This logic was borrowed (then namespaced) from the examples on the gcc wiki:
 //     https://gcc.gnu.org/wiki/Visibility
 
 #if defined _WIN32 || defined __CYGWIN__
 #ifdef __GNUC__
-#define ROS2_CONTROL_DEMO_EXAMPLE_2_EXPORT __attribute__((dllexport))
-#define ROS2_CONTROL_DEMO_EXAMPLE_2_IMPORT __attribute__((dllimport))
+#define ARM_FIRMWARE_EXPORT __attribute__((dllexport))
+#define ARM_FIRMWARE_IMPORT __attribute__((dllimport))
 #else
-#define ROS2_CONTROL_DEMO_EXAMPLE_2_EXPORT __declspec(dllexport)
-#define ROS2_CONTROL_DEMO_EXAMPLE_2_IMPORT __declspec(dllimport)
+#define ARM_FIRMWARE_EXPORT __declspec(dllexport)
+#define ARM_FIRMWARE_IMPORT __declspec(dllimport)
 #endif
-#ifdef ROS2_CONTROL_DEMO_EXAMPLE_2_BUILDING_DLL
-#define ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC ROS2_CONTROL_DEMO_EXAMPLE_2_EXPORT
+#ifdef ARM_FIRMWARE_BUILDING_DLL
+#define ARM_FIRMWARE_PUBLIC ARM_FIRMWARE_EXPORT
 #else
-#define ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC ROS2_CONTROL_DEMO_EXAMPLE_2_IMPORT
+#define ARM_FIRMWARE_PUBLIC ARM_FIRMWARE_IMPORT
 #endif
-#define ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC_TYPE ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC
-#define ROS2_CONTROL_DEMO_EXAMPLE_2_LOCAL
+#define ARM_FIRMWARE_PUBLIC_TYPE ARM_FIRMWARE_PUBLIC
+#define ARM_FIRMWARE_LOCAL
 #else
-#define ROS2_CONTROL_DEMO_EXAMPLE_2_EXPORT __attribute__((visibility("default")))
-#define ROS2_CONTROL_DEMO_EXAMPLE_2_IMPORT
+#define ARM_FIRMWARE_EXPORT __attribute__((visibility("default")))
+#define ARM_FIRMWARE_IMPORT
 #if __GNUC__ >= 4
-#define ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC __attribute__((visibility("default")))
-#define ROS2_CONTROL_DEMO_EXAMPLE_2_LOCAL __attribute__((visibility("hidden")))
+#define ARM_FIRMWARE_PUBLIC __attribute__((visibility("default")))
+#define ARM_FIRMWARE_LOCAL __attribute__((visibility("hidden")))
 #else
-#define ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC
-#define ROS2_CONTROL_DEMO_EXAMPLE_2_LOCAL
+#define ARM_FIRMWARE_PUBLIC
+#define ARM_FIRMWARE_LOCAL
 #endif
-#define ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC_TYPE
+#define ARM_FIRMWARE_PUBLIC_TYPE
 #endif
 
-#endif  // ROS2_CONTROL_DEMO_EXAMPLE_2__VISIBILITY_CONTROL_H_
+#endif  // ARM_FIRMWARE__VISIBILITY_CONTROL_H_

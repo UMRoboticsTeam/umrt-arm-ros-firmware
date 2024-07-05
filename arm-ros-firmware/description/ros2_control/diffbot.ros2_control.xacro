@@ -6,7 +6,7 @@
     <ros2_control name="${name}" type="system">
       <xacro:unless value="${use_mock_hardware}">
         <hardware>
-          <plugin>ros2_control_demo_example_2/DiffBotSystemHardware</plugin>
+          <plugin>arm_firmware/DiffBotSystemHardware</plugin>
           <param name="left_wheel_name">left_wheel_joint</param>
           <param name="right_wheel_name">right_wheel_joint</param>
           <param name="loop_rate">30</param>

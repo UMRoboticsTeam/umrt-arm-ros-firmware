@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS2_CONTROL_DEMO_EXAMPLE_2__DIFFBOT_SYSTEM_HPP_
-#define ROS2_CONTROL_DEMO_EXAMPLE_2__DIFFBOT_SYSTEM_HPP_
+#ifndef ARM_FIRMWARE__DIFFBOT_SYSTEM_HPP_
+#define ARM_FIRMWARE__DIFFBOT_SYSTEM_HPP_
 
 #include <memory>
 #include <string>
@@ -30,11 +30,11 @@
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
-#include "ros2_control_demo_example_2/visibility_control.h"
+#include "arm_firmware/visibility_control.h"
 
 #include "StepperAdapter.hpp"
 
-namespace ros2_control_demo_example_2
+namespace arm_firmware
 {
 class DiffBotSystemHardware : public hardware_interface::SystemInterface
 {
@@ -51,29 +51,29 @@ class DiffBotSystemHardware : public hardware_interface::SystemInterface
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(DiffBotSystemHardware);
 
-  ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC
+  ARM_FIRMWARE_PUBLIC
   hardware_interface::CallbackReturn on_init(
     const hardware_interface::HardwareInfo & info) override;
 
-  ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC
+  ARM_FIRMWARE_PUBLIC
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
 
-  ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC
+  ARM_FIRMWARE_PUBLIC
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
-  ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC
+  ARM_FIRMWARE_PUBLIC
   hardware_interface::CallbackReturn on_activate(
     const rclcpp_lifecycle::State & previous_state) override;
 
-  ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC
+  ARM_FIRMWARE_PUBLIC
   hardware_interface::CallbackReturn on_deactivate(
     const rclcpp_lifecycle::State & previous_state) override;
 
-  ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC
+  ARM_FIRMWARE_PUBLIC
   hardware_interface::return_type read(
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-  ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC
+  ARM_FIRMWARE_PUBLIC
   hardware_interface::return_type write(
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
@@ -82,6 +82,6 @@ private:
   Config cfg;
 };
 
-}  // namespace ros2_control_demo_example_2
+}  // namespace arm_firmware
 
-#endif  // ROS2_CONTROL_DEMO_EXAMPLE_2__DIFFBOT_SYSTEM_HPP_
+#endif  // ARM_FIRMWARE__DIFFBOT_SYSTEM_HPP_

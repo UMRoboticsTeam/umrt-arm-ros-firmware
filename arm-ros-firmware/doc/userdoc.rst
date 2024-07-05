@@ -25,7 +25,7 @@ Tutorial steps
 
    .. code-block:: shell
 
-    ros2 launch ros2_control_demo_example_2 view_robot.launch.py
+    ros2 launch arm_firmware view_robot.launch.py
 
    .. warning::
     Getting the following output in terminal is OK: ``Warning: Invalid frame ID "odom" passed to canTransform argument target_frame - frame does not exist``.
@@ -39,7 +39,7 @@ Tutorial steps
 
    .. code-block:: shell
 
-    ros2 launch ros2_control_demo_example_2 diffbot.launch.py
+    ros2 launch arm_firmware diffbot.launch.py
 
    The launch file loads and starts the robot hardware, controllers and opens *RViz*.
    In the starting terminal you will see a lot of output from the hardware implementation showing its internal states.
@@ -120,7 +120,7 @@ Tutorial steps
     Hardware Component 1
             name: DiffBot
             type: system
-            plugin name: ros2_control_demo_example_2/DiffBotSystemHardware
+            plugin name: arm_firmware/DiffBotSystemHardware
             state: id=3 label=active
             command interfaces
                     left_wheel_joint/velocity [available] [claimed]
@@ -133,7 +133,7 @@ Tutorial steps
 
   .. code-block:: shell
 
-    ros2 launch ros2_control_demo_example_2 diffbot.launch.py use_mock_hardware:=True
+    ros2 launch arm_firmware diffbot.launch.py use_mock_hardware:=True
 
   Calling
 
