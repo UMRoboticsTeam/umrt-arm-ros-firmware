@@ -3,7 +3,8 @@
 
 #include <cstddef>
 #include <exception>
-#include <array>
+#include <vector>
+#include <thread>
 
 #include "StepperController.h"
 
@@ -35,6 +36,10 @@ protected:
     std::vector<double> commands;
     std::vector<double> positions;
     std::vector<double> velocities;
+
+    std::thread polling_thread;
+
+    [[noreturn]] void poll();
 
     void initializedCheck();
 

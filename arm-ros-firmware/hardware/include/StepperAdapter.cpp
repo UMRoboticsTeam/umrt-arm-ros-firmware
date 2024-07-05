@@ -4,11 +4,14 @@
 
 #include "StepperAdapter.hpp"
 
-
 void StepperAdapter::init(std::size_t NUM_JOINTS) {
     this->positions.resize(NUM_JOINTS);
     this->velocities.resize(NUM_JOINTS);
     this->commands.resize(NUM_JOINTS);
+
+    // Start the polling loop
+    this->polling_thread = std::thread(&StepperAdapter::poll, this);
+
     this->initialized = true;
 }
 
@@ -49,6 +52,14 @@ void StepperAdapter::readValues(){
         // TODO: Update positions/velocity vectors with info with GET_SPEED etc. requests through controller
         this->positions[i] = this->commands[i];
         this->velocities[i] = this->commands[i];
+    }
+}
+
+[[noreturn]] void StepperAdapter::poll() {
+    // Run update loop forever
+    // TODO: Look into a better way of doing the polling loop which isn't so intensive
+    for (;;) {
+        this->controller.update();
     }
 }
 
