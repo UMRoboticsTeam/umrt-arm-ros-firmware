@@ -94,6 +94,8 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
     }
   }
 
+  steppers.init(info_.joints.size());
+
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -103,9 +105,9 @@ std::vector<hardware_interface::StateInterface> DiffBotSystemHardware::export_st
   for (auto i = 0u; i < info_.joints.size(); i++)
   {
     state_interfaces.emplace_back(hardware_interface::StateInterface(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_positions_[i]));
+      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &steppers.getPositionRef(i)));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
-      info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &hw_velocities_[i]));
+      info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers.getVelocityRef(i)));
   }
 
   return state_interfaces;
@@ -117,7 +119,7 @@ std::vector<hardware_interface::CommandInterface> DiffBotSystemHardware::export_
   for (auto i = 0u; i < info_.joints.size(); i++)
   {
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
-      info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &hw_commands_[i]));
+      info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers.getCommandRef(i)));
   }
 
   return command_interfaces;
@@ -128,7 +130,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_activate(
 {
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Activating ...please wait...");
 
-  steppers.connect();
+  steppers.connect(cfg.device, cfg.baud_rate);
 
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully activated!");
 
@@ -150,7 +152,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_deactivate(
 hardware_interface::return_type DiffBotSystemHardware::read(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & period)
 {
-  steppers.readPosition();
+    steppers.readValues();
 
   return hardware_interface::return_type::OK;
 }
