@@ -25,6 +25,12 @@ include_directories(${Boost_INCLUDE_DIRS})
 # Setup openFrameworksArduino
 add_subdirectory(hardware/include/openFrameworksArduino)
 
+# Setup ros2_control_demo_description
+install(
+        DIRECTORY hardware/include/ros2_control_demo_description/diffbot/urdf hardware/include/ros2_control_demo_description/diffbot/rviz
+        DESTINATION share/${PROJECT_NAME}/ros2_control_demo_description/diffbot
+)
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
