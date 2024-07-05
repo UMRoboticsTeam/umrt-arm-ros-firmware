@@ -4,7 +4,7 @@ project(arm_firmware)
 set(CMAKE_CXX_STANDARD 14)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
-    add_compile_options(-Wall -Wextra)
+    add_compile_options(-Wall -Wextra -fPIC)
 endif()
 
 # Fixes intellisense not finding ros2 headers https://youtrack.jetbrains.com/issue/CPP-29747/Certain-ROS2-package-headers-missing-from-Intellisense-when-using-a-Docker-toolchain
