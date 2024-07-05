@@ -32,7 +32,7 @@
 
 #include "ros2_control_demo_example_2/visibility_control.h"
 
-#include "SPIComms.hpp"
+#include "StepperAdapter.hpp"
 
 namespace ros2_control_demo_example_2
 {
@@ -78,7 +78,7 @@ public:
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
-  SPIComms spiComms;
+  StepperAdapter steppers;
   Config cfg;
 
   // Store the command for the simulated robot

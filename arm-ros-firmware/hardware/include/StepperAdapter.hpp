@@ -3,7 +3,7 @@
 
 #include <vector>
 
-class SPIComms {
+class StepperAdapter {
 public:
     void init();
 

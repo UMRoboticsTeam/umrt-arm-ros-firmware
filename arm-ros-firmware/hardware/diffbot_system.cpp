@@ -128,7 +128,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_activate(
 {
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Activating ...please wait...");
 
-  spiComms.connect();
+  steppers.connect();
 
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully activated!");
 
@@ -140,7 +140,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_deactivate(
 {
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Deactivating ...please wait...");
 
-  spiComms.disconnect();
+  steppers.disconnect();
 
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully deactivated!");
 
@@ -150,7 +150,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_deactivate(
 hardware_interface::return_type DiffBotSystemHardware::read(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & period)
 {
-  spiComms.readPosition();
+  steppers.readPosition();
 
   return hardware_interface::return_type::OK;
 }
@@ -158,7 +158,7 @@ hardware_interface::return_type DiffBotSystemHardware::read(
 hardware_interface::return_type ros2_control_demo_example_2 ::DiffBotSystemHardware::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
-  spiComms.setValues();
+  steppers.setValues();
 
   return hardware_interface::return_type::OK;
 }
