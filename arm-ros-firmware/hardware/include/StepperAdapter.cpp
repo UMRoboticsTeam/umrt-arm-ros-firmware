@@ -40,7 +40,7 @@ double& StepperAdapter::getCommandRef(std::size_t index) {
 void StepperAdapter::setValues() {
     initializedCheck();
     for (auto i = 0u; i < commands.size(); ++i) {
-        this->controller.setSpeed(i, this->commands[i]);
+        this->controller.setSpeed(i, (int16_t)std::round(10*this->commands[i]));
     }
 }
 
