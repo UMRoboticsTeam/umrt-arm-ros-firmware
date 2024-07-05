@@ -1,5 +1,5 @@
-#ifndef SPI_COMMS_HPP_
-#define SPI_COMMS_HPP_
+#ifndef STEPPER_ADAPTER_HPP
+#define STEPPER_ADAPTER_HPP
 
 #include <cstddef>
 #include <exception>
@@ -42,4 +42,4 @@ private:
     bool initialized = false;
 };
 
-#endif
+#endif // STEPPER_ADAPTER_HPP
