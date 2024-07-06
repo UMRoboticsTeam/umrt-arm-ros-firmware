@@ -6,4 +6,6 @@ RUN sudo apt update && sudo apt install -y \
 	gdb \
 	gdbserver \
 	libboost-all-dev \
+    ros-humble-xacro \
+    less \
  && rm -rf /var/lib/apt/lists/*
