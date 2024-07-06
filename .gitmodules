@@ -1,0 +1,3 @@
+[submodule "communication-master-example/openFrameworksArduino/openFrameworksArduino"]
+	path = communication-master-example/openFrameworksArduino/openFrameworksArduino
+	url = https://github.com/NeuroRoboticTech/openFrameworksArduino
