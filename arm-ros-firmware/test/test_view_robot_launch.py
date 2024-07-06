@@ -44,7 +44,7 @@ def generate_test_description():
     launch_include = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
-                get_package_share_directory("arm_firmware"),
+                get_package_share_directory("arm_ros_firmware"),
                 "launch/view_robot.launch.py",
             )
         ),

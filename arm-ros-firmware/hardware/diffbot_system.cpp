@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "arm_firmware/diffbot_system.hpp"
+#include "arm_ros_firmware/diffbot_system.hpp"
 
 #include <chrono>
 #include <cmath>
@@ -25,7 +25,7 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-namespace arm_firmware
+namespace arm_ros_firmware
 {
 hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
   const hardware_interface::HardwareInfo & info)
@@ -157,7 +157,7 @@ hardware_interface::return_type DiffBotSystemHardware::read(
   return hardware_interface::return_type::OK;
 }
 
-hardware_interface::return_type arm_firmware ::DiffBotSystemHardware::write(
+hardware_interface::return_type arm_ros_firmware ::DiffBotSystemHardware::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
   steppers.setValues();
@@ -167,8 +167,8 @@ hardware_interface::return_type arm_firmware ::DiffBotSystemHardware::write(
 
 // What about onShutdown???
 
-}  // namespace arm_firmware
+}  // namespace arm_ros_firmware
 
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(
-  arm_firmware::DiffBotSystemHardware, hardware_interface::SystemInterface)
+  arm_ros_firmware::DiffBotSystemHardware, hardware_interface::SystemInterface)

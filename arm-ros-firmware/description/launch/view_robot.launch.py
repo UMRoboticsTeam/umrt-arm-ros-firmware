@@ -61,7 +61,7 @@ def generate_launch_description():
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare("arm_firmware"), "urdf", description_file]
+                [FindPackageShare("arm_ros_firmware"), "urdf", description_file]
             ),
             " ",
             "prefix:=",

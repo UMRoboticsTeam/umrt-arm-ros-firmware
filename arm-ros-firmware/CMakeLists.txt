@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(arm_firmware)
+project(arm_ros_firmware)
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -38,49 +38,49 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
 endforeach()
 
 add_library(
-        arm_firmware
+        arm_ros_firmware
         SHARED
         hardware/diffbot_system.cpp
         hardware/include/StepperAdapter.cpp
         hardware/include/StepperController.cpp)
-target_compile_features(arm_firmware PUBLIC cxx_std_17)
-target_include_directories(arm_firmware PUBLIC
+target_compile_features(arm_ros_firmware PUBLIC cxx_std_17)
+target_include_directories(arm_ros_firmware PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
-        $<INSTALL_INTERFACE:include/arm_firmware>
+        $<INSTALL_INTERFACE:include/arm_ros_firmware>
         )
 ament_target_dependencies(
-        arm_firmware PUBLIC
+        arm_ros_firmware PUBLIC
         ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 
-target_link_libraries(arm_firmware PRIVATE ${Boost_LIBRARIES})
-target_link_libraries(arm_firmware PRIVATE openFrameworksArduino)
-target_include_directories(arm_firmware PUBLIC
+target_link_libraries(arm_ros_firmware PRIVATE ${Boost_LIBRARIES})
+target_link_libraries(arm_ros_firmware PRIVATE openFrameworksArduino)
+target_include_directories(arm_ros_firmware PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/hardware/include/openFrameworksArduino/src>
         )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
-target_compile_definitions(${PROJECT_NAME} PRIVATE "ARM_FIRMWARE_BUILDING_DLL")
+target_compile_definitions(${PROJECT_NAME} PRIVATE "ARM_ROS_FIRMWARE_BUILDING_DLL")
 
 # Export hardware plugins
-pluginlib_export_plugin_description_file(hardware_interface arm_firmware.xml)
+pluginlib_export_plugin_description_file(hardware_interface arm_ros_firmware.xml)
 
 # INSTALL
 install(
         DIRECTORY hardware/include/
-        DESTINATION include/arm_firmware
+        DESTINATION include/arm_ros_firmware
 )
 install(
         DIRECTORY description/launch description/ros2_control description/urdf
-        DESTINATION share/arm_firmware
+        DESTINATION share/arm_ros_firmware
 )
 install(
         DIRECTORY bringup/launch bringup/config
-        DESTINATION share/arm_firmware
+        DESTINATION share/arm_ros_firmware
 )
-install(TARGETS arm_firmware
-        EXPORT export_arm_firmware
+install(TARGETS arm_ros_firmware
+        EXPORT export_arm_ros_firmware
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib
         RUNTIME DESTINATION bin
@@ -94,6 +94,6 @@ if(BUILD_TESTING)
 endif()
 
 ## EXPORTS
-ament_export_targets(export_arm_firmware HAS_LIBRARY_TARGET)
+ament_export_targets(export_arm_ros_firmware HAS_LIBRARY_TARGET)
 ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 ament_package()
