@@ -1,3 +1,6 @@
 [submodule "communication-master-example/openFrameworksArduino/openFrameworksArduino"]
 	path = communication-master-example/openFrameworksArduino/openFrameworksArduino
 	url = https://github.com/NeuroRoboticTech/openFrameworksArduino
+[submodule "arm-ros-firmware/hardware/include/openFrameworksArduino/openFrameworksArduino"]
+	path = arm-ros-firmware/hardware/include/openFrameworksArduino/openFrameworksArduino
+	url = https://github.com/NeuroRoboticTech/openFrameworksArduino
