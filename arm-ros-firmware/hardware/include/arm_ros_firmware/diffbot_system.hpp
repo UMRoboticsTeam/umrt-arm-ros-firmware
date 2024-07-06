@@ -61,6 +61,14 @@ public:
   ARM_ROS_FIRMWARE_PUBLIC
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
+    ARM_ROS_FIRMWARE_PUBLIC
+    hardware_interface::CallbackReturn on_configure(
+            const rclcpp_lifecycle::State & previous_state) override;
+
+    ARM_ROS_FIRMWARE_PUBLIC
+    hardware_interface::CallbackReturn on_cleanup(
+            const rclcpp_lifecycle::State & previous_state) override;
+
   ARM_ROS_FIRMWARE_PUBLIC
   hardware_interface::CallbackReturn on_activate(
     const rclcpp_lifecycle::State & previous_state) override;
