@@ -56,7 +56,7 @@ ament_target_dependencies(
 target_link_libraries(arm_ros_firmware PRIVATE ${Boost_LIBRARIES})
 target_link_libraries(arm_ros_firmware PRIVATE openFrameworksArduino)
 target_include_directories(arm_ros_firmware PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/hardware/include/openFrameworksArduino/src>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/hardware/include/openFrameworksArduino/openFrameworksArduino/src>
         )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
