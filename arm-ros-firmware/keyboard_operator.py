@@ -11,8 +11,8 @@ VELOCITY = 200.0
 SHIFT_VELOCITY = 20.0
 GRIPPER_RATE = 5
 SHIFT_GRIPPER_RATE = 1
-MIN_GRIPPER = 0
-MAX_GRIPPER = 180
+MIN_GRIPPER = 0.0
+MAX_GRIPPER = 180.0
 
 class KeyboardController(Node):
 
@@ -20,13 +20,13 @@ class KeyboardController(Node):
         super().__init__('arm_keyboard_controller')
 
         self.vel_publisher = self.create_publisher(Float64MultiArray, '/diffbot_base_controller/commands', 10)
-        #self.gripper_publisher = self.create_publisher(Float64MultiArray, '/gripper_controller/commands', 10)
+        self.gripper_publisher = self.create_publisher(Float64MultiArray, '/gripper_controller/commands', 10)
 
     def run(self):
         print("""
         x: Force stop
         
-        Manipulating arm ({rpm:.2f} rpm / {shift_rpm:.2f} rpm with SHIFT):
+        Manipulating arm ({rpm:.2f} rpm / {shift_rpm:.2f} rpm with Shift):
              w
         a    s    d
         
@@ -87,7 +87,7 @@ class KeyboardController(Node):
                     gripper_pos += SHIFT_GRIPPER_RATE
                 elif key == 'E':  # Close grippper-slow
                     gripper_pos -= SHIFT_GRIPPER_RATE
-                elif key == 'q': # Open gripper
+                elif key == 'q':  # Open gripper
                     gripper_pos += GRIPPER_RATE
                 elif key == 'e':  # Close grippper
                     gripper_pos -= GRIPPER_RATE
@@ -104,7 +104,7 @@ class KeyboardController(Node):
                 ros_gripper.data = [gripper_pos]
 
                 self.vel_publisher.publish(ros_vel)
-                #self.gripper_publisher.publish(ros_gripper)
+                self.gripper_publisher.publish(ros_gripper)
 
 def main(args=None):
     rclpy.init(args=args)
