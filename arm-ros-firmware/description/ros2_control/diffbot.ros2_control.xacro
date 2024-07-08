@@ -17,12 +17,17 @@
           <param name="calculate_dynamics">true</param>
         </hardware>
       </xacro:if>
-      <joint name="${prefix}left_wheel_joint">
+      <joint name="${prefix}base_yaw_joint">
         <command_interface name="velocity"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
       </joint>
-      <joint name="${prefix}right_wheel_joint">
+      <joint name="${prefix}base_pitch_joint">
+        <command_interface name="velocity"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+      <joint name="${prefix}elbow_0_joint">
         <command_interface name="velocity"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
