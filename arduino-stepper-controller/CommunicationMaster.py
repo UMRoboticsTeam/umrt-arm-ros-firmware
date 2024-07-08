@@ -1,7 +1,7 @@
 from pyfirmata2 import Arduino, util
 import time
 
-COM_PORT = 'COM3'
+COM_PORT = '/dev/umrt-arm'
 SYSEX_COMMAND_ECHO = 0x00
 SYSEX_COMMAND_SET_SPEED = 0x01
 SYSEX_COMMAND_SEND_STEP = 0x03
