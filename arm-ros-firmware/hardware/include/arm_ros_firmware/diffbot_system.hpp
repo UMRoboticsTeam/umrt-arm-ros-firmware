@@ -39,13 +39,8 @@ namespace arm_ros_firmware
 class DiffBotSystemHardware : public hardware_interface::SystemInterface
 {
   struct Config {
-    std::string left_wheel_name = "";
-    std::string right_wheel_name = "";
-    float loop_rate = 0.0;
     std::string device = "";
     int baud_rate = 0;
-    int timeout_ms = 0;
-    int enc_counts_per_rev = 0;
   };
 
 public:
