@@ -52,9 +52,19 @@ double& StepperAdapter::getVelocityRef(std::size_t index) {
     return this->velocities[index];
 }
 
+double& StepperAdapter::getGripperPositionRef() {
+    initializedCheck();
+    return this->gripper_position;
+}
+
 double& StepperAdapter::getCommandRef(std::size_t index) {
     initializedCheck();
     return this->commands[index];
+}
+
+double& StepperAdapter::getGripperPositionCommandRef() {
+    initializedCheck();
+    return this->cmd_gripper_pos;
 }
 
 void StepperAdapter::setValues() {
@@ -62,6 +72,8 @@ void StepperAdapter::setValues() {
     for (auto i = 0u; i < commands.size(); ++i) {
         this->controller.setSpeed(i, (int16_t)std::round(10*this->commands[i]));
     }
+
+    this->controller.setGripper((uint8_t)std::round(this->cmd_gripper_pos));
 }
 
 void StepperAdapter::readValues(){
@@ -70,12 +82,15 @@ void StepperAdapter::readValues(){
         this->positions[i] = this->commands[i];
         this->velocities[i] = this->commands[i];
     }
+
+    this->gripper_position = this->cmd_gripper_pos;
 }
 
 [[noreturn]] void StepperAdapter::poll() {
     // Run update loop forever
     // TODO: Look into a better way of doing the polling loop which isn't so intensive
     for (;;) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
         this->controller.update();
     }
 }

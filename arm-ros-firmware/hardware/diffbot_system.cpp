@@ -94,6 +94,46 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
     }
   }
 
+  for (const hardware_interface::ComponentInfo & gpio : info_.gpios)
+  {
+    // Gripper has exactly one states and one command interface
+    if (gpio.command_interfaces.size() != 1)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("DiffBotSystemHardware"),
+        "GPIO '%s' has %zu command interfaces found. 1 expected.", gpio.name.c_str(),
+        gpio.command_interfaces.size());
+      return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    if (gpio.command_interfaces[0].name != hardware_interface::HW_IF_POSITION)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("DiffBotSystemHardware"),
+        "GPIO '%s' have %s command interfaces found. '%s' expected.", gpio.name.c_str(),
+        gpio.command_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION);
+      return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    if (gpio.state_interfaces.size() != 1)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("DiffBotSystemHardware"),
+        "GPIO '%s' has %zu state interface. 2 expected.", gpio.name.c_str(),
+        gpio.state_interfaces.size());
+      return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    if (gpio.state_interfaces[0].name != hardware_interface::HW_IF_POSITION)
+    {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("DiffBotSystemHardware"),
+        "GPIO '%s' have '%s' as first state interface. '%s' expected.", gpio.name.c_str(),
+        gpio.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION);
+      return hardware_interface::CallbackReturn::ERROR;
+    }
+  }
+
   steppers.init(info_.joints.size());
 
   return hardware_interface::CallbackReturn::SUCCESS;
@@ -110,6 +150,9 @@ std::vector<hardware_interface::StateInterface> DiffBotSystemHardware::export_st
       info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers.getVelocityRef(i)));
   }
 
+  state_interfaces.emplace_back(hardware_interface::StateInterface(
+    info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers.getGripperPositionRef()));
+
   return state_interfaces;
 }
 
@@ -121,6 +164,9 @@ std::vector<hardware_interface::CommandInterface> DiffBotSystemHardware::export_
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers.getCommandRef(i)));
   }
+
+  command_interfaces.emplace_back(hardware_interface::CommandInterface(
+    info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers.getGripperPositionCommandRef()));
 
   return command_interfaces;
 }

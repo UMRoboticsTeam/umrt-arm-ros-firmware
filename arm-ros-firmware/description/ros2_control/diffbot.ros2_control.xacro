@@ -32,6 +32,10 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
       </joint>
+      <gpio name="${prefix}gripper">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </gpio>
     </ros2_control>
 
   </xacro:macro>

@@ -24,7 +24,11 @@ public:
 
     double& getVelocityRef(std::size_t index);
 
+    double& getGripperPositionRef();
+
     double& getCommandRef(std::size_t index);
+
+    double& getGripperPositionCommandRef();
 
 protected:
     StepperController controller;
@@ -36,6 +40,8 @@ protected:
     std::vector<double> commands;
     std::vector<double> positions;
     std::vector<double> velocities;
+    double gripper_position;
+    double cmd_gripper_pos;
 
     std::thread polling_thread;
 
