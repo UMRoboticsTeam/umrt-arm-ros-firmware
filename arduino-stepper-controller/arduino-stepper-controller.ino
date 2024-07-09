@@ -46,6 +46,7 @@ void echo(byte argc, byte* argv);
 void set_speed(byte argc, byte* argv);
 void get_speed(byte argc, byte* argv);
 void send_step(byte argc, byte* argv);
+void set_gripper(byte argc, byte* argv);
 int32_t decode_32(byte argc, byte* argv);
 int16_t decode_16(byte argc, byte* argv);
 void pack_32(byte* arr, int32_t integer);
@@ -184,7 +185,7 @@ void set_gripper(byte argc, byte* argv) {
   //if (argc != 2) { return; }
   
   // Retrieve new position
-  uint8_t pos = argv[1];
+  uint8_t pos = argv[0];
   if (pos > 180) { return; } // Don't need to check less than zero since uint
   
   gripper.write(pos);
