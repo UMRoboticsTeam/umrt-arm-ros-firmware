@@ -84,13 +84,13 @@ class KeyboardController(Node):
                     vel[2] = 0.0
 
                 if key == 'Q': # Open gripper-slow
-                    gripper_pos += SHIFT_GRIPPER_RATE
-                elif key == 'E':  # Close grippper-slow
                     gripper_pos -= SHIFT_GRIPPER_RATE
-                elif key == 'q':  # Open gripper
-                    gripper_pos += GRIPPER_RATE
-                elif key == 'e':  # Close grippper
+                elif key == 'E':  # Close grippper-slow
+                    gripper_pos += SHIFT_GRIPPER_RATE
+                elif key == 'q':  # Close gripper
                     gripper_pos -= GRIPPER_RATE
+                elif key == 'e':  # Open grippper
+                    gripper_pos += GRIPPER_RATE
 
                 if key == 'x':  # Force stop - comes last to override others
                     vel = [0.0, 0.0, 0.0]
