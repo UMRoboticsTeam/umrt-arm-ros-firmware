@@ -1,8 +1,5 @@
-//
-// Created by Noah on 2024-07-05.
-//
-
 #include "StepperAdapter.hpp"
+
 #include <boost/log/trivial.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/utility/setup/file.hpp>
@@ -10,7 +7,7 @@
 constexpr boost::log::trivial::severity_level LOG_LEVEL = boost::log::trivial::debug;
 constexpr uint32_t TOTAL_LOG_SIZE = 100 * 1024 * 1024; // 100 MiB
 
-void StepperAdapter::init(std::size_t NUM_JOINTS) {
+void StepperAdapter::init(const std::size_t NUM_JOINTS) {
     // Setup logging
     boost::log::add_file_log(
             boost::log::keywords::file_name = "[%TimeStamp%]_%N.log",
@@ -22,6 +19,8 @@ void StepperAdapter::init(std::size_t NUM_JOINTS) {
     boost::log::add_common_attributes();
     BOOST_LOG_TRIVIAL(debug) << "Logging started";
 
+    // Set the size of the vectors
+    // See note in header about how important it is for these to not change
     this->positions.resize(NUM_JOINTS);
     this->velocities.resize(NUM_JOINTS);
     this->commands.resize(NUM_JOINTS);
@@ -70,13 +69,14 @@ double& StepperAdapter::getGripperPositionCommandRef() {
 void StepperAdapter::setValues() {
     initializedCheck();
     for (auto i = 0u; i < commands.size(); ++i) {
-        this->controller.setSpeed(i, (int16_t)std::round(10*this->commands[i]));
+        // Note that the StepperController speed is specified in units of in 1/10 rpm
+        this->controller.setSpeed(i, (int16_t)std::round(10 * this->commands[i]));
     }
 
     this->controller.setGripper((uint8_t)std::round(this->cmd_gripper_pos));
 }
 
-void StepperAdapter::readValues(){
+void StepperAdapter::readValues() {
     for (auto i = 0u; i < commands.size(); ++i) {
         // TODO: Update positions/velocity vectors with info with GET_SPEED etc. requests through controller
         this->positions[i] = this->commands[i];
