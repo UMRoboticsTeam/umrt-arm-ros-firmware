@@ -81,11 +81,6 @@ void setup() {
   Firmata.attach(STRING_DATA, echo_string);
   Firmata.attach(SysexCommands::ECHO, sysex_handler); // Contrary to what one might expect, if the command parameter isn't well-known, it is ignored and sysex_handler is used for all unknown messages
   Firmata.begin(SERIAL_SPEED);
-
-  // =========TESTING=========
-  steppers[0]->setSpeed(10); // 1 RPM
-  steppers[0]->rotate(1);
-  // =========================
 }
 
 void loop() {
