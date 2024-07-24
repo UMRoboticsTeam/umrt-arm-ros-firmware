@@ -1,0 +1,15 @@
+[Unit]
+Description=UMRT robotic arm ROS firmware service
+StartLimitIntervalSec=120
+StartLimitBurst=3
+Requires=docker.service
+Requires=containerd.service
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=30
+User=root
+ExecStart=/bin/bash /etc/arm-firmware/launch.sh
+ExecStop=/bin/bash /etc/arm-firmware/stop.sh
+KillMode=mixed
