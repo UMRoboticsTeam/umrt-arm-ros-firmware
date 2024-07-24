@@ -8,4 +8,6 @@ RUN sudo apt update && sudo apt install -y \
 	libboost-all-dev \
     ros-humble-xacro \
     less \
+    python3-curtsies \
+    python-is-python3 \
  && rm -rf /var/lib/apt/lists/*
