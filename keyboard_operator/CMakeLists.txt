@@ -13,7 +13,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 
-add_executable(keyboard_operator src/keyboard_operator.cpp)
+add_executable(keyboard_operator src/keyboard_operator.cpp include/keyboard_operator/KeyboardController.cpp)
 ament_target_dependencies(keyboard_operator rclcpp std_msgs)
 
 if(BUILD_TESTING)
