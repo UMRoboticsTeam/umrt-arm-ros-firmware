@@ -10,4 +10,5 @@ RUN sudo apt update && sudo apt install -y \
     less \
     python3-curtsies \
     python-is-python3 \
+    libevdev-dev \
  && rm -rf /var/lib/apt/lists/*

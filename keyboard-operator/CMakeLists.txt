@@ -12,12 +12,15 @@ find_package(ament_cmake REQUIRED)
 # find_package(<dependency> REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_search_module(LIBEVDEV REQUIRED libevdev)
 
 add_executable(keyboard_operator src/keyboard_operator.cpp include/keyboard_operator/KeyboardController.cpp)
 target_include_directories(keyboard_operator PUBLIC
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include ${LIBEVDEV_INCLUDE_DIRS}>
         $<INSTALL_INTERFACE:include/keyboard_operator>
         )
+target_link_libraries(keyboard_operator ${LIBEVDEV_LIBRARIES})
 ament_target_dependencies(keyboard_operator rclcpp std_msgs)
 
 if(BUILD_TESTING)
