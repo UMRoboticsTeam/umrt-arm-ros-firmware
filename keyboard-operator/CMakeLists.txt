@@ -14,6 +14,10 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 
 add_executable(keyboard_operator src/keyboard_operator.cpp include/keyboard_operator/KeyboardController.cpp)
+target_include_directories(keyboard_operator PUBLIC
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include/keyboard_operator>
+        )
 ament_target_dependencies(keyboard_operator rclcpp std_msgs)
 
 if(BUILD_TESTING)

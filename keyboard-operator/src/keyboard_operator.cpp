@@ -5,6 +5,11 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 
-int main(void) {
+#include "keyboard_operator/KeyboardController.h"
 
+int main(int argc, char* argv[]) {
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<KeyboardController>());
+    rclcpp::shutdown();
+    return 0;
 }
