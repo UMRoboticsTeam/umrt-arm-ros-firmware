@@ -6,22 +6,23 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 # find dependencies
-find_package(ament_cmake REQUIRED)
+#find_package(ament_cmake REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(std_msgs REQUIRED)
+#find_package(rclcpp REQUIRED)
+#find_package(std_msgs REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(Curses REQUIRED)
 pkg_search_module(LIBEVDEV REQUIRED libevdev)
 
-add_executable(keyboard_operator src/keyboard_operator.cpp include/keyboard_operator/KeyboardController.cpp)
+add_executable(keyboard_operator src/keyboard_operator.cpp)# //include/keyboard_operator/KeyboardController.cpp)
 target_include_directories(keyboard_operator PUBLIC
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include ${LIBEVDEV_INCLUDE_DIRS}>
+        $<BUILD_INTERFACE:${CURSES_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/include >
         $<INSTALL_INTERFACE:include/keyboard_operator>
         )
-target_link_libraries(keyboard_operator ${LIBEVDEV_LIBRARIES})
-ament_target_dependencies(keyboard_operator rclcpp std_msgs)
+target_link_libraries(keyboard_operator ${CURSES_LIBRARIES})
+#ament_target_dependencies(keyboard_operator rclcpp std_msgs)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -39,4 +40,4 @@ install(TARGETS
         keyboard_operator
         DESTINATION lib/${PROJECT_NAME})
 
-ament_package()
+#ament_package()
