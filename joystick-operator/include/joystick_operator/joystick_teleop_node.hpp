@@ -15,7 +15,7 @@
 #include "sensor_msgs/msg/joy.hpp"
 #include "std_msgs/msg/float64_multi_array.hpp"
 
-class JoystickTeleopNode : rclcpp::Node {
+class JoystickTeleopNode : public rclcpp::Node {
 public:
     static inline const std::unordered_map<std::string, std::tuple<boost::variant<int, double, std::string>, std::string>> DEFAULT_PARAMETERS = {
         {"deadman_button", {0, "Joystick button to enable movement (int)"}},
