@@ -34,11 +34,18 @@ public:
         {"gripper_topic", {"/gripper_pos", "Topic to publish gripper positions to (string)"}},
         {"joy_topic", {"/joy", "Topic to read Joy messages from (string)"}}
     };
+    static constexpr int PUBLISHER_QUEUE_DEPTH = 10;
 
     JoystickTeleopNode();
 
 protected:
     void initializeParameters();
+
+    void handleJoy(const sensor_msgs::msg::Joy::ConstSharedPtr& msg);
+
+    rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr vel_publisher;
+    rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr gripper_publisher;
+    rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_subscriber;
 
     // Should be treated as const, not const because initializing with initializer list was inconvenient and ugly
     int deadman_button;

@@ -5,8 +5,16 @@
 #include "joystick_operator/joystick_teleop_node.hpp"
 
 
-JoystickTeleopNode::JoystickTeleopNode() {
+JoystickTeleopNode::JoystickTeleopNode() : Node("joystick_teleop") {
     this->initializeParameters();
+
+    this->vel_publisher = this->create_publisher<std_msgs::msg::Float64MultiArray>(this->vel_topic, JoystickTeleopNode::PUBLISHER_QUEUE_DEPTH);
+    this->gripper_publisher = this->create_publisher<std_msgs::msg::Float64MultiArray>(this->gripper_topic, JoystickTeleopNode::PUBLISHER_QUEUE_DEPTH);
+    this->joy_subscriber = this->create_subscription<sensor_msgs::msg::Joy>(
+            this->joy_topic,
+            10,
+            [this](const sensor_msgs::msg::Joy::ConstSharedPtr& msg) { this->handleJoy(msg); }
+    );
 }
 
 void JoystickTeleopNode::initializeParameters() {
