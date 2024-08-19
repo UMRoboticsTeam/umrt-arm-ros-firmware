@@ -48,13 +48,13 @@ protected:
     rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_subscriber;
 
     // Should be treated as const, not const because initializing with initializer list was inconvenient and ugly
-    int deadman_button;
-    int slow_button;
-    int gripper_open_button;
-    int gripper_close_button;
-    int axis_x;
-    int axis_y;
-    int axis_z;
+    size_t deadman_button;
+    size_t slow_button;
+    size_t gripper_open_button;
+    size_t gripper_close_button;
+    size_t axis_x;
+    size_t axis_y;
+    size_t axis_z;
     double axis_speed;
     double gripper_speed;
     double slow_modifier;
