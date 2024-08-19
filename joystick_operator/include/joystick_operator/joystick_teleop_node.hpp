@@ -17,7 +17,7 @@
 
 class JoystickTeleopNode : rclcpp::Node {
 public:
-    static inline const std::unordered_map<std::string, std::tuple<boost::variant<int, double>, std::string>> DEFAULT_PARAMETERS = {
+    static inline const std::unordered_map<std::string, std::tuple<boost::variant<int, double, std::string>, std::string>> DEFAULT_PARAMETERS = {
         {"deadman_button", {0, "Joystick button to enable movement (int)"}},
         {"slow_button", {1, "Joystick button to move at a slower speed (int)"}},
         {"gripper_open_button", {2, "Joystick button to open the gripper (int)"}},
@@ -29,7 +29,10 @@ public:
         {"gripper_speed", {50.0, "Speed to move the gripper at when a button is held, in (% of range)/s (double)"}},
         {"slow_modifier", {0.1, "Multiplier to apply to speeds when the slow button is held (double)"}},
         {"gripper_min", {0, "Minimum value to allow gripper to be set to, also used in conjunction with gripper_max to determine the range for gripper_speed (int)"}},
-        {"gripper_max", {180, "Maximum value to allow gripper to be set to, also used in conjunction with gripper_min to determine the range for gripper_speed (int)"}}
+        {"gripper_max", {180, "Maximum value to allow gripper to be set to, also used in conjunction with gripper_min to determine the range for gripper_speed (int)"}},
+        {"vel_topic", {"/cmd_vel", "Topic to publish joint speeds to (string)"}},
+        {"gripper_topic", {"/gripper_pos", "Topic to publish gripper positions to (string)"}},
+        {"joy_topic", {"/joy", "Topic to read Joy messages from (string)"}}
     };
 
     JoystickTeleopNode();
@@ -50,6 +53,9 @@ protected:
     double slow_modifier;
     int gripper_min;
     int gripper_max;
+    std::string vel_topic;
+    std::string gripper_topic;
+    std::string joy_topic;
 };
 
 

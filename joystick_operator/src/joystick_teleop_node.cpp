@@ -23,6 +23,9 @@ void JoystickTeleopNode::initializeParameters() {
             slow_modifier
             gripper_min
             gripper_max
+            vel_topic
+            joy_topic
+            gripper_topic
         Find:
             \s*(\w+)$
         Replace:
@@ -45,7 +48,7 @@ void JoystickTeleopNode::initializeParameters() {
     deadman_button_d.read_only = true;
     deadman_button_d.dynamic_typing = false;
     this->declare_parameter(deadman_button_d.name, boost::get<int>(deadman_button_default), deadman_button_d);
-	this->deadman_button = this->get_parameter("deadman_button").as_int();
+    this->deadman_button = this->get_parameter("deadman_button").as_int();
 
     rcl_interfaces::msg::ParameterDescriptor slow_button_d;
     slow_button_d.name = "slow_button";
@@ -55,7 +58,7 @@ void JoystickTeleopNode::initializeParameters() {
     slow_button_d.read_only = true;
     slow_button_d.dynamic_typing = false;
     this->declare_parameter(slow_button_d.name, boost::get<int>(slow_button_default), slow_button_d);
-	this->slow_button = this->get_parameter("slow_button").as_int();
+    this->slow_button = this->get_parameter("slow_button").as_int();
 
     rcl_interfaces::msg::ParameterDescriptor gripper_open_button_d;
     gripper_open_button_d.name = "gripper_open_button";
@@ -65,7 +68,7 @@ void JoystickTeleopNode::initializeParameters() {
     gripper_open_button_d.read_only = true;
     gripper_open_button_d.dynamic_typing = false;
     this->declare_parameter(gripper_open_button_d.name, boost::get<int>(gripper_open_button_default), gripper_open_button_d);
-	this->gripper_open_button = this->get_parameter("gripper_open_button").as_int();
+    this->gripper_open_button = this->get_parameter("gripper_open_button").as_int();
 
     rcl_interfaces::msg::ParameterDescriptor gripper_close_button_d;
     gripper_close_button_d.name = "gripper_close_button";
@@ -75,7 +78,7 @@ void JoystickTeleopNode::initializeParameters() {
     gripper_close_button_d.read_only = true;
     gripper_close_button_d.dynamic_typing = false;
     this->declare_parameter(gripper_close_button_d.name, boost::get<int>(gripper_close_button_default), gripper_close_button_d);
-	this->gripper_close_button = this->get_parameter("gripper_close_button").as_int();
+    this->gripper_close_button = this->get_parameter("gripper_close_button").as_int();
 
     rcl_interfaces::msg::ParameterDescriptor axis_x_d;
     axis_x_d.name = "axis_x";
@@ -85,7 +88,7 @@ void JoystickTeleopNode::initializeParameters() {
     axis_x_d.read_only = true;
     axis_x_d.dynamic_typing = false;
     this->declare_parameter(axis_x_d.name, boost::get<int>(axis_x_default), axis_x_d);
-	this->axis_x = this->get_parameter("axis_x").as_int();
+    this->axis_x = this->get_parameter("axis_x").as_int();
 
     rcl_interfaces::msg::ParameterDescriptor axis_y_d;
     axis_y_d.name = "axis_y";
@@ -95,7 +98,7 @@ void JoystickTeleopNode::initializeParameters() {
     axis_y_d.read_only = true;
     axis_y_d.dynamic_typing = false;
     this->declare_parameter(axis_y_d.name, boost::get<int>(axis_y_default), axis_y_d);
-	this->axis_y = this->get_parameter("axis_y").as_int();
+    this->axis_y = this->get_parameter("axis_y").as_int();
 
     rcl_interfaces::msg::ParameterDescriptor axis_z_d;
     axis_z_d.name = "axis_z";
@@ -105,7 +108,7 @@ void JoystickTeleopNode::initializeParameters() {
     axis_z_d.read_only = true;
     axis_z_d.dynamic_typing = false;
     this->declare_parameter(axis_z_d.name, boost::get<int>(axis_z_default), axis_z_d);
-	this->axis_z = this->get_parameter("axis_z").as_int();
+    this->axis_z = this->get_parameter("axis_z").as_int();
 
     rcl_interfaces::msg::ParameterDescriptor axis_speed_d;
     axis_speed_d.name = "axis_speed";
@@ -115,7 +118,7 @@ void JoystickTeleopNode::initializeParameters() {
     axis_speed_d.read_only = true;
     axis_speed_d.dynamic_typing = false;
     this->declare_parameter(axis_speed_d.name, boost::get<double>(axis_speed_default), axis_speed_d);
-	this->axis_speed = this->get_parameter("axis_speed").as_double();
+    this->axis_speed = this->get_parameter("axis_speed").as_double();
 
     rcl_interfaces::msg::ParameterDescriptor gripper_speed_d;
     gripper_speed_d.name = "gripper_speed";
@@ -125,7 +128,7 @@ void JoystickTeleopNode::initializeParameters() {
     gripper_speed_d.read_only = true;
     gripper_speed_d.dynamic_typing = false;
     this->declare_parameter(gripper_speed_d.name, boost::get<double>(gripper_speed_default), gripper_speed_d);
-	this->gripper_speed = this->get_parameter("gripper_speed").as_double();
+    this->gripper_speed = this->get_parameter("gripper_speed").as_double();
 
     rcl_interfaces::msg::ParameterDescriptor slow_modifier_d;
     slow_modifier_d.name = "slow_modifier";
@@ -135,7 +138,7 @@ void JoystickTeleopNode::initializeParameters() {
     slow_modifier_d.read_only = true;
     slow_modifier_d.dynamic_typing = false;
     this->declare_parameter(slow_modifier_d.name, boost::get<double>(slow_modifier_default), slow_modifier_d);
-	this->slow_modifier = this->get_parameter("slow_modifier").as_double();
+    this->slow_modifier = this->get_parameter("slow_modifier").as_double();
 
     rcl_interfaces::msg::ParameterDescriptor gripper_min_d;
     gripper_min_d.name = "gripper_min";
@@ -145,7 +148,7 @@ void JoystickTeleopNode::initializeParameters() {
     gripper_min_d.read_only = true;
     gripper_min_d.dynamic_typing = false;
     this->declare_parameter(gripper_min_d.name, boost::get<int>(gripper_min_default), gripper_min_d);
-	this->gripper_min = this->get_parameter("gripper_min").as_int();
+    this->gripper_min = this->get_parameter("gripper_min").as_int();
 
     rcl_interfaces::msg::ParameterDescriptor gripper_max_d;
     gripper_max_d.name = "gripper_max";
@@ -155,5 +158,35 @@ void JoystickTeleopNode::initializeParameters() {
     gripper_max_d.read_only = true;
     gripper_max_d.dynamic_typing = false;
     this->declare_parameter(gripper_max_d.name, boost::get<int>(gripper_max_default), gripper_max_d);
-	this->gripper_max = this->get_parameter("gripper_max").as_int();
+    this->gripper_max = this->get_parameter("gripper_max").as_int();
+
+    rcl_interfaces::msg::ParameterDescriptor vel_topic_d;
+    vel_topic_d.name = "vel_topic";
+    const auto& [vel_topic_default, vel_topic_description] = JoystickTeleopNode::DEFAULT_PARAMETERS.at(vel_topic_d.name);
+    vel_topic_d.description = vel_topic_description;
+    vel_topic_d.type = rcl_interfaces::msg::ParameterType::PARAMETER_STRING;
+    vel_topic_d.read_only = true;
+    vel_topic_d.dynamic_typing = false;
+    this->declare_parameter(vel_topic_d.name, boost::get<std::string>(vel_topic_default), vel_topic_d);
+    this->vel_topic = this->get_parameter("vel_topic").as_string();
+
+    rcl_interfaces::msg::ParameterDescriptor gripper_topic_d;
+    gripper_topic_d.name = "gripper_topic";
+    const auto& [gripper_topic_default, gripper_topic_description] = JoystickTeleopNode::DEFAULT_PARAMETERS.at(gripper_topic_d.name);
+    gripper_topic_d.description = gripper_topic_description;
+    gripper_topic_d.type = rcl_interfaces::msg::ParameterType::PARAMETER_STRING;
+    gripper_topic_d.read_only = true;
+    gripper_topic_d.dynamic_typing = false;
+    this->declare_parameter(gripper_topic_d.name, boost::get<std::string>(gripper_topic_default), gripper_topic_d);
+    this->gripper_topic = this->get_parameter("gripper_topic").as_string();
+
+    rcl_interfaces::msg::ParameterDescriptor joy_topic_d;
+    joy_topic_d.name = "joy_topic";
+    const auto& [joy_topic_default, joy_topic_description] = JoystickTeleopNode::DEFAULT_PARAMETERS.at(joy_topic_d.name);
+    joy_topic_d.description = joy_topic_description;
+    joy_topic_d.type = rcl_interfaces::msg::ParameterType::PARAMETER_STRING;
+    joy_topic_d.read_only = true;
+    joy_topic_d.dynamic_typing = false;
+    this->declare_parameter(joy_topic_d.name, boost::get<std::string>(joy_topic_default), joy_topic_d);
+    this->joy_topic = this->get_parameter("joy_topic").as_string();
 }
