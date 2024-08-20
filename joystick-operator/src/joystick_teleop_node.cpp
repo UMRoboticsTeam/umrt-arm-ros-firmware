@@ -31,6 +31,8 @@ JoystickTeleopNode::JoystickTeleopNode() : Node("joystick_teleop") {
 
     // Convert gripper speed to (servo units)/s
     this->gripper_speed_converted = (this->gripper_max - this->gripper_min) * this->gripper_speed;
+
+    this->movement_enabled = false;
 }
 
 void JoystickTeleopNode::handleJoy(const sensor_msgs::msg::Joy::ConstSharedPtr& msg) {
@@ -94,6 +96,7 @@ void JoystickTeleopNode::handleJoy(const sensor_msgs::msg::Joy::ConstSharedPtr& 
         // Deadman switch no longer engaged, stop movement
         this->gripper_moving = false;
         this->sendValues(ZERO_VEL, this->last_gripper);
+        this->movement_enabled = false; // Needs to be after sendValues since that sets movement_enabled = true
     }
 }
 
