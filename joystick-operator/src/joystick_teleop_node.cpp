@@ -30,7 +30,7 @@ JoystickTeleopNode::JoystickTeleopNode() : Node("joystick_teleop") {
     );
 
     // Convert gripper speed to (servo units)/s
-    this->gripper_speed_converted = (this->gripper_max - this->gripper_min) * this->gripper_speed;
+    this->gripper_speed_converted = (this->gripper_max - this->gripper_min) * this->gripper_speed / 100.0;
 
     this->movement_enabled = false;
 }
@@ -74,8 +74,8 @@ void JoystickTeleopNode::handleJoy(const sensor_msgs::msg::Joy::ConstSharedPtr& 
                 // As well, unlike the joystick axes the buttons are very easy to normalize
                 gripper.data[0] = std::clamp(
                         gripper.data[0] += delta.count() * gripper_speed_converted * multiplier * boost::math::sign(gripper_direction),
-                        this->gripper_max,
-                        this->gripper_min
+                        this->gripper_min,
+                        this->gripper_max
                 );
             }
             else {
