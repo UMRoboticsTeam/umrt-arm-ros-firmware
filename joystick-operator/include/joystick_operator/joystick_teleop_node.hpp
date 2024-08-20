@@ -28,8 +28,8 @@ public:
         {"axis_speed", {20.0, "Speed to move along an axis when the joystick is fully deflected, in motor RPM (double)"}},
         {"gripper_speed", {50.0, "Speed to move the gripper at when a button is held, in (% of range)/s (double)"}},
         {"slow_modifier", {0.1, "Multiplier to apply to speeds when the slow button is held (double)"}},
-        {"gripper_min", {0, "Minimum value to allow gripper to be set to, also used in conjunction with gripper_max to determine the range for gripper_speed (int)"}},
-        {"gripper_max", {180, "Maximum value to allow gripper to be set to, also used in conjunction with gripper_min to determine the range for gripper_speed (int)"}},
+        {"gripper_min", {0.0, "Minimum value to allow gripper to be set to, also used in conjunction with gripper_max to determine the range for gripper_speed (double)"}},
+        {"gripper_max", {180.0, "Maximum value to allow gripper to be set to, also used in conjunction with gripper_min to determine the range for gripper_speed (double)"}},
         {"vel_topic", {"/cmd_vel", "Topic to publish joint speeds to (string)"}},
         {"gripper_topic", {"/gripper_pos", "Topic to publish gripper positions to (string)"}},
         {"joy_topic", {"/joy", "Topic to read Joy messages from (string)"}}
@@ -58,8 +58,8 @@ protected:
     double axis_speed;
     double gripper_speed;
     double slow_modifier;
-    int gripper_min;
-    int gripper_max;
+    double gripper_min;
+    double gripper_max;
     std::string vel_topic;
     std::string gripper_topic;
     std::string joy_topic;

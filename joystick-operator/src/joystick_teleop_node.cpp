@@ -152,21 +152,21 @@ void JoystickTeleopNode::initializeParameters() {
     gripper_min_d.name = "gripper_min";
     const auto& [gripper_min_default, gripper_min_description] = JoystickTeleopNode::DEFAULT_PARAMETERS.at(gripper_min_d.name);
     gripper_min_d.description = gripper_min_description;
-    gripper_min_d.type = rcl_interfaces::msg::ParameterType::PARAMETER_INTEGER;
+    gripper_min_d.type = rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE;
     gripper_min_d.read_only = true;
     gripper_min_d.dynamic_typing = false;
-    this->declare_parameter(gripper_min_d.name, boost::get<int>(gripper_min_default), gripper_min_d);
-    this->gripper_min = this->get_parameter("gripper_min").as_int();
+    this->declare_parameter(gripper_min_d.name, boost::get<double>(gripper_min_default), gripper_min_d);
+    this->gripper_min = this->get_parameter("gripper_min").as_double();
 
     rcl_interfaces::msg::ParameterDescriptor gripper_max_d;
     gripper_max_d.name = "gripper_max";
     const auto& [gripper_max_default, gripper_max_description] = JoystickTeleopNode::DEFAULT_PARAMETERS.at(gripper_max_d.name);
     gripper_max_d.description = gripper_max_description;
-    gripper_max_d.type = rcl_interfaces::msg::ParameterType::PARAMETER_INTEGER;
+    gripper_max_d.type = rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE;
     gripper_max_d.read_only = true;
     gripper_max_d.dynamic_typing = false;
-    this->declare_parameter(gripper_max_d.name, boost::get<int>(gripper_max_default), gripper_max_d);
-    this->gripper_max = this->get_parameter("gripper_max").as_int();
+    this->declare_parameter(gripper_max_d.name, boost::get<double>(gripper_max_default), gripper_max_d);
+    this->gripper_max = this->get_parameter("gripper_max").as_double();
 
     rcl_interfaces::msg::ParameterDescriptor vel_topic_d;
     vel_topic_d.name = "vel_topic";
