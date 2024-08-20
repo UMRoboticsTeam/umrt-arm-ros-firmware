@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 #include <tuple>
+#include <chrono>
 
 #include <boost/variant.hpp>
 
@@ -34,9 +35,14 @@ public:
         {"gripper_topic", {"/gripper_pos", "Topic to publish gripper positions to (string)"}},
         {"joy_topic", {"/joy", "Topic to read Joy messages from (string)"}}
     };
+
     static constexpr int PUBLISHER_QUEUE_DEPTH = 10;
 
+    static const std_msgs::msg::Float64MultiArray ZERO_VEL;
+
     JoystickTeleopNode();
+
+    void sendValues(const std_msgs::msg::Float64MultiArray& vel_values, const std_msgs::msg::Float64MultiArray& gripper_values);
 
 protected:
     void initializeParameters();
@@ -63,6 +69,17 @@ protected:
     std::string vel_topic;
     std::string gripper_topic;
     std::string joy_topic;
+
+    std_msgs::msg::Float64MultiArray last_vel;
+    std_msgs::msg::Float64MultiArray last_gripper;
+    std::chrono::steady_clock::time_point last_time;
+    bool gripper_moving;
+
+    // gripper_speed converted from (% of range)/s to (servo units)/s
+    // E.g. a speed of 0.2 for a servo going from 0 to 180 would convert to 36 (servo units)/s
+    double gripper_speed_converted;
+
+    bool movement_enabled;
 };
 
 

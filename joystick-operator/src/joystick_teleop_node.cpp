@@ -3,10 +3,23 @@
 //
 
 #include "joystick_operator/joystick_teleop_node.hpp"
+#include <boost/math/special_functions/sign.hpp>
 
+const std_msgs::msg::Float64MultiArray JoystickTeleopNode::ZERO_VEL = std_msgs::msg::Float64MultiArray().set__data({ 0.0, 0.0, 0.0 });
+
+// Helper functions
+double getAxisValue(const sensor_msgs::msg::Joy::ConstSharedPtr& msg, const size_t axis);
+int getButtonValue(const sensor_msgs::msg::Joy::ConstSharedPtr& msg, const size_t button);
+
+#define SGN(x)
 
 JoystickTeleopNode::JoystickTeleopNode() : Node("joystick_teleop") {
     this->initializeParameters();
+
+    this->last_gripper.data = { 0.0 };
+    this->last_vel = ZERO_VEL;
+    this->last_time = std::chrono::steady_clock::now();
+    this->gripper_moving = false;
 
     this->vel_publisher = this->create_publisher<std_msgs::msg::Float64MultiArray>(this->vel_topic, JoystickTeleopNode::PUBLISHER_QUEUE_DEPTH);
     this->gripper_publisher = this->create_publisher<std_msgs::msg::Float64MultiArray>(this->gripper_topic, JoystickTeleopNode::PUBLISHER_QUEUE_DEPTH);
@@ -15,6 +28,82 @@ JoystickTeleopNode::JoystickTeleopNode() : Node("joystick_teleop") {
             10,
             [this](const sensor_msgs::msg::Joy::ConstSharedPtr& msg) { this->handleJoy(msg); }
     );
+
+    // Convert gripper speed to (servo units)/s
+    this->gripper_speed_converted = (this->gripper_max - this->gripper_min) * this->gripper_speed;
+}
+
+void JoystickTeleopNode::handleJoy(const sensor_msgs::msg::Joy::ConstSharedPtr& msg) {
+    // Check that the deadman switch is engaged
+    // Since buttons is an array, we need to check that it is longer than the deadman button index first
+    if (msg->buttons.size() > this->deadman_button && msg->buttons[this->deadman_button]) {
+        // Check if slow-mode enabled
+        double multiplier = getButtonValue(msg, this->slow_button) ? this->slow_modifier : 1.0;
+
+        // Construct velocity message
+        // This is simple since we directly map joystick value to joint velocity, and joystick value is already normalized
+        std_msgs::msg::Float64MultiArray vel;
+        std_msgs::msg::Float64MultiArray gripper;
+        vel.data = {
+            getAxisValue(msg, this->axis_x) * this->axis_speed * multiplier,
+            getAxisValue(msg, this->axis_y) * this->axis_speed * multiplier,
+            getAxisValue(msg, this->axis_z) * this->axis_speed * multiplier
+        };
+
+        // Calculate new gripper position
+        // <0: closing, 0: stopped, >0: opening
+        gripper.data = this->last_gripper.data;
+        int gripper_direction = getButtonValue(msg, this->gripper_open_button) - getButtonValue(msg, this->gripper_close_button);
+        if (gripper_direction) {
+            // Direction is non-zero, therefore we need to move
+
+            // Find current time
+            std::chrono::steady_clock::time_point t = std::chrono::steady_clock::now();
+
+            // If the gripper was already moving, then we can change the position this time step
+            // If not, we need to note down the time and wait until the next time step to calculate how far to move
+            if (this->gripper_moving) {
+                // Calculate time since last gripper update
+                std::chrono::duration<double> delta = t - this->last_time;
+
+                // Apply the gripper velocity over this time
+                // I don't want to blindly trust that the button value is normalized, so we extract the sign
+                // An argument could be made that I shouldn't trust the joystick axes values either, but I don't think that is as big of a risk
+                // As well, unlike the joystick axes the buttons are very easy to normalize
+                gripper.data[0] = std::clamp(
+                        gripper.data[0] += delta.count() * gripper_speed_converted * multiplier * boost::math::sign(gripper_direction),
+                        this->gripper_max,
+                        this->gripper_min
+                );
+            }
+            else {
+                // Gripper is supposed to be moving, but we are not guaranteed to have a correct last_time we can use to calculate the distance
+                // Therefore we need to skip this step, but we can flag that we're supposed to be moving
+                // Note that we do not have an extra step once the button is released, so this step is truly skipped
+                this->gripper_moving = true;
+            }
+
+            // Save the current time
+            this->last_time = t;
+        }
+        else {
+            // The gripper is not being moved, change the flag to false
+            this->gripper_moving = false;
+        }
+    } else if (this->movement_enabled) {
+        // Deadman switch no longer engaged, stop movement
+        this->gripper_moving = false;
+        this->sendValues(ZERO_VEL, this->last_gripper);
+    }
+}
+
+void JoystickTeleopNode::sendValues(const std_msgs::msg::Float64MultiArray& vel, const std_msgs::msg::Float64MultiArray& gripper) {
+    this->vel_publisher->publish(vel);
+    this->gripper_publisher->publish(gripper);
+
+    this->movement_enabled = true;
+    this->last_vel = vel;
+    this->last_gripper = gripper;
 }
 
 void JoystickTeleopNode::initializeParameters() {
@@ -197,4 +286,14 @@ void JoystickTeleopNode::initializeParameters() {
     joy_topic_d.dynamic_typing = false;
     this->declare_parameter(joy_topic_d.name, boost::get<std::string>(joy_topic_default), joy_topic_d);
     this->joy_topic = this->get_parameter("joy_topic").as_string();
+}
+
+double getAxisValue(const sensor_msgs::msg::Joy::ConstSharedPtr& msg, const size_t axis) {
+    // Ensure axis exists, return 0.0 if not. Note axis is size_t so always >= 0
+    return (msg->axes.size() > axis) ? msg->axes[axis] : 0.0;
+}
+
+int getButtonValue(const sensor_msgs::msg::Joy::ConstSharedPtr& msg, const size_t button) {
+    // Ensure button exists, return 0 if not. Note button is size_t so always >= 0
+    return (msg->buttons.size() > button) ? msg->buttons[button] : 0;
 }
