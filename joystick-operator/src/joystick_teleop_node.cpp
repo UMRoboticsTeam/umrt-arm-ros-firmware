@@ -92,6 +92,9 @@ void JoystickTeleopNode::handleJoy(const sensor_msgs::msg::Joy::ConstSharedPtr& 
             // The gripper is not being moved, change the flag to false
             this->gripper_moving = false;
         }
+
+        // Publish the new values
+        this->sendValues(vel, gripper);
     } else if (this->movement_enabled) {
         // Deadman switch no longer engaged, stop movement
         this->gripper_moving = false;
