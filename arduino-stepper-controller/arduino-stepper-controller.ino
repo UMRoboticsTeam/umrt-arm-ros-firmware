@@ -79,7 +79,7 @@ void setup() {
   // Setup Firmata
   Firmata.setFirmwareVersion(FIRMATA_FIRMWARE_MAJOR_VERSION, FIRMATA_FIRMWARE_MINOR_VERSION);
   Firmata.attach(STRING_DATA, echo_string);
-  Firmata.attach(SysexCommands::ECHO, sysex_handler); // Contrary to what one might expect, if the command parameter isn't well-known, it is ignored and sysex_handler is used for all unknown messages
+  Firmata.attach(SysexCommands::ARDUINO_ECHO, sysex_handler); // Contrary to what one might expect, if the command parameter isn't well-known, it is ignored and sysex_handler is used for all unknown messages
   Firmata.begin(SERIAL_SPEED);
 }
 
@@ -107,7 +107,7 @@ void echo(byte argc, byte* argv){
   sprintf(buff, "%d,%d,%d,%d,%d,%d", argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
   Firmata.sendString(buff);
   
-  Firmata.sendSysex(SysexCommands::ECHO, argc, argv);
+  Firmata.sendSysex(SysexCommands::ARDUINO_ECHO, argc, argv);
 }
 
 // Set the speed of a motor
@@ -237,7 +237,7 @@ void sysex_handler(byte command, byte argc, byte* argv){
   }
   
   switch (command) {
-  case SysexCommands::ECHO: echo(argc, argv); break;
+  case SysexCommands::ARDUINO_ECHO: echo(argc, argv); break;
   case SysexCommands::SET_SPEED: set_speed(argc, argv); break;
   case SysexCommands::GET_SPEED: get_speed(argc, argv); break;
   case SysexCommands::SEND_STEP: send_step(argc, argv); break;
