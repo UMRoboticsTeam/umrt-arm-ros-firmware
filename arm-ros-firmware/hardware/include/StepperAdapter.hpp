@@ -15,22 +15,22 @@
 class StepperAdapter {
 public:
     /**
-   * Initializes this StepperAdapter. Must be called before any other method,
-   * and only once.
-   *
-   * The number of joints available must be specified here in order to
-   * facilitate initialization such as array sizing.
-   *
-   * @param NUM_JOINTS the number of joints
-   */
+    * Initializes this StepperAdapter. Must be called before any other method,
+    * and only once.
+    *
+    * The number of joints available must be specified here in order to
+    * facilitate initialization such as array sizing.
+    *
+    * @param NUM_JOINTS the number of joints
+    */
     void init(const std::size_t NUM_JOINTS);
 
     /**
-   * Connect to an Arduino running the Stepper Controller program.
-   *
-   * @param device the path to the serial device connected to the Arduino
-   * @param baud_rate baud rate to use for the Firmata connection
-   */
+    * Connect to an Arduino running the Stepper Controller program.
+    *
+    * @param device the path to the serial device connected to the Arduino
+    * @param baud_rate baud rate to use for the Firmata connection
+    */
     void connect(const std::string device, const int baud_rate);
 
     /**

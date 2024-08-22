@@ -64,7 +64,7 @@ public:
      *
      * @param motor the ID of the motor to move
      * @param num_steps the number of steps to move
-     * @param speed the signed target speed to move the motor at, in 1/10 rpm
+     * @param speed the signed target speed to move the motor at, in 1/10 RPM
      * @return `true` if successfully written to the serial connection
      */
     bool sendStep(const uint8_t motor, const uint16_t num_steps, const int16_t speed);
@@ -149,8 +149,9 @@ protected:
     void handleSysex(const std::vector<unsigned char>& message);
 
     /**
-     * @name Helper functions for decoding the parameters of Sysex commands processed by @ref handleSysex before
-     * forwarding to their associated <a href=https://www.boost.org/doc/libs/1_63_0/doc/html/signals.html>signal</a>.
+     * @name Signal Processing Helper Functions
+     * Helper functions for decoding the parameters of Sysex commands processed by @ref handleSysex before forwarding
+     * to their associated <a href=https://www.boost.org/doc/libs/1_63_0/doc/html/signals.html>signal</a>.
      *
      * @param message the de-firmatified Sysex payload
      */

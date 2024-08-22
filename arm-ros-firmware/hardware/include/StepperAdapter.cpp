@@ -69,7 +69,7 @@ double& StepperAdapter::getGripperPositionCommandRef() {
 void StepperAdapter::setValues() {
     initializedCheck();
     for (auto i = 0u; i < commands.size(); ++i) {
-        // Note that the StepperController speed is specified in units of in 1/10 rpm
+        // Note that the StepperController speed is specified in units of in 1/10 RPM
         this->controller.setSpeed(i, (int16_t)std::round(10 * this->commands[i]));
     }
 
