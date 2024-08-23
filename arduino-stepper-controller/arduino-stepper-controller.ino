@@ -123,16 +123,16 @@ void set_speed(byte argc, byte* argv){
 
   // Decode speed
   int16_t speed = decode_16(argc - 1, argv + 1);
-
-  // Send back some debugging stuff
-  char buff[22];
-  // PRId16 is macro for int16_t format specifier
-  sprintf(buff, "%d: {%d, %d}=%" PRId16, motor, argv[1], argv[2], speed);
-  Firmata.sendString(buff);
   
-  // TODO: Finish setting up for additional motors
+  // Set motor speed and begin movement
   steppers[motor]->setSpeed(abs(speed));
   steppers[motor]->rotate(SGN(speed));
+
+  // Respond back
+  uint8_t pack[3];
+  pack[0] = motor;
+  pack_16(pack + 1, speed);
+  Firmata.sendSysex(SysexCommands::SET_SPEED, sizeof(pack), pack);
 }
 
 // Get the current speed of a motor
@@ -160,16 +160,17 @@ void send_step(byte argc, byte* argv) {
   // Decode num_steps and speed
   int16_t num_steps = decode_16(2, argv + 1);
   int16_t speed = decode_16(2, argv + 3);
-
-  // Send back some debugging stuff
-  char buff[39];
-  // PRId16 is macro for int16_t format specifier
-  sprintf(buff, "%d: {%d, %d, %d, %d}=%" PRId16 ", %" PRId16, motor, argv[1], argv[2], argv[3], argv[4], num_steps, speed);
-  Firmata.sendString(buff);
   
-  // TODO: Finish setting up for additional motors
+  // Set motor speed and move the specified number of steps
   steppers[motor]->setSpeed(abs(speed));
   steppers[motor]->move(SGN(speed) * num_steps);
+
+  // Respond back
+  uint8_t pack[5];
+  pack[0] = motor;
+  pack_16(pack + 1, num_steps);
+  pack_16(pack + 3, speed);
+  Firmata.sendSysex(SysexCommands::SEND_STEP, sizeof(pack), pack);
 }
 
 // Set the position of the gripper servo
@@ -184,7 +185,9 @@ void set_gripper(byte argc, byte* argv) {
   if (pos > 180) { return; } // Don't need to check less than zero since uint
   
   gripper.write(pos);
-  // TODO: Finish writing response
+  
+  // Respond back
+  Firmata.sendSysex(SysexCommands::SET_GRIPPER, 1, { pos });
 }
 
 int32_t decode_32(byte argc, byte* argv){
