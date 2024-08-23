@@ -140,9 +140,23 @@ void set_speed(byte argc, byte* argv){
 // Out: [ motor_id (uint8_t), speed (int16_t)]
 void get_speed(byte argc, byte* argv){
   // Check arguments
-  if (argc != 2) { return; }
+  if (argc != 1) { return; }
 
-  // TODO: Write
+  // Get motor ID
+  uint8_t motor = argv[0];
+  if (motor >= num_motors) { return; }
+
+  // Get speed and convert from steps/(10 sec) to 1/10 RPM
+  // x steps / 10 sec = [x/10 steps / sec][60 sec / min][1 Rot / <steps per rot> steps] = y RPM
+  // Simplifies to (z 1/10 RPM) = [x steps / 10 sec][60 R*sec / <steps per rot> steps*min]
+  // Note: Explicit cast to int32_t for multiplication to avoid overflow (though getSpeedSteps is supposed to return int32_t anyways)
+  int16_t speed = ((int32_t)steppers[motor]->getSpeedSteps()) * 60 / motor_infos[motor].full_rot_steps;
+
+  // Respond back
+  uint8_t pack[3];
+  pack[0] = motor;
+  pack_16(pack + 1, speed);
+  Firmata.sendSysex(SysexCommands::GET_SPEED, sizeof(pack), pack);
 }
 
 // Move the motor a specific number of steps (negative speed allowed)
