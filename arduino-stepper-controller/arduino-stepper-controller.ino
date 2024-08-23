@@ -46,6 +46,8 @@ void echo(byte argc, byte* argv);
 void set_speed(byte argc, byte* argv);
 void get_speed(byte argc, byte* argv);
 void send_step(byte argc, byte* argv);
+void seek_pos(byte argc, byte* argv);
+void get_pos(byte argc, byte* argv);
 void set_gripper(byte argc, byte* argv);
 int32_t decode_32(byte argc, byte* argv);
 int16_t decode_16(byte argc, byte* argv);
@@ -187,6 +189,55 @@ void send_step(byte argc, byte* argv) {
   Firmata.sendSysex(SysexCommands::SEND_STEP, sizeof(pack), pack);
 }
 
+// Moves a motor to a specific step position (absolute speed used)
+// Scheduled steps may be overridden by other commands
+// In:  [ motor_id (uint8_t), position (int32_t), speed (int16_t) ]
+// Out: [ motor_id (uint8_t), position (int32_t), speed (int16_t) ]
+void seek_pos(byte argc, byte* argv) {
+  // Check arguments
+  //if (argc != 7) { return; }
+
+  // Get motor ID
+  uint8_t motor = argv[0];
+  if (motor >= num_motors) { return; }
+
+  // Decode position and speed
+  int32_t position = decode_32(4, argv + 1);
+  int16_t speed = decode_16(2, argv + 5);
+
+  // Set the motor speed and move to that position
+  steppers[motor]->setSpeed(abs(speed));
+  steppers[motor]->moveTo(position);
+  
+  // Respond back
+  uint8_t pack[5];
+  pack[0] = motor;
+  pack_32(pack + 1, position);
+  pack_16(pack + 5, speed);
+  Firmata.sendSysex(SysexCommands::SEEK_POS, sizeof(pack), pack);
+}
+
+// Gets the current number of steps from the zero point for a motor.
+// In:  [ motor_id (uint8_t) ]
+// Out: [ motor_id (uint8_t), position (int32_t) ]
+void get_pos(byte argc, byte* argv) {
+  // Check arguments
+  //if (argc != 1) { return; }
+
+  // Get motor ID
+  uint8_t motor = argv[0];
+  if (motor >= num_motors) { return; }
+
+  // Get the position in steps
+  int32_t position = steppers[motor]->currentPosition();
+  
+  // Respond back
+  uint8_t pack[5];
+  pack[0] = motor;
+  pack_32(pack + 1, position);
+  Firmata.sendSysex(SysexCommands::SEEK_POS, sizeof(pack), pack);
+}
+
 // Set the position of the gripper servo
 // In:  [ position (uint8_t) ]
 // Out: [ position (uint8_t) ]
@@ -258,6 +309,8 @@ void sysex_handler(byte command, byte argc, byte* argv){
   case SysexCommands::SET_SPEED: set_speed(argc, argv); break;
   case SysexCommands::GET_SPEED: get_speed(argc, argv); break;
   case SysexCommands::SEND_STEP: send_step(argc, argv); break;
+  case SysexCommands::SEEK_POS: seek_pos(argc, argv); break;
+  case SysexCommands::GET_POS: get_pos(argc, argv); break;
   case SysexCommands::SET_GRIPPER: set_gripper(argc, argv); break;
   }
 }
