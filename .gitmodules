@@ -1,3 +1,3 @@
-[submodule "arm-ros-firmware/hardware/include/openFrameworksArduino/openFrameworksArduino"]
-	path = arm-ros-firmware/hardware/include/openFrameworksArduino/openFrameworksArduino
-	url = https://github.com/NeuroRoboticTech/openFrameworksArduino
+[submodule "arm-ros-firmware/hardware/include/arm-firmware-lib/arm-firmware-lib"]
+	path = arm-ros-firmware/hardware/include/arm-firmware-lib/arm-firmware-lib
+	url = git@github.com:UMRoboticsTeam/arm-firmware-lib.git

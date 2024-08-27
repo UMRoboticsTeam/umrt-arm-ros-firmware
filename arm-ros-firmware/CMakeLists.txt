@@ -22,8 +22,8 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
 find_package(Boost REQUIRED COMPONENTS log log_setup)
 include_directories(${Boost_INCLUDE_DIRS})
 
-# Setup openFrameworksArduino
-add_subdirectory(hardware/include/openFrameworksArduino)
+# Setup arm-firmware-lib
+add_subdirectory(hardware/include/arm-firmware-lib)
 
 # Setup ros2_control_demo_description
 install(
@@ -42,7 +42,7 @@ add_library(
         SHARED
         hardware/diffbot_system.cpp
         hardware/include/StepperAdapter.cpp
-        hardware/include/StepperController.cpp)
+)
 target_compile_features(arm_ros_firmware PUBLIC cxx_std_17)
 target_include_directories(arm_ros_firmware PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
@@ -54,9 +54,9 @@ ament_target_dependencies(
 )
 
 target_link_libraries(arm_ros_firmware PRIVATE ${Boost_LIBRARIES})
-target_link_libraries(arm_ros_firmware PRIVATE openFrameworksArduino)
+target_link_libraries(arm_ros_firmware PRIVATE arm_firmware_lib)
 target_include_directories(arm_ros_firmware PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/hardware/include/openFrameworksArduino/openFrameworksArduino/src>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/hardware/include/arm-firmware-lib/arm-firmware-lib>
         )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
