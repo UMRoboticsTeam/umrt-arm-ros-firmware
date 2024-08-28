@@ -41,7 +41,7 @@ add_library(
         arm_ros_firmware
         SHARED
         hardware/diffbot_system.cpp
-        hardware/include/StepperAdapter.cpp
+        hardware/StepperAdapter.cpp
 )
 target_compile_features(arm_ros_firmware PUBLIC cxx_std_17)
 target_include_directories(arm_ros_firmware PUBLIC
