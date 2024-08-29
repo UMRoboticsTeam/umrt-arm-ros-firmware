@@ -28,6 +28,8 @@ void StepperAdapter::init(
     this->positions.resize(NUM_JOINTS);
     this->velocities.resize(NUM_JOINTS);
     this->commands.resize(NUM_JOINTS);
+    this->positions_buffer.resize(NUM_JOINTS);
+    this->velocities_buffer.resize(NUM_JOINTS);
 
     // Start the polling loop
     this->polling_thread = std::thread(&StepperAdapter::poll, this);
@@ -36,7 +38,10 @@ void StepperAdapter::init(
     // Note: This runs in our thread, so we don't have to worry about thread-safety
     parentNode.create_wall_timer(queryPeriod, [this] { this->queryController(); });
 
-    // TODO: Register to receive, and process callbacks for responses to getPosition and getSpeed
+    // Register to receive callbacks for responses to getPosition and getSpeed
+    // Note: These callbacks will occur in another thread, so they need to be processed carefully
+    this->controller.EGetPosition.connect([this](uint8_t joint, int32_t pos) -> void { this->updatePosition(joint, pos); });
+    this->controller.EGetSpeed.connect([this](uint8_t joint, int16_t speed) -> void { this->updateVelocity(joint, speed); });
 
     this->initialized = true;
 }
@@ -87,12 +92,18 @@ void StepperAdapter::setValues() {
 }
 
 void StepperAdapter::readValues() {
-    for (auto i = 0u; i < commands.size(); ++i) {
-        // TODO: Update positions/velocity vectors with info with GET_SPEED etc. requests through controller
-        this->positions[i] = this->commands[i];
-        this->velocities[i] = this->commands[i];
+    // Acquire the locks for positions_buffer and velocities_buffer, and transfer the values
+    {
+        std::scoped_lock lock(this->positions_buffer_mx, this->velocities_buffer_mx);
+
+        // Remember that we can't invalidate references, so we need to manually copy values
+        for (auto i = 0u; i < commands.size(); ++i) {
+            this->positions[i] = this->positions_buffer[i];
+            this->velocities[i] = this->velocities_buffer[i];
+        }
     }
 
+    // Simply copy gripper position
     this->gripper_position = this->cmd_gripper_pos;
 }
 
@@ -109,6 +120,24 @@ void StepperAdapter::queryController() {
     for (auto i = 0u; i < commands.size(); ++i) {
         this->controller.getPosition(i);
         this->controller.getSpeed(i);
+    }
+}
+
+// Reminder: This happens in another thread
+void StepperAdapter::updatePosition(const uint8_t joint, const int32_t position) {
+    // Acquire the lock for positions_buffer and write the new value
+    {
+        std::scoped_lock lock(this->positions_buffer_mx);
+        this->positions_buffer[joint] = position;
+    }
+}
+
+// Reminder: This happens in another thread
+void StepperAdapter::updateVelocity(const uint8_t joint, const int16_t speed) {
+    // Acquire the lock for velocities_buffer and write the new value
+    {
+        std::scoped_lock lock(this->velocities_buffer_mx);
+        this->velocities_buffer[joint] = speed;
     }
 }
 

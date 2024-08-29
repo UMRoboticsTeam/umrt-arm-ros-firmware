@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <exception>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -122,6 +123,28 @@ protected:
     double cmd_gripper_pos;
 
     /**
+     * The joint positions to be transferred into @ref positions during the next @ref readValues call.
+     * @ref positions_buffer_mx must be acquired before interacting with this vector.
+     */
+    std::vector<double> positions_buffer;
+
+    /**
+     * The joint positions to be transferred into @ref positions during the next @ref readValues call.
+     * @ref velocities_buffer_mx must be acquired before interacting with this vector.
+     */
+    std::vector<double> velocities_buffer;
+
+    /**
+     * Lock to protect @ref positions_buffer.
+     */
+    std::mutex positions_buffer_mx;
+
+    /**
+     * Lock to protect @ref velocities_buffer.
+     */
+    std::mutex velocities_buffer_mx;
+
+    /**
      * Thread used to run @ref poll indefinitely.
      */
     std::thread polling_thread;
@@ -135,6 +158,16 @@ protected:
      * Queries the position and speed from @ref controller. Used as a callback to the wall timer setup in @ref init.
      */
     void queryController();
+
+    /**
+     * Updates the provided joint's value in @ref positions_buffer in a thread-safe manner.
+     */
+    void updatePosition(const uint8_t joint, const int32_t position);
+
+    /**
+     * Updates the provided joint's value in @ref velocities_buffer in a thread-safe manner.
+     */
+    void updateVelocity(const uint8_t joint, const int16_t speed);
 
     /**
      * Helper function to ensure that this StepperAdapter has been initialized
