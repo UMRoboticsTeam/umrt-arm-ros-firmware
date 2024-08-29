@@ -7,7 +7,11 @@
 constexpr boost::log::trivial::severity_level LOG_LEVEL = boost::log::trivial::debug;
 constexpr uint32_t TOTAL_LOG_SIZE = 100 * 1024 * 1024; // 100 MiB
 
-void StepperAdapter::init(const std::size_t NUM_JOINTS) {
+void StepperAdapter::init(
+        const std::size_t NUM_JOINTS,
+        rclcpp::Node& parentNode,
+        const std::chrono::duration<int64_t, std::milli>& queryPeriod
+) {
     // Setup logging
     boost::log::add_file_log(
             boost::log::keywords::file_name = "[%TimeStamp%]_%N.log",
@@ -27,6 +31,12 @@ void StepperAdapter::init(const std::size_t NUM_JOINTS) {
 
     // Start the polling loop
     this->polling_thread = std::thread(&StepperAdapter::poll, this);
+
+    // Ask for callbacks for querying joint state
+    // Note: This runs in our thread, so we don't have to worry about thread-safety
+    parentNode.create_wall_timer(queryPeriod, [this] { this->queryController(); });
+
+    // TODO: Register to receive, and process callbacks for responses to getPosition and getSpeed
 
     this->initialized = true;
 }
@@ -92,6 +102,13 @@ void StepperAdapter::readValues() {
     for (;;) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         this->controller.update();
+    }
+}
+
+void StepperAdapter::queryController() {
+    for (auto i = 0u; i < commands.size(); ++i) {
+        this->controller.getPosition(i);
+        this->controller.getSpeed(i);
     }
 }
 

@@ -6,6 +6,8 @@
 #include <thread>
 #include <vector>
 
+#include <rclcpp/node.hpp>
+
 #include "StepperController.h"
 
 /**
@@ -22,8 +24,14 @@ public:
     * facilitate initialization such as array sizing.
     *
     * @param NUM_JOINTS the number of joints
+    * @param parentNode the Node to use for creating WallTimers
+    * @param queryPeriod the time to wait between controller queries for position, velocity, etc.
     */
-    void init(const std::size_t NUM_JOINTS);
+    void init(
+            const std::size_t NUM_JOINTS,
+            rclcpp::Node& parentNode,
+            const std::chrono::duration<int64_t, std::milli>& queryPeriod
+    );
 
     /**
     * Connect to an Arduino running the Stepper Controller program.
@@ -122,6 +130,11 @@ protected:
      * Method to indefinitely poll @ref controller for responses
      */
     [[noreturn]] void poll();
+
+    /**
+     * Queries the position and speed from @ref controller. Used as a callback to the wall timer setup in @ref init.
+     */
+    void queryController();
 
     /**
      * Helper function to ensure that this StepperAdapter has been initialized
