@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>arm_ros_firmware</name>
-  <version>0.0.0</version>
+  <version>0.3.0</version>
   <description>Demo package of `ros2_control` hardware for DiffBot.</description>
 
   <maintainer email="denis.stogl@stoglrobotics.de">Dr.-Ing. Denis Štogl</maintainer>
