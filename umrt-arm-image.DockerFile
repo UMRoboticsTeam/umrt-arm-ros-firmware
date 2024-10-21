@@ -1,4 +1,4 @@
-FROM ros-humble-desktop
+FROM osrf/ros:humble-desktop
 
 RUN sudo apt update && sudo apt install -y \
     ros-humble-ros2-control \
