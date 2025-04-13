@@ -1,3 +1,0 @@
-[submodule "arm-ros-firmware/hardware/include/arm-firmware-lib/arm-firmware-lib"]
-	path = arm-ros-firmware/hardware/include/arm-firmware-lib/arm-firmware-lib
-	url = git@github.com:UMRoboticsTeam/arm-firmware-lib.git
