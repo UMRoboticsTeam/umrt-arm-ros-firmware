@@ -25,13 +25,11 @@ public:
     * facilitate initialization such as array sizing.
     *
     * @param NUM_JOINTS the number of joints
-    * @param parentNode the Node to use for creating WallTimers
-    * @param queryPeriod the time to wait between controller queries for position, velocity, etc.
+    * @param query_period the time to wait between controller queries for position, velocity, etc.
     */
     void init(
             const std::size_t NUM_JOINTS,
-            rclcpp::Node& parentNode,
-            const std::chrono::duration<int64_t, std::milli>& queryPeriod
+            const std::chrono::duration<int64_t, std::milli>& query_period
     );
 
     /**
@@ -177,6 +175,23 @@ protected:
      *                          at the time of calling
      */
     void initializedCheck();
+
+    /**
+     * Poll loop used to trigger motor queries.
+     *
+     * @param period Amount of time to wait in milliseconds between queries
+     */
+    void queryPoll(const std::chrono::milliseconds& period);
+
+    /**
+     * Thread used to periodically query motor speed/position.
+     */
+    std::thread timer;
+
+    /**
+     * Signal used to shutdown the timer thread.
+     */
+    std::atomic<bool> query_motors = false;
 
 private:
     /**
