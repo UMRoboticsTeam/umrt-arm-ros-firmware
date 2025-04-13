@@ -7,6 +7,12 @@
 constexpr boost::log::trivial::severity_level LOG_LEVEL = boost::log::trivial::debug;
 constexpr uint32_t TOTAL_LOG_SIZE = 100 * 1024 * 1024; // 100 MiB
 
+StepperAdapter::~StepperAdapter() {
+    if (this->initialized) {
+        this->disconnect();
+    }
+}
+
 void StepperAdapter::init(
         const std::size_t NUM_JOINTS,
         const std::chrono::duration<int64_t, std::milli>& query_period
@@ -30,17 +36,15 @@ void StepperAdapter::init(
     this->positions_buffer.resize(NUM_JOINTS);
     this->velocities_buffer.resize(NUM_JOINTS);
 
-    // Start the polling loop
-    this->polling_thread = std::thread(&StepperAdapter::poll, this);
-
     // Register to receive callbacks for responses to getPosition and getSpeed
     // Note: These callbacks will occur in another thread, so they need to be processed carefully
     this->controller.EGetPosition.connect([this](uint8_t joint, int32_t pos) -> void { this->updatePosition(joint, pos); });
     this->controller.EGetSpeed.connect([this](uint8_t joint, int16_t speed) -> void { this->updateVelocity(joint, speed); });
 
-    // Start the joint state querying loop
-    this->query_motors = true;
-    this->timer = std::thread([this, query_period]() -> void { this->queryPoll(query_period); });
+    // Start the polling loops for message handling and joint state querying
+    this->continue_polling = true;
+    this->polling_thread = std::thread([this]() -> void { this->poll(); });
+    this->querying_thread = std::thread([this, query_period]() -> void { this->queryPoll(query_period); });
 
     this->initialized = true;
 }
@@ -52,7 +56,7 @@ void StepperAdapter::connect(const std::string device, const int baud_rate) {
 
 void StepperAdapter::disconnect() {
     initializedCheck();
-    this->query_motors = false;
+    this->continue_polling = false;
     this->controller.disconnect();
 }
 
@@ -108,9 +112,9 @@ void StepperAdapter::readValues() {
 }
 
 [[noreturn]] void StepperAdapter::poll() {
-    // Run update loop forever
+    // Run update loop approximately forever
     // TODO: Look into a better way of doing the polling loop which isn't so intensive
-    for (;;) {
+    while (continue_polling) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         this->controller.update();
     }
@@ -146,8 +150,8 @@ void StepperAdapter::initializedCheck() {
 }
 
 void StepperAdapter::queryPoll(const std::chrono::milliseconds& period) {
-    while (this->query_motors) {
-        this->queryController();
+    while (this->continue_polling) {
         std::this_thread::sleep_for(period);
+        this->queryController();
     }
 }

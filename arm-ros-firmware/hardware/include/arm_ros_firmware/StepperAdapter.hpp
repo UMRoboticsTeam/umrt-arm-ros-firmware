@@ -18,6 +18,11 @@
 class StepperAdapter {
 public:
     /**
+     * If initialized, calls @ref disconnect
+     */
+    ~StepperAdapter();
+
+    /**
     * Initializes this StepperAdapter. Must be called before any other method,
     * and only once.
     *
@@ -41,7 +46,7 @@ public:
     void connect(const std::string device, const int baud_rate);
 
     /**
-     * Disconnect from the Arduino.
+     * Disconnect from the Arduino and close polling loops.
      */
     void disconnect();
 
@@ -148,12 +153,23 @@ protected:
     std::thread polling_thread;
 
     /**
+     * Thread used to periodically query motor speed/position.
+     */
+    std::thread querying_thread;
+
+    /**
+     * Signal used to shutdown the polling threads.
+     */
+    std::atomic<bool> continue_polling = false;
+
+
+    /**
      * Method to indefinitely poll @ref controller for responses
      */
     [[noreturn]] void poll();
 
     /**
-     * Queries the position and speed from @ref controller. Used as a callback to the wall timer setup in @ref init.
+     * Queries the position and speed from @ref controller. Used as a callback to the wall querying_thread setup in @ref init.
      */
     void queryController();
 
@@ -182,16 +198,6 @@ protected:
      * @param period Amount of time to wait in milliseconds between queries
      */
     void queryPoll(const std::chrono::milliseconds& period);
-
-    /**
-     * Thread used to periodically query motor speed/position.
-     */
-    std::thread timer;
-
-    /**
-     * Signal used to shutdown the timer thread.
-     */
-    std::atomic<bool> query_motors = false;
 
 private:
     /**
