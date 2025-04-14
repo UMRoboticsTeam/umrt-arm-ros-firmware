@@ -1,0 +1,22 @@
+name: Build library
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    permissions:
+      contents: write
+      packages: read
+
+    uses: UMRoboticsTeam/umrt-ci-cd/.github/workflows/ros-build.yaml@main
+    with:
+      build_image: ghcr.io/umroboticsteam/umrt-build:v0.0.19
+      publish_image: ghcr.io/umroboticsteam/umrt-apt-image:latest
+      publish_repo: UMRoboticsTeam/umrt-apt-repo
+    secrets:
+      APT_SIGNING_PUBKEY: ${{ secrets.APT_SIGNING_PUBKEY }}
+      APT_SIGNING_KEY: ${{ secrets.APT_SIGNING_KEY }}
+      APT_DEPLOY_KEY: ${{ secrets.APT_DEPLOY_KEY }}
