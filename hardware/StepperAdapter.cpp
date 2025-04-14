@@ -99,7 +99,7 @@ void StepperAdapter::readValues() {
     this->gripper_position = this->cmd_gripper_pos;
 }
 
-[[noreturn]] void StepperAdapter::poll() {
+void StepperAdapter::poll() {
     // Run update loop approximately forever
     // TODO: Look into a better way of doing the polling loop which isn't so intensive
     while (continue_polling) {

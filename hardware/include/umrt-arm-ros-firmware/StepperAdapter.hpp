@@ -166,7 +166,7 @@ protected:
     /**
      * Method to indefinitely poll @ref controller for responses
      */
-    [[noreturn]] void poll();
+    void poll();
 
     /**
      * Queries the position and speed from @ref controller. Used as a callback to the wall querying_thread setup in @ref init.
