@@ -1,11 +1,7 @@
-#include "arm_ros_firmware/StepperAdapter.hpp"
-
+#include "umrt-arm-ros-firmware/StepperAdapter.hpp"
 #include <boost/log/trivial.hpp>
-#include <boost/log/utility/setup/common_attributes.hpp>
-#include <boost/log/utility/setup/file.hpp>
 
 constexpr boost::log::trivial::severity_level LOG_LEVEL = boost::log::trivial::debug;
-constexpr uint32_t TOTAL_LOG_SIZE = 100 * 1024 * 1024; // 100 MiB
 
 StepperAdapter::~StepperAdapter() {
     if (this->initialized) {
@@ -17,16 +13,8 @@ void StepperAdapter::init(
         const std::size_t NUM_JOINTS,
         const std::chrono::duration<int64_t, std::milli>& query_period
 ) {
-    // Setup logging
-    boost::log::add_file_log(
-            boost::log::keywords::file_name = "[%TimeStamp%]_%N.log",
-            boost::log::keywords::rotation_size = TOTAL_LOG_SIZE,
-            boost::log::keywords::format = "[%TimeStamp%]: %Message%",
-            boost::log::keywords::auto_flush = true
-    );
+    // Set the library's log level
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= LOG_LEVEL);
-    boost::log::add_common_attributes();
-    BOOST_LOG_TRIVIAL(debug) << "Logging started";
 
     // Set the size of the vectors
     // See note in header about how important it is for these to not change

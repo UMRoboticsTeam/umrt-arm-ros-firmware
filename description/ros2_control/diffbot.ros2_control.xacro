@@ -6,7 +6,7 @@
     <ros2_control name="${name}" type="system">
       <xacro:unless value="${use_mock_hardware}">
         <hardware>
-          <plugin>arm_ros_firmware/DiffBotSystemHardware</plugin>
+          <plugin>umrt-arm-ros-firmware/DiffBotSystemHardware</plugin>
           <param name="device">/dev/umrt-arm</param>
           <param name="baud_rate">57600</param>
         </hardware>

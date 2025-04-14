@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(arm_ros_firmware)
+project(umrt-arm-ros-firmware)
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -31,45 +31,45 @@ install(
 )
 
 add_library(
-        arm_ros_firmware
+        umrt-arm-ros-firmware
         SHARED
         hardware/diffbot_system.cpp
         hardware/StepperAdapter.cpp
 )
-target_compile_features(arm_ros_firmware PUBLIC cxx_std_17)
-target_include_directories(arm_ros_firmware PUBLIC
+target_compile_features(umrt-arm-ros-firmware PUBLIC cxx_std_17)
+target_include_directories(umrt-arm-ros-firmware PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
-        $<INSTALL_INTERFACE:include/arm_ros_firmware>
+        $<INSTALL_INTERFACE:include/umrt-arm-ros-firmware>
         )
 ament_target_dependencies(
-        arm_ros_firmware PUBLIC
+        umrt-arm-ros-firmware PUBLIC
         ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 # ament_target_dependencies doesn't use namespaces when linking, so we need to link umrt-arm-firmware-lib ourself
-target_link_libraries(arm_ros_firmware PRIVATE umrt-arm-firmware-lib::umrt-arm-firmware-lib)
+target_link_libraries(umrt-arm-ros-firmware PRIVATE umrt-arm-firmware-lib::umrt-arm-firmware-lib)
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
-target_compile_definitions(${PROJECT_NAME} PRIVATE "ARM_ROS_FIRMWARE_BUILDING_DLL")
+target_compile_definitions(${PROJECT_NAME} PRIVATE "umrt-arm-ros-firmware_BUILDING_DLL")
 
 # Export hardware plugins
-pluginlib_export_plugin_description_file(hardware_interface arm_ros_firmware.xml)
+pluginlib_export_plugin_description_file(hardware_interface umrt-arm-ros-firmware.xml)
 
 # INSTALL
 install(
         DIRECTORY hardware/include/
-        DESTINATION include/arm_ros_firmware
+        DESTINATION include/umrt-arm-ros-firmware
 )
 install(
         DIRECTORY description/launch description/ros2_control description/urdf
-        DESTINATION share/arm_ros_firmware
+        DESTINATION share/umrt-arm-ros-firmware
 )
 install(
         DIRECTORY bringup/launch bringup/config
-        DESTINATION share/arm_ros_firmware
+        DESTINATION share/umrt-arm-ros-firmware
 )
-install(TARGETS arm_ros_firmware
-        EXPORT export_arm_ros_firmware
+install(TARGETS umrt-arm-ros-firmware
+        EXPORT export_umrt-arm-ros-firmware
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib
         RUNTIME DESTINATION bin
@@ -83,6 +83,6 @@ if(BUILD_TESTING)
 endif()
 
 ## EXPORTS
-ament_export_targets(export_arm_ros_firmware HAS_LIBRARY_TARGET)
+ament_export_targets(export_umrt-arm-ros-firmware HAS_LIBRARY_TARGET)
 ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 ament_package()

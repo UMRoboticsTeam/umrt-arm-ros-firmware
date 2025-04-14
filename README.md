@@ -1,4 +1,4 @@
-# arm_ros_firmware
+# umrt-arm-ros-firmware
 
    *DiffBot*, or ''Differential Mobile Robot'', is a simple mobile base with differential drive.
    The robot is basically a box moving according to differential drive kinematics.
