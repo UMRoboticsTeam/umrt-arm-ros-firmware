@@ -1,5 +1,6 @@
 #include "umrt-arm-ros-firmware/StepperAdapter.hpp"
 #include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
 
 constexpr boost::log::trivial::severity_level LOG_LEVEL = boost::log::trivial::debug;
 
