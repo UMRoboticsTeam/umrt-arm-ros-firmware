@@ -9,6 +9,7 @@ endif()
 
 # Fixes intellisense not finding ros2 headers https://youtrack.jetbrains.com/issue/CPP-29747/Certain-ROS2-package-headers-missing-from-Intellisense-when-using-a-Docker-toolchain
 include_directories(SYSTEM /opt/ros/$ENV{ROS_DISTRO}/include)
+include(CMakeFindDependencyMacro)
 
 # find dependencies
 set(THIS_PACKAGE_INCLUDE_DEPENDS
@@ -16,26 +17,18 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
         pluginlib
         rclcpp
         rclcpp_lifecycle
+        ament_cmake
+        umrt-arm-firmware-lib
         )
-
-# Setup Boost
-find_package(Boost REQUIRED COMPONENTS log log_setup)
-include_directories(${Boost_INCLUDE_DIRS})
-
-# Setup arm-firmware-lib
-add_subdirectory(hardware/include/arm-firmware-lib)
+foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
+    find_package(${Dependency} CONFIG REQUIRED)
+endforeach()
 
 # Setup ros2_control_demo_description
 install(
         DIRECTORY hardware/include/ros2_control_demo_description/diffbot/urdf hardware/include/ros2_control_demo_description/diffbot/rviz
         DESTINATION share/${PROJECT_NAME}/ros2_control_demo_description/diffbot
 )
-
-# find dependencies
-find_package(ament_cmake REQUIRED)
-foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
-    find_package(${Dependency} REQUIRED)
-endforeach()
 
 add_library(
         arm_ros_firmware
@@ -52,12 +45,8 @@ ament_target_dependencies(
         arm_ros_firmware PUBLIC
         ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
-
-target_link_libraries(arm_ros_firmware PRIVATE ${Boost_LIBRARIES})
-target_link_libraries(arm_ros_firmware PRIVATE arm_firmware_lib)
-target_include_directories(arm_ros_firmware PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/hardware/include/arm-firmware-lib/arm-firmware-lib>
-        )
+# ament_target_dependencies doesn't use namespaces when linking, so we need to link umrt-arm-firmware-lib ourself
+target_link_libraries(arm_ros_firmware PRIVATE umrt-arm-firmware-lib::umrt-arm-firmware-lib)
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.

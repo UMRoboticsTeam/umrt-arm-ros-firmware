@@ -129,7 +129,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
     }
   }
 
-  steppers.init(info_.joints.size());
+  steppers.init(info_.joints.size(), std::chrono::milliseconds(100));
 
   return hardware_interface::CallbackReturn::SUCCESS;
 }

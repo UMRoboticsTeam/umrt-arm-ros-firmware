@@ -9,7 +9,7 @@
 
 #include <rclcpp/node.hpp>
 
-#include "StepperController.h"
+#include <umrt-arm-firmware-lib/StepperController.h>
 
 /**
  * Adapter class to interface a @ref StepperController with a ros2_control
@@ -18,6 +18,11 @@
 class StepperAdapter {
 public:
     /**
+     * If initialized, calls @ref disconnect
+     */
+    ~StepperAdapter();
+
+    /**
     * Initializes this StepperAdapter. Must be called before any other method,
     * and only once.
     *
@@ -25,13 +30,11 @@ public:
     * facilitate initialization such as array sizing.
     *
     * @param NUM_JOINTS the number of joints
-    * @param parentNode the Node to use for creating WallTimers
-    * @param queryPeriod the time to wait between controller queries for position, velocity, etc.
+    * @param query_period the time to wait between controller queries for position, velocity, etc.
     */
     void init(
             const std::size_t NUM_JOINTS,
-            rclcpp::Node& parentNode,
-            const std::chrono::duration<int64_t, std::milli>& queryPeriod
+            const std::chrono::duration<int64_t, std::milli>& query_period
     );
 
     /**
@@ -43,7 +46,7 @@ public:
     void connect(const std::string device, const int baud_rate);
 
     /**
-     * Disconnect from the Arduino.
+     * Disconnect from the Arduino and close polling loops.
      */
     void disconnect();
 
@@ -150,12 +153,23 @@ protected:
     std::thread polling_thread;
 
     /**
+     * Thread used to periodically query motor speed/position.
+     */
+    std::thread querying_thread;
+
+    /**
+     * Signal used to shutdown the polling threads.
+     */
+    std::atomic<bool> continue_polling = false;
+
+
+    /**
      * Method to indefinitely poll @ref controller for responses
      */
     [[noreturn]] void poll();
 
     /**
-     * Queries the position and speed from @ref controller. Used as a callback to the wall timer setup in @ref init.
+     * Queries the position and speed from @ref controller. Used as a callback to the wall querying_thread setup in @ref init.
      */
     void queryController();
 
@@ -177,6 +191,13 @@ protected:
      *                          at the time of calling
      */
     void initializedCheck();
+
+    /**
+     * Poll loop used to trigger motor queries.
+     *
+     * @param period Amount of time to wait in milliseconds between queries
+     */
+    void queryPoll(const std::chrono::milliseconds& period);
 
 private:
     /**
