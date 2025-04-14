@@ -1,0 +1,437 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<tagfile doxygen_version="1.9.1">
+  <compound kind="file">
+    <name>SYSEX_COMMANDS.h</name>
+    <path>/__w/umrt-arm-firmware-lib/umrt-arm-firmware-lib/include/umrt-arm-firmware-lib/</path>
+    <filename>SYSEX__COMMANDS_8h.html</filename>
+    <member kind="enumeration">
+      <type/>
+      <name>SysexCommands</name>
+      <anchorfile>SYSEX__COMMANDS_8h.html</anchorfile>
+      <anchor>a4d584994e1a358caa88fb23e74c21473</anchor>
+      <arglist/>
+    </member>
+    <member kind="enumvalue">
+      <name>ARDUINO_ECHO</name>
+      <anchorfile>SYSEX__COMMANDS_8h.html</anchorfile>
+      <anchor>a4d584994e1a358caa88fb23e74c21473ae808a17dc53c3dfa36ad1a3abdd28778</anchor>
+      <arglist/>
+    </member>
+    <member kind="enumvalue">
+      <name>SET_SPEED</name>
+      <anchorfile>SYSEX__COMMANDS_8h.html</anchorfile>
+      <anchor>a4d584994e1a358caa88fb23e74c21473addbef6c012aabcb279367ecbc542d4d4</anchor>
+      <arglist/>
+    </member>
+    <member kind="enumvalue">
+      <name>GET_SPEED</name>
+      <anchorfile>SYSEX__COMMANDS_8h.html</anchorfile>
+      <anchor>a4d584994e1a358caa88fb23e74c21473ad8c219ac710b98ec19fa460b2c613843</anchor>
+      <arglist/>
+    </member>
+    <member kind="enumvalue">
+      <name>SEND_STEP</name>
+      <anchorfile>SYSEX__COMMANDS_8h.html</anchorfile>
+      <anchor>a4d584994e1a358caa88fb23e74c21473a860c73574737317ec6178842e012e3ec</anchor>
+      <arglist/>
+    </member>
+    <member kind="enumvalue">
+      <name>SEEK_POS</name>
+      <anchorfile>SYSEX__COMMANDS_8h.html</anchorfile>
+      <anchor>a4d584994e1a358caa88fb23e74c21473a769a9574ecdda5f7d9d0bf2e81da1c3a</anchor>
+      <arglist/>
+    </member>
+    <member kind="enumvalue">
+      <name>GET_POS</name>
+      <anchorfile>SYSEX__COMMANDS_8h.html</anchorfile>
+      <anchor>a4d584994e1a358caa88fb23e74c21473a20f1f7224c5d768ad86e6bc2c31dc180</anchor>
+      <arglist/>
+    </member>
+    <member kind="enumvalue">
+      <name>SET_GRIPPER</name>
+      <anchorfile>SYSEX__COMMANDS_8h.html</anchorfile>
+      <anchor>a4d584994e1a358caa88fb23e74c21473a1c51c32b4641796e110c573c5214ba42</anchor>
+      <arglist/>
+    </member>
+  </compound>
+  <compound kind="file">
+    <name>Utils.h</name>
+    <path>/__w/umrt-arm-firmware-lib/umrt-arm-firmware-lib/include/umrt-arm-firmware-lib/</path>
+    <filename>Utils_8h.html</filename>
+    <member kind="function">
+      <type>std::vector&lt; uint8_t &gt;</type>
+      <name>pack_32</name>
+      <anchorfile>Utils_8h.html</anchorfile>
+      <anchor>a1623a03878f6b55bd42dba9af8a090e8</anchor>
+      <arglist>(const uint32_t integer)</arglist>
+    </member>
+    <member kind="function">
+      <type>std::vector&lt; uint8_t &gt;</type>
+      <name>pack_16</name>
+      <anchorfile>Utils_8h.html</anchorfile>
+      <anchor>a73f341bfcd74f649abd18df8bb26ae7a</anchor>
+      <arglist>(const uint16_t integer)</arglist>
+    </member>
+    <member kind="function">
+      <type>std::vector&lt; uint8_t &gt;</type>
+      <name>firmatify_32</name>
+      <anchorfile>Utils_8h.html</anchorfile>
+      <anchor>a2e7a42db24e3e7c8ba5963c3e0e7a8bf</anchor>
+      <arglist>(const std::vector&lt; uint8_t &gt;::const_iterator &amp;pack)</arglist>
+    </member>
+    <member kind="function">
+      <type>std::vector&lt; uint8_t &gt;</type>
+      <name>firmatify_32</name>
+      <anchorfile>Utils_8h.html</anchorfile>
+      <anchor>a013ae2e612dc07ef952b0b8cf57f24bb</anchor>
+      <arglist>(const std::vector&lt; uint8_t &gt; &amp;pack)</arglist>
+    </member>
+    <member kind="function">
+      <type>std::vector&lt; uint8_t &gt;</type>
+      <name>firmatify_16</name>
+      <anchorfile>Utils_8h.html</anchorfile>
+      <anchor>af325537e08cf7243e27ece57c231a3fd</anchor>
+      <arglist>(const std::vector&lt; uint8_t &gt;::const_iterator &amp;pack)</arglist>
+    </member>
+    <member kind="function">
+      <type>std::vector&lt; uint8_t &gt;</type>
+      <name>firmatify_16</name>
+      <anchorfile>Utils_8h.html</anchorfile>
+      <anchor>a4d969013c86f3671ee526078b635c85d</anchor>
+      <arglist>(const std::vector&lt; uint8_t &gt; &amp;pack)</arglist>
+    </member>
+    <member kind="function">
+      <type>std::vector&lt; uint8_t &gt;</type>
+      <name>firmatify_8</name>
+      <anchorfile>Utils_8h.html</anchorfile>
+      <anchor>a75a7e70f52c8e2b0c9b0d9c5dc49fe86</anchor>
+      <arglist>(const uint8_t val)</arglist>
+    </member>
+    <member kind="function">
+      <type>uint32_t</type>
+      <name>decode_32</name>
+      <anchorfile>Utils_8h.html</anchorfile>
+      <anchor>ab801dcc0e098b311c95de6773f3d8fff</anchor>
+      <arglist>(const std::vector&lt; uint8_t &gt;::const_iterator &amp;data)</arglist>
+    </member>
+    <member kind="function">
+      <type>uint32_t</type>
+      <name>decode_32</name>
+      <anchorfile>Utils_8h.html</anchorfile>
+      <anchor>a4091a69e2d0477e9e8746070d7d156ce</anchor>
+      <arglist>(const std::vector&lt; uint8_t &gt; &amp;data)</arglist>
+    </member>
+    <member kind="function">
+      <type>uint16_t</type>
+      <name>decode_16</name>
+      <anchorfile>Utils_8h.html</anchorfile>
+      <anchor>a9203208c489bc17aa0235078653b09e4</anchor>
+      <arglist>(const std::vector&lt; uint8_t &gt;::const_iterator &amp;data)</arglist>
+    </member>
+    <member kind="function">
+      <type>uint16_t</type>
+      <name>decode_16</name>
+      <anchorfile>Utils_8h.html</anchorfile>
+      <anchor>ac77efcc4316b0ae8882da3c5a5c7a259</anchor>
+      <arglist>(const std::vector&lt; uint8_t &gt; &amp;data)</arglist>
+    </member>
+    <member kind="function">
+      <type>std::vector&lt; uint8_t &gt;</type>
+      <name>encode_string</name>
+      <anchorfile>Utils_8h.html</anchorfile>
+      <anchor>a85376cd4020182aa56986cdcee49ffa7</anchor>
+      <arglist>(const std::string &amp;str)</arglist>
+    </member>
+    <member kind="function">
+      <type>std::string</type>
+      <name>decode_string</name>
+      <anchorfile>Utils_8h.html</anchorfile>
+      <anchor>ad31757e027348eb07a81db89f1493001</anchor>
+      <arglist>(const std::vector&lt; uint8_t &gt; &amp;data)</arglist>
+    </member>
+  </compound>
+  <compound kind="file">
+    <name>CommunicationMaster.py</name>
+    <path>/__w/umrt-arm-firmware-lib/umrt-arm-firmware-lib/src/</path>
+    <filename>CommunicationMaster_8py.html</filename>
+    <member kind="function">
+      <type>def</type>
+      <name>pack_32</name>
+      <anchorfile>CommunicationMaster_8py.html</anchorfile>
+      <anchor>a8a1844167b1a7c5f0149067d8c392fef</anchor>
+      <arglist>(integer)</arglist>
+    </member>
+    <member kind="function">
+      <type>def</type>
+      <name>pack_16</name>
+      <anchorfile>CommunicationMaster_8py.html</anchorfile>
+      <anchor>a513f656000cb37785b7aeabe907c8664</anchor>
+      <arglist>(integer)</arglist>
+    </member>
+    <member kind="function">
+      <type>def</type>
+      <name>firmatify</name>
+      <anchorfile>CommunicationMaster_8py.html</anchorfile>
+      <anchor>ae79f1381fea835f40cc8626e26fe8676</anchor>
+      <arglist>(pack)</arglist>
+    </member>
+    <member kind="function">
+      <type>def</type>
+      <name>defirmatify</name>
+      <anchorfile>CommunicationMaster_8py.html</anchorfile>
+      <anchor>aefef946d32fb126b3a8fe93c14728f1c</anchor>
+      <arglist>(data)</arglist>
+    </member>
+    <member kind="function">
+      <type>def</type>
+      <name>decode_32</name>
+      <anchorfile>CommunicationMaster_8py.html</anchorfile>
+      <anchor>a354a584960219c9858777b7c207b6da0</anchor>
+      <arglist>(data, offset=0, signed=True)</arglist>
+    </member>
+    <member kind="function">
+      <type>def</type>
+      <name>decode_16</name>
+      <anchorfile>CommunicationMaster_8py.html</anchorfile>
+      <anchor>a4272d5fd34d4f4464e8007e4519c4978</anchor>
+      <arglist>(data, offset=0, signed=True)</arglist>
+    </member>
+    <member kind="function">
+      <type>def</type>
+      <name>decode_8</name>
+      <anchorfile>CommunicationMaster_8py.html</anchorfile>
+      <anchor>a0accbdee5eef591256ceb9a6e4767077</anchor>
+      <arglist>(data, offset=0, signed=True)</arglist>
+    </member>
+    <member kind="function">
+      <type>def</type>
+      <name>on_echo_text</name>
+      <anchorfile>CommunicationMaster_8py.html</anchorfile>
+      <anchor>a14fddac2e98b42ed137d3791eb64e927</anchor>
+      <arglist>(*data)</arglist>
+    </member>
+    <member kind="function">
+      <type>def</type>
+      <name>on_echo_int32</name>
+      <anchorfile>CommunicationMaster_8py.html</anchorfile>
+      <anchor>a92d4e12b35112b47a3bce7a47615f275</anchor>
+      <arglist>(*data)</arglist>
+    </member>
+    <member kind="function">
+      <type>def</type>
+      <name>on_echo_int16</name>
+      <anchorfile>CommunicationMaster_8py.html</anchorfile>
+      <anchor>a2fdf72749db2d773c31ecd5c92a3431f</anchor>
+      <arglist>(*data)</arglist>
+    </member>
+    <member kind="function">
+      <type>def</type>
+      <name>on_echo_raw</name>
+      <anchorfile>CommunicationMaster_8py.html</anchorfile>
+      <anchor>a30e6ea20dc7f4563b9bb718b94f2dd70</anchor>
+      <arglist>(*data)</arglist>
+    </member>
+    <member kind="function">
+      <type>def</type>
+      <name>on_set_speed</name>
+      <anchorfile>CommunicationMaster_8py.html</anchorfile>
+      <anchor>a7c3a4c3db874b9fb3e18c3cd197f164d</anchor>
+      <arglist>(*data)</arglist>
+    </member>
+    <member kind="function">
+      <type>def</type>
+      <name>on_get_speed</name>
+      <anchorfile>CommunicationMaster_8py.html</anchorfile>
+      <anchor>a35a60db82887d6a938fe6c537f344f95</anchor>
+      <arglist>(*data)</arglist>
+    </member>
+    <member kind="function">
+      <type>def</type>
+      <name>on_send_step</name>
+      <anchorfile>CommunicationMaster_8py.html</anchorfile>
+      <anchor>a1c4b598fc3969efdd77bc6243b427957</anchor>
+      <arglist>(*data)</arglist>
+    </member>
+    <member kind="function">
+      <type>def</type>
+      <name>on_seek_position</name>
+      <anchorfile>CommunicationMaster_8py.html</anchorfile>
+      <anchor>a18ddd736757196ea80bdf0494d51d1c4</anchor>
+      <arglist>(*data)</arglist>
+    </member>
+    <member kind="function">
+      <type>def</type>
+      <name>on_get_position</name>
+      <anchorfile>CommunicationMaster_8py.html</anchorfile>
+      <anchor>ad66613670a066d4717e7a4e37ab9ba5b</anchor>
+      <arglist>(*data)</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>CommunicationTest</name>
+    <filename>classCommunicationTest.html</filename>
+  </compound>
+  <compound kind="class">
+    <name>StepperController</name>
+    <filename>classStepperController.html</filename>
+    <base>ofArduino</base>
+    <member kind="function">
+      <type/>
+      <name>StepperController</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>ad95bb1e019d9f7c9fccee7d253c18bb4</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type/>
+      <name>~StepperController</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>a55bcf4026c17de95f2632d9e6b396550</anchor>
+      <arglist>() noexcept override</arglist>
+    </member>
+    <member kind="function">
+      <type>bool</type>
+      <name>sendEcho</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>a67098c1b12863f31dc42625f798f62d3</anchor>
+      <arglist>(const std::vector&lt; uint8_t &gt; &amp;payload)</arglist>
+    </member>
+    <member kind="function">
+      <type>bool</type>
+      <name>setSpeed</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>a752c482343992a6c58b7c78b82930356</anchor>
+      <arglist>(const uint8_t motor, const int16_t speed)</arglist>
+    </member>
+    <member kind="function">
+      <type>bool</type>
+      <name>getSpeed</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>a75c974047784379f7c385e4d23f9894c</anchor>
+      <arglist>(const uint8_t motor)</arglist>
+    </member>
+    <member kind="function">
+      <type>bool</type>
+      <name>sendStep</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>a365ec13f348b41c611bc20d2fab0733b</anchor>
+      <arglist>(const uint8_t motor, const uint16_t num_steps, const int16_t speed)</arglist>
+    </member>
+    <member kind="function">
+      <type>bool</type>
+      <name>seekPosition</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>ae86c577d1d6f8d1392d60f7838432ba9</anchor>
+      <arglist>(const uint8_t motor, const int32_t position, const int16_t speed)</arglist>
+    </member>
+    <member kind="function">
+      <type>bool</type>
+      <name>getPosition</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>ac767df28c3d0b63422643addf8658aea</anchor>
+      <arglist>(const uint8_t motor)</arglist>
+    </member>
+    <member kind="function">
+      <type>bool</type>
+      <name>setGripper</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>a018a7ec598a4cbb53d1bd1cde1d2796c</anchor>
+      <arglist>(const uint8_t position)</arglist>
+    </member>
+    <member kind="function">
+      <type>bool</type>
+      <name>isSetup</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>a58a9eaa00c556e4fc01c8bb10c011539</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="variable">
+      <type>boost::signals2::signal&lt; void(void)&gt;</type>
+      <name>ESetup</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>aff8366ce6e9bdbdadf66db6b764829fe</anchor>
+      <arglist/>
+    </member>
+    <member kind="variable">
+      <type>boost::signals2::signal&lt; void(std::vector&lt; uint8_t &gt;)&gt;</type>
+      <name>EArduinoEcho</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>adbeb1bbed59fc1f3945d0ea4133fd289</anchor>
+      <arglist/>
+    </member>
+    <member kind="variable">
+      <type>boost::signals2::signal&lt; void(uint8_t, int16_t)&gt;</type>
+      <name>ESetSpeed</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>a97f53e0fb7549e57c051b3950087aea6</anchor>
+      <arglist/>
+    </member>
+    <member kind="variable">
+      <type>boost::signals2::signal&lt; void(uint8_t, int16_t)&gt;</type>
+      <name>EGetSpeed</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>afadf508986c4efc92f7a60988bbd5c64</anchor>
+      <arglist/>
+    </member>
+    <member kind="variable">
+      <type>boost::signals2::signal&lt; void(uint8_t, uint16_t, int16_t)&gt;</type>
+      <name>ESendStep</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>a0a42652a23dd60f442b92fd24c3b77a9</anchor>
+      <arglist/>
+    </member>
+    <member kind="variable">
+      <type>boost::signals2::signal&lt; void(uint8_t, int32_t, int16_t)&gt;</type>
+      <name>ESeekPosition</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>ae3f24b2f0702df8d0752245ee1691d8e</anchor>
+      <arglist/>
+    </member>
+    <member kind="variable">
+      <type>boost::signals2::signal&lt; void(uint8_t, int32_t)&gt;</type>
+      <name>EGetPosition</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>a5666d72d9f1c0d92ab1bc6f5e634634f</anchor>
+      <arglist/>
+    </member>
+    <member kind="variable">
+      <type>boost::signals2::signal&lt; void(uint8_t)&gt;</type>
+      <name>ESetGripper</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>a075d14302a0422d087ea95ac4723362a</anchor>
+      <arglist/>
+    </member>
+    <member kind="function" protection="protected">
+      <type>void</type>
+      <name>setupArduino</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>a9fb858947ae4d15645e6fbb064aca0a7</anchor>
+      <arglist>(const int &amp;version)</arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>void</type>
+      <name>handleSysex</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>af67f5db1d2a419c754911e70e4340a7b</anchor>
+      <arglist>(const std::vector&lt; unsigned char &gt; &amp;message)</arglist>
+    </member>
+    <member kind="variable" protection="protected">
+      <type>boost::signals2::connection</type>
+      <name>connectionInitialized</name>
+      <anchorfile>classStepperController.html</anchorfile>
+      <anchor>ae1db652a59c249a52e3000ad2c7e5094</anchor>
+      <arglist/>
+    </member>
+  </compound>
+  <compound kind="page">
+    <name>md_README</name>
+    <title>UMRT Arm Firmware Library</title>
+    <filename>md_README.html</filename>
+  </compound>
+  <compound kind="page">
+    <name>index</name>
+    <title/>
+    <filename>index.html</filename>
+    <docanchor file="index.html" title="Communication Test Script">communication-test-script</docanchor>
+  </compound>
+</tagfile>
