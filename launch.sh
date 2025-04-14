@@ -13,4 +13,4 @@ docker run \
   -v /etc/arm-firmware:/releases/arm-firmware \
   --entrypoint /bin/bash \
   umrt-arm-image \
-  -c "cd /releases/arm-firmware/arm-ros-firmware && source install/setup.bash && ros2 launch arm_ros_firmware diffbot.launch.py"
+  -c "cd /releases/arm-firmware/arm-ros-firmware && source install/setup.bash && ros2 launch umrt-arm-ros-firmware diffbot.launch.py"

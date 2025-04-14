@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ARM_ROS_FIRMWARE__DIFFBOT_SYSTEM_HPP_
-#define ARM_ROS_FIRMWARE__DIFFBOT_SYSTEM_HPP_
+#ifndef UMRT_ARM_ROS_FIRMWARE__DIFFBOT_SYSTEM_HPP_
+#define UMRT_ARM_ROS_FIRMWARE__DIFFBOT_SYSTEM_HPP_
 
 #include <memory>
 #include <string>
@@ -30,11 +30,11 @@
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
-#include "arm_ros_firmware/visibility_control.h"
+#include "umrt-arm-ros-firmware/visibility_control.h"
 
 #include "StepperAdapter.hpp"
 
-namespace arm_ros_firmware
+namespace umrt_arm_ros_firmware
 {
 class DiffBotSystemHardware : public hardware_interface::SystemInterface
 {
@@ -46,37 +46,37 @@ class DiffBotSystemHardware : public hardware_interface::SystemInterface
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(DiffBotSystemHardware);
 
-  ARM_ROS_FIRMWARE_PUBLIC
+  UMRT_ARM_ROS_FIRMWARE_PUBLIC
   hardware_interface::CallbackReturn on_init(
     const hardware_interface::HardwareInfo & info) override;
 
-  ARM_ROS_FIRMWARE_PUBLIC
+  UMRT_ARM_ROS_FIRMWARE_PUBLIC
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
 
-  ARM_ROS_FIRMWARE_PUBLIC
+  UMRT_ARM_ROS_FIRMWARE_PUBLIC
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
-    ARM_ROS_FIRMWARE_PUBLIC
+    UMRT_ARM_ROS_FIRMWARE_PUBLIC
     hardware_interface::CallbackReturn on_configure(
             const rclcpp_lifecycle::State & previous_state) override;
 
-    ARM_ROS_FIRMWARE_PUBLIC
+    UMRT_ARM_ROS_FIRMWARE_PUBLIC
     hardware_interface::CallbackReturn on_cleanup(
             const rclcpp_lifecycle::State & previous_state) override;
 
-  ARM_ROS_FIRMWARE_PUBLIC
+  UMRT_ARM_ROS_FIRMWARE_PUBLIC
   hardware_interface::CallbackReturn on_activate(
     const rclcpp_lifecycle::State & previous_state) override;
 
-  ARM_ROS_FIRMWARE_PUBLIC
+  UMRT_ARM_ROS_FIRMWARE_PUBLIC
   hardware_interface::CallbackReturn on_deactivate(
     const rclcpp_lifecycle::State & previous_state) override;
 
-  ARM_ROS_FIRMWARE_PUBLIC
+  UMRT_ARM_ROS_FIRMWARE_PUBLIC
   hardware_interface::return_type read(
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-  ARM_ROS_FIRMWARE_PUBLIC
+  UMRT_ARM_ROS_FIRMWARE_PUBLIC
   hardware_interface::return_type write(
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
@@ -85,6 +85,6 @@ private:
   Config cfg;
 };
 
-}  // namespace arm_ros_firmware
+}  // namespace umrt_arm_ros_firmware
 
-#endif  // ARM_ROS_FIRMWARE__DIFFBOT_SYSTEM_HPP_
+#endif  // UMRT_ARM_ROS_FIRMWARE__DIFFBOT_SYSTEM_HPP_

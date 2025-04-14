@@ -1,4 +1,4 @@
-#include "arm_ros_firmware/StepperAdapter.hpp"
+#include "umrt-arm-ros-firmware/StepperAdapter.hpp"
 
 #include <boost/log/trivial.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
