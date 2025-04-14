@@ -55,6 +55,17 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE "umrt-arm-ros-firmware_BUILDI
 # Export hardware plugins
 pluginlib_export_plugin_description_file(hardware_interface umrt-arm-ros-firmware.xml)
 
+# Parse version number from the file
+file(READ "version" version_input)
+string(REGEX MATCH "([0-9]+)\.([0-9]+)\.([0-9]+)" _ ${version_input})
+
+# Fill version number into package.xml
+configure_file(
+        package.in.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/package.xml
+        @ONLY
+)
+
 # INSTALL
 install(
         DIRECTORY hardware/include/
