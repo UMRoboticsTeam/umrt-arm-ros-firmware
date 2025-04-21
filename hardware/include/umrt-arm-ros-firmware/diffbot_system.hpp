@@ -81,7 +81,7 @@ public:
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
-  StepperAdapter steppers;
+  std::unique_ptr<StepperAdapter> steppers;
   Config cfg;
 };
 

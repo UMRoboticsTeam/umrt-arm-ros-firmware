@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "umrt-arm-ros-firmware/diffbot_system.hpp"
+#include "umrt-arm-ros-firmware/ArduinoStepperAdapter.hpp"
 
 #include <chrono>
 #include <cmath>
@@ -129,7 +130,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
     }
   }
 
-  steppers.init(info_.joints.size(), std::chrono::milliseconds(100));
+  steppers = std::make_unique<ArduinoStepperAdapter>(info_.joints.size(), std::chrono::milliseconds(100));
 
   return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -140,13 +141,13 @@ std::vector<hardware_interface::StateInterface> DiffBotSystemHardware::export_st
   for (auto i = 0u; i < info_.joints.size(); i++)
   {
     state_interfaces.emplace_back(hardware_interface::StateInterface(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &steppers.getPositionRef(i)));
+      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &steppers->getPositionRef(i)));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
-      info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers.getVelocityRef(i)));
+      info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getVelocityRef(i)));
   }
 
   state_interfaces.emplace_back(hardware_interface::StateInterface(
-    info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers.getGripperPositionRef()));
+    info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionRef()));
 
   return state_interfaces;
 }
@@ -157,11 +158,11 @@ std::vector<hardware_interface::CommandInterface> DiffBotSystemHardware::export_
   for (auto i = 0u; i < info_.joints.size(); i++)
   {
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
-      info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers.getCommandRef(i)));
+      info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getCommandRef(i)));
   }
 
   command_interfaces.emplace_back(hardware_interface::CommandInterface(
-    info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers.getGripperPositionCommandRef()));
+    info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionCommandRef()));
 
   return command_interfaces;
 }
@@ -171,7 +172,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_configure(
 {
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Configuring ...please wait...");
 
-  steppers.connect(cfg.device, cfg.baud_rate);
+  steppers->connect(cfg.device, cfg.baud_rate);
 
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully configured!");
 
@@ -183,7 +184,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_cleanup(
 {
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Cleaning up ...please wait...");
 
-  steppers.disconnect();
+  steppers->disconnect();
 
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully cleaned up!");
 
@@ -213,7 +214,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_deactivate(
 hardware_interface::return_type DiffBotSystemHardware::read(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & period)
 {
-    steppers.readValues();
+    steppers->readValues();
 
   return hardware_interface::return_type::OK;
 }
@@ -221,7 +222,7 @@ hardware_interface::return_type DiffBotSystemHardware::read(
 hardware_interface::return_type umrt_arm_ros_firmware::DiffBotSystemHardware::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
-  steppers.setValues();
+  steppers->setValues();
 
   return hardware_interface::return_type::OK;
 }
