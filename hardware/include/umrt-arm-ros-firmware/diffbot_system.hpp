@@ -34,57 +34,62 @@
 
 #include "StepperAdapter.hpp"
 
-namespace umrt_arm_ros_firmware
-{
-class DiffBotSystemHardware : public hardware_interface::SystemInterface
-{
-  struct Config {
-    std::string device = "";
-    int baud_rate = 0;
-  };
+namespace umrt_arm_ros_firmware {
+    class DiffBotSystemHardware : public hardware_interface::SystemInterface {
+        struct Config {
+            std::string device = "";
+            int baud_rate = 0;
+        };
 
-public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(DiffBotSystemHardware);
+    public:
+        RCLCPP_SHARED_PTR_DEFINITIONS(DiffBotSystemHardware);
 
-  UMRT_ARM_ROS_FIRMWARE_PUBLIC
-  hardware_interface::CallbackReturn on_init(
-    const hardware_interface::HardwareInfo & info) override;
+        UMRT_ARM_ROS_FIRMWARE_PUBLIC
+        hardware_interface::CallbackReturn on_init(
+                const hardware_interface::HardwareInfo& info
+        ) override;
 
-  UMRT_ARM_ROS_FIRMWARE_PUBLIC
-  std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
+        UMRT_ARM_ROS_FIRMWARE_PUBLIC
+        std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
 
-  UMRT_ARM_ROS_FIRMWARE_PUBLIC
-  std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
+        UMRT_ARM_ROS_FIRMWARE_PUBLIC
+        std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
-    UMRT_ARM_ROS_FIRMWARE_PUBLIC
-    hardware_interface::CallbackReturn on_configure(
-            const rclcpp_lifecycle::State & previous_state) override;
+        UMRT_ARM_ROS_FIRMWARE_PUBLIC
+        hardware_interface::CallbackReturn on_configure(
+                const rclcpp_lifecycle::State& previous_state
+        ) override;
 
-    UMRT_ARM_ROS_FIRMWARE_PUBLIC
-    hardware_interface::CallbackReturn on_cleanup(
-            const rclcpp_lifecycle::State & previous_state) override;
+        UMRT_ARM_ROS_FIRMWARE_PUBLIC
+        hardware_interface::CallbackReturn on_cleanup(
+                const rclcpp_lifecycle::State& previous_state
+        ) override;
 
-  UMRT_ARM_ROS_FIRMWARE_PUBLIC
-  hardware_interface::CallbackReturn on_activate(
-    const rclcpp_lifecycle::State & previous_state) override;
+        UMRT_ARM_ROS_FIRMWARE_PUBLIC
+        hardware_interface::CallbackReturn on_activate(
+                const rclcpp_lifecycle::State& previous_state
+        ) override;
 
-  UMRT_ARM_ROS_FIRMWARE_PUBLIC
-  hardware_interface::CallbackReturn on_deactivate(
-    const rclcpp_lifecycle::State & previous_state) override;
+        UMRT_ARM_ROS_FIRMWARE_PUBLIC
+        hardware_interface::CallbackReturn on_deactivate(
+                const rclcpp_lifecycle::State& previous_state
+        ) override;
 
-  UMRT_ARM_ROS_FIRMWARE_PUBLIC
-  hardware_interface::return_type read(
-    const rclcpp::Time & time, const rclcpp::Duration & period) override;
+        UMRT_ARM_ROS_FIRMWARE_PUBLIC
+        hardware_interface::return_type read(
+                const rclcpp::Time& time, const rclcpp::Duration& period
+        ) override;
 
-  UMRT_ARM_ROS_FIRMWARE_PUBLIC
-  hardware_interface::return_type write(
-    const rclcpp::Time & time, const rclcpp::Duration & period) override;
+        UMRT_ARM_ROS_FIRMWARE_PUBLIC
+        hardware_interface::return_type write(
+                const rclcpp::Time& time, const rclcpp::Duration& period
+        ) override;
 
-private:
-  std::unique_ptr<StepperAdapter> steppers;
-  Config cfg;
-};
+    private:
+        std::unique_ptr<StepperAdapter> steppers;
+        Config cfg;
+    };
 
-}  // namespace umrt_arm_ros_firmware
+} // namespace umrt_arm_ros_firmware
 
-#endif  // UMRT_ARM_ROS_FIRMWARE__DIFFBOT_SYSTEM_HPP_
+#endif // UMRT_ARM_ROS_FIRMWARE__DIFFBOT_SYSTEM_HPP_

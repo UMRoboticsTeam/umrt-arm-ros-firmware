@@ -3,12 +3,12 @@
 
 #include "umrt-arm-ros-firmware/StepperAdapter.hpp"
 
-#include <cstdint>
+#include <atomic>
 #include <chrono>
-#include <umrt-arm-firmware-lib/StepperController.h>
+#include <cstdint>
 #include <mutex>
 #include <thread>
-#include <atomic>
+#include <umrt-arm-firmware-lib/StepperController.h>
 
 /**
  * Adapter class to interface a @ref StepperController with a ros2_control

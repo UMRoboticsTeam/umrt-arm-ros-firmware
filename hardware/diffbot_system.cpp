@@ -15,233 +15,233 @@
 #include "umrt-arm-ros-firmware/diffbot_system.hpp"
 #include "umrt-arm-ros-firmware/ArduinoStepperAdapter.hpp"
 
+#include <hardware_interface/lexical_casts.hpp>
+#include <hardware_interface/types/hardware_interface_type_values.hpp>
+#include <rclcpp/rclcpp.hpp>
+
+#include <boost/log/expressions.hpp>
+#include <boost/log/trivial.hpp>
+
 #include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <limits>
 #include <memory>
 #include <vector>
-#include <boost/log/expressions.hpp>
-#include <boost/log/trivial.hpp>
-
-#include "hardware_interface/lexical_casts.hpp"
-#include "hardware_interface/types/hardware_interface_type_values.hpp"
-#include "rclcpp/rclcpp.hpp"
 
 constexpr boost::log::trivial::severity_level LOG_LEVEL = boost::log::trivial::debug;
 
-namespace umrt_arm_ros_firmware
-{
-hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
-  const hardware_interface::HardwareInfo & info)
-{
-  if (
-    hardware_interface::SystemInterface::on_init(info) !=
-    hardware_interface::CallbackReturn::SUCCESS)
-  {
-    return hardware_interface::CallbackReturn::ERROR;
-  }
+namespace umrt_arm_ros_firmware {
+    hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
+            const hardware_interface::HardwareInfo& info
+    ) {
+        if (
+                hardware_interface::SystemInterface::on_init(info) !=
+                hardware_interface::CallbackReturn::SUCCESS
+        ) {
+            return hardware_interface::CallbackReturn::ERROR;
+        }
 
-  cfg.device = info_.hardware_parameters["device"];
-  cfg.baud_rate = std::stoi(info_.hardware_parameters["baud_rate"]);
+        cfg.device = info_.hardware_parameters["device"];
+        cfg.baud_rate = std::stoi(info_.hardware_parameters["baud_rate"]);
 
-  for (const hardware_interface::ComponentInfo & joint : info_.joints)
-  {
-    // DiffBotSystem has exactly two states and one command interface on each joint
-    if (joint.command_interfaces.size() != 1)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("DiffBotSystemHardware"),
-        "Joint '%s' has %zu command interfaces found. 1 expected.", joint.name.c_str(),
-        joint.command_interfaces.size());
-      return hardware_interface::CallbackReturn::ERROR;
+        for (const hardware_interface::ComponentInfo& joint : info_.joints) {
+            // DiffBotSystem has exactly two states and one command interface on each joint
+            if (joint.command_interfaces.size() != 1) {
+                RCLCPP_FATAL(
+                        rclcpp::get_logger("DiffBotSystemHardware"),
+                        "Joint '%s' has %zu command interfaces found. 1 expected.", joint.name.c_str(),
+                        joint.command_interfaces.size()
+                );
+                return hardware_interface::CallbackReturn::ERROR;
+            }
+
+            if (joint.command_interfaces[0].name != hardware_interface::HW_IF_VELOCITY) {
+                RCLCPP_FATAL(
+                        rclcpp::get_logger("DiffBotSystemHardware"),
+                        "Joint '%s' have %s command interfaces found. '%s' expected.", joint.name.c_str(),
+                        joint.command_interfaces[0].name.c_str(), hardware_interface::HW_IF_VELOCITY
+                );
+                return hardware_interface::CallbackReturn::ERROR;
+            }
+
+            if (joint.state_interfaces.size() != 2) {
+                RCLCPP_FATAL(
+                        rclcpp::get_logger("DiffBotSystemHardware"),
+                        "Joint '%s' has %zu state interface. 2 expected.", joint.name.c_str(),
+                        joint.state_interfaces.size()
+                );
+                return hardware_interface::CallbackReturn::ERROR;
+            }
+
+            if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
+                RCLCPP_FATAL(
+                        rclcpp::get_logger("DiffBotSystemHardware"),
+                        "Joint '%s' have '%s' as first state interface. '%s' expected.", joint.name.c_str(),
+                        joint.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION
+                );
+                return hardware_interface::CallbackReturn::ERROR;
+            }
+
+            if (joint.state_interfaces[1].name != hardware_interface::HW_IF_VELOCITY) {
+                RCLCPP_FATAL(
+                        rclcpp::get_logger("DiffBotSystemHardware"),
+                        "Joint '%s' have '%s' as second state interface. '%s' expected.", joint.name.c_str(),
+                        joint.state_interfaces[1].name.c_str(), hardware_interface::HW_IF_VELOCITY
+                );
+                return hardware_interface::CallbackReturn::ERROR;
+            }
+        }
+
+        for (const hardware_interface::ComponentInfo& gpio : info_.gpios) {
+            // Gripper has exactly one states and one command interface
+            if (gpio.command_interfaces.size() != 1) {
+                RCLCPP_FATAL(
+                        rclcpp::get_logger("DiffBotSystemHardware"),
+                        "GPIO '%s' has %zu command interfaces found. 1 expected.", gpio.name.c_str(),
+                        gpio.command_interfaces.size()
+                );
+                return hardware_interface::CallbackReturn::ERROR;
+            }
+
+            if (gpio.command_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
+                RCLCPP_FATAL(
+                        rclcpp::get_logger("DiffBotSystemHardware"),
+                        "GPIO '%s' have %s command interfaces found. '%s' expected.", gpio.name.c_str(),
+                        gpio.command_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION
+                );
+                return hardware_interface::CallbackReturn::ERROR;
+            }
+
+            if (gpio.state_interfaces.size() != 1) {
+                RCLCPP_FATAL(
+                        rclcpp::get_logger("DiffBotSystemHardware"),
+                        "GPIO '%s' has %zu state interface. 2 expected.", gpio.name.c_str(),
+                        gpio.state_interfaces.size()
+                );
+                return hardware_interface::CallbackReturn::ERROR;
+            }
+
+            if (gpio.state_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
+                RCLCPP_FATAL(
+                        rclcpp::get_logger("DiffBotSystemHardware"),
+                        "GPIO '%s' have '%s' as first state interface. '%s' expected.", gpio.name.c_str(),
+                        gpio.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION
+                );
+                return hardware_interface::CallbackReturn::ERROR;
+            }
+        }
+
+
+        // Set the library's log level
+        // TODO: Might be nice to use a ROS parameter for this (or somehow tie it to the ROS log level)
+        boost::log::core::get()->set_filter(boost::log::trivial::severity >= LOG_LEVEL);
+
+        // Select the StepperAdapter implementation we want to use
+        // (For now the only implementation is ArduinoStepperAdapter)
+        steppers = std::make_unique<ArduinoStepperAdapter>(info_.joints.size(), std::chrono::milliseconds(100));
+
+        return hardware_interface::CallbackReturn::SUCCESS;
     }
 
-    if (joint.command_interfaces[0].name != hardware_interface::HW_IF_VELOCITY)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("DiffBotSystemHardware"),
-        "Joint '%s' have %s command interfaces found. '%s' expected.", joint.name.c_str(),
-        joint.command_interfaces[0].name.c_str(), hardware_interface::HW_IF_VELOCITY);
-      return hardware_interface::CallbackReturn::ERROR;
+    std::vector<hardware_interface::StateInterface> DiffBotSystemHardware::export_state_interfaces() {
+        std::vector<hardware_interface::StateInterface> state_interfaces;
+        for (auto i = 0u; i < info_.joints.size(); i++) {
+            state_interfaces.emplace_back(hardware_interface::StateInterface(
+                    info_.joints[i].name, hardware_interface::HW_IF_POSITION, &steppers->getPositionRef(i)
+            ));
+            state_interfaces.emplace_back(hardware_interface::StateInterface(
+                    info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getVelocityRef(i)
+            ));
+        }
+
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+                info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionRef()
+        ));
+
+        return state_interfaces;
     }
 
-    if (joint.state_interfaces.size() != 2)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("DiffBotSystemHardware"),
-        "Joint '%s' has %zu state interface. 2 expected.", joint.name.c_str(),
-        joint.state_interfaces.size());
-      return hardware_interface::CallbackReturn::ERROR;
+    std::vector<hardware_interface::CommandInterface> DiffBotSystemHardware::export_command_interfaces() {
+        std::vector<hardware_interface::CommandInterface> command_interfaces;
+        for (auto i = 0u; i < info_.joints.size(); i++) {
+            command_interfaces.emplace_back(hardware_interface::CommandInterface(
+                    info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getCommandRef(i)
+            ));
+        }
+
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+                info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionCommandRef()
+        ));
+
+        return command_interfaces;
     }
 
-    if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("DiffBotSystemHardware"),
-        "Joint '%s' have '%s' as first state interface. '%s' expected.", joint.name.c_str(),
-        joint.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION);
-      return hardware_interface::CallbackReturn::ERROR;
+    hardware_interface::CallbackReturn DiffBotSystemHardware::on_configure(
+            const rclcpp_lifecycle::State& /*previous_state*/
+    ) {
+        RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Configuring ...please wait...");
+
+        steppers->connect(cfg.device, cfg.baud_rate);
+
+        RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully configured!");
+
+        return hardware_interface::CallbackReturn::SUCCESS;
     }
 
-    if (joint.state_interfaces[1].name != hardware_interface::HW_IF_VELOCITY)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("DiffBotSystemHardware"),
-        "Joint '%s' have '%s' as second state interface. '%s' expected.", joint.name.c_str(),
-        joint.state_interfaces[1].name.c_str(), hardware_interface::HW_IF_VELOCITY);
-      return hardware_interface::CallbackReturn::ERROR;
-    }
-  }
+    hardware_interface::CallbackReturn DiffBotSystemHardware::on_cleanup(
+            const rclcpp_lifecycle::State& /*previous_state*/
+    ) {
+        RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Cleaning up ...please wait...");
 
-  for (const hardware_interface::ComponentInfo & gpio : info_.gpios)
-  {
-    // Gripper has exactly one states and one command interface
-    if (gpio.command_interfaces.size() != 1)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("DiffBotSystemHardware"),
-        "GPIO '%s' has %zu command interfaces found. 1 expected.", gpio.name.c_str(),
-        gpio.command_interfaces.size());
-      return hardware_interface::CallbackReturn::ERROR;
+        steppers->disconnect();
+
+        RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully cleaned up!");
+
+        return hardware_interface::CallbackReturn::SUCCESS;
     }
 
-    if (gpio.command_interfaces[0].name != hardware_interface::HW_IF_POSITION)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("DiffBotSystemHardware"),
-        "GPIO '%s' have %s command interfaces found. '%s' expected.", gpio.name.c_str(),
-        gpio.command_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION);
-      return hardware_interface::CallbackReturn::ERROR;
+    hardware_interface::CallbackReturn DiffBotSystemHardware::on_activate(
+            const rclcpp_lifecycle::State& /*previous_state*/
+    ) {
+        RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Activating ...please wait...");
+
+        RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully activated!");
+
+        return hardware_interface::CallbackReturn::SUCCESS;
     }
 
-    if (gpio.state_interfaces.size() != 1)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("DiffBotSystemHardware"),
-        "GPIO '%s' has %zu state interface. 2 expected.", gpio.name.c_str(),
-        gpio.state_interfaces.size());
-      return hardware_interface::CallbackReturn::ERROR;
+    hardware_interface::CallbackReturn DiffBotSystemHardware::on_deactivate(
+            const rclcpp_lifecycle::State& /*previous_state*/
+    ) {
+        RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Deactivating ...please wait...");
+
+        RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully deactivated!");
+
+        return hardware_interface::CallbackReturn::SUCCESS;
     }
 
-    if (gpio.state_interfaces[0].name != hardware_interface::HW_IF_POSITION)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("DiffBotSystemHardware"),
-        "GPIO '%s' have '%s' as first state interface. '%s' expected.", gpio.name.c_str(),
-        gpio.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION);
-      return hardware_interface::CallbackReturn::ERROR;
+    hardware_interface::return_type DiffBotSystemHardware::read(
+            const rclcpp::Time& /*time*/, const rclcpp::Duration& period
+    ) {
+        steppers->readValues();
+
+        return hardware_interface::return_type::OK;
     }
-  }
 
+    hardware_interface::return_type umrt_arm_ros_firmware::DiffBotSystemHardware::write(
+            const rclcpp::Time& /*time*/, const rclcpp::Duration& /*period*/
+    ) {
+        steppers->setValues();
 
-  // Set the library's log level
-  // TODO: Might be nice to use a ROS parameter for this (or somehow tie it to the ROS log level)
-  boost::log::core::get()->set_filter(boost::log::trivial::severity >= LOG_LEVEL);
+        return hardware_interface::return_type::OK;
+    }
 
-  // Select the StepperAdapter implementation we want to use
-  // (For now the only implementation is ArduinoStepperAdapter)
-  steppers = std::make_unique<ArduinoStepperAdapter>(info_.joints.size(), std::chrono::milliseconds(100));
+    // What about onShutdown???
 
-  return hardware_interface::CallbackReturn::SUCCESS;
-}
-
-std::vector<hardware_interface::StateInterface> DiffBotSystemHardware::export_state_interfaces()
-{
-  std::vector<hardware_interface::StateInterface> state_interfaces;
-  for (auto i = 0u; i < info_.joints.size(); i++)
-  {
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &steppers->getPositionRef(i)));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-      info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getVelocityRef(i)));
-  }
-
-  state_interfaces.emplace_back(hardware_interface::StateInterface(
-    info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionRef()));
-
-  return state_interfaces;
-}
-
-std::vector<hardware_interface::CommandInterface> DiffBotSystemHardware::export_command_interfaces()
-{
-  std::vector<hardware_interface::CommandInterface> command_interfaces;
-  for (auto i = 0u; i < info_.joints.size(); i++)
-  {
-    command_interfaces.emplace_back(hardware_interface::CommandInterface(
-      info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getCommandRef(i)));
-  }
-
-  command_interfaces.emplace_back(hardware_interface::CommandInterface(
-    info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionCommandRef()));
-
-  return command_interfaces;
-}
-
-hardware_interface::CallbackReturn DiffBotSystemHardware::on_configure(
-  const rclcpp_lifecycle::State & /*previous_state*/)
-{
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Configuring ...please wait...");
-
-  steppers->connect(cfg.device, cfg.baud_rate);
-
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully configured!");
-
-  return hardware_interface::CallbackReturn::SUCCESS;
-}
-
-hardware_interface::CallbackReturn DiffBotSystemHardware::on_cleanup(
-  const rclcpp_lifecycle::State & /*previous_state*/)
-{
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Cleaning up ...please wait...");
-
-  steppers->disconnect();
-
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully cleaned up!");
-
-  return hardware_interface::CallbackReturn::SUCCESS;
-}
-
-hardware_interface::CallbackReturn DiffBotSystemHardware::on_activate(
-  const rclcpp_lifecycle::State & /*previous_state*/)
-{
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Activating ...please wait...");
-
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully activated!");
-
-  return hardware_interface::CallbackReturn::SUCCESS;
-}
-
-hardware_interface::CallbackReturn DiffBotSystemHardware::on_deactivate(
-  const rclcpp_lifecycle::State & /*previous_state*/)
-{
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Deactivating ...please wait...");
-
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully deactivated!");
-
-  return hardware_interface::CallbackReturn::SUCCESS;
-}
-
-hardware_interface::return_type DiffBotSystemHardware::read(
-  const rclcpp::Time & /*time*/, const rclcpp::Duration & period)
-{
-    steppers->readValues();
-
-  return hardware_interface::return_type::OK;
-}
-
-hardware_interface::return_type umrt_arm_ros_firmware::DiffBotSystemHardware::write(
-  const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
-{
-  steppers->setValues();
-
-  return hardware_interface::return_type::OK;
-}
-
-// What about onShutdown???
-
-}  // namespace umrt_arm_ros_firmware
+} // namespace umrt_arm_ros_firmware
 
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(
-  umrt_arm_ros_firmware::DiffBotSystemHardware, hardware_interface::SystemInterface)
+        umrt_arm_ros_firmware::DiffBotSystemHardware, hardware_interface::SystemInterface
+)
