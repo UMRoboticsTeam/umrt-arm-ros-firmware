@@ -14,22 +14,19 @@
 /**
  * Adapter class to interface a @ref StepperController with a ros2_control
  * hardware_interface.
+ * TODO: Make docs more generic
  */
 class StepperAdapter {
 public:
     /**
     * Creates a StepperAdapter.
-     *
+    *
     * The number of joints available must be specified here in order to
     * facilitate initialization such as array sizing.
     *
     * @param NUM_JOINTS the number of joints
-    * @param query_period the time to wait between controller queries for position, velocity, etc.
     */
-    StepperAdapter(
-            const std::size_t NUM_JOINTS,
-            const std::chrono::duration<int64_t, std::milli>& query_period
-    );
+    explicit StepperAdapter(const std::size_t NUM_JOINTS);
 
     virtual ~StepperAdapter();
 

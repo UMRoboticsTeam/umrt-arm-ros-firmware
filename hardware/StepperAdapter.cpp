@@ -1,9 +1,6 @@
 #include "umrt-arm-ros-firmware/StepperAdapter.hpp"
 
-StepperAdapter::StepperAdapter(
-        const std::size_t NUM_JOINTS,
-        const std::chrono::duration<int64_t, std::milli>& query_period
-) {
+StepperAdapter::StepperAdapter(const std::size_t NUM_JOINTS) {
     // Set the size of the vectors
     // See note in header about how important it is for these to not change
     this->positions.resize(NUM_JOINTS);
