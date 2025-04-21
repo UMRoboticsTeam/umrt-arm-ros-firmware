@@ -88,16 +88,6 @@ protected:
     void queryController();
 
     /**
-     * Updates the provided joint's value in @ref positions_buffer in a thread-safe manner.
-     */
-    void updatePosition(const uint8_t joint, const int32_t position);
-
-    /**
-     * Updates the provided joint's value in @ref velocities_buffer in a thread-safe manner.
-     */
-    void updateVelocity(const uint8_t joint, const int16_t speed);
-
-    /**
      * Poll loop used to trigger motor queries.
      *
      * @param period Amount of time to wait in milliseconds between queries

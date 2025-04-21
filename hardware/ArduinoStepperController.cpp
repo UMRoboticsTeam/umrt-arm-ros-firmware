@@ -69,24 +69,6 @@ void ArduinoStepperAdapter::queryController() {
     }
 }
 
-// Reminder: This happens in another thread
-void ArduinoStepperAdapter::updatePosition(const uint8_t joint, const int32_t position) {
-    // Acquire the lock for positions_buffer and write the new value
-    {
-        std::scoped_lock lock(this->positions_buffer_mx);
-        this->positions_buffer[joint] = position;
-    }
-}
-
-// Reminder: This happens in another thread
-void ArduinoStepperAdapter::updateVelocity(const uint8_t joint, const int16_t speed) {
-    // Acquire the lock for velocities_buffer and write the new value
-    {
-        std::scoped_lock lock(this->velocities_buffer_mx);
-        this->velocities_buffer[joint] = speed;
-    }
-}
-
 void ArduinoStepperAdapter::queryPoll(const std::chrono::milliseconds& period) {
     while (this->continue_polling) {
         std::this_thread::sleep_for(period);
