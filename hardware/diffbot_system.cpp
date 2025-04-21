@@ -21,10 +21,14 @@
 #include <limits>
 #include <memory>
 #include <vector>
+#include <boost/log/expressions.hpp>
+#include <boost/log/trivial.hpp>
 
 #include "hardware_interface/lexical_casts.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
+
+constexpr boost::log::trivial::severity_level LOG_LEVEL = boost::log::trivial::debug;
 
 namespace umrt_arm_ros_firmware
 {
@@ -130,6 +134,13 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
     }
   }
 
+
+  // Set the library's log level
+  // TODO: Might be nice to use a ROS parameter for this (or somehow tie it to the ROS log level)
+  boost::log::core::get()->set_filter(boost::log::trivial::severity >= LOG_LEVEL);
+
+  // Select the StepperAdapter implementation we want to use
+  // (For now the only implementation is ArduinoStepperAdapter)
   steppers = std::make_unique<ArduinoStepperAdapter>(info_.joints.size(), std::chrono::milliseconds(100));
 
   return hardware_interface::CallbackReturn::SUCCESS;

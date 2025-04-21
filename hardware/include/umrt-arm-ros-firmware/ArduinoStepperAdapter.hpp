@@ -27,7 +27,7 @@ public:
             const std::chrono::duration<int64_t, std::milli>& query_period
     );
 
-    ~ArduinoStepperAdapter();
+    ~ArduinoStepperAdapter() override;
 
     /**
     * Connect to an Arduino running the Stepper Controller program.

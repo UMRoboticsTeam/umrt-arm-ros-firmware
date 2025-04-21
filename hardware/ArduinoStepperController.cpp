@@ -1,13 +1,6 @@
 #include "umrt-arm-ros-firmware/ArduinoStepperAdapter.hpp"
-#include <boost/log/expressions.hpp>
-#include <boost/log/trivial.hpp>
-
-constexpr boost::log::trivial::severity_level LOG_LEVEL = boost::log::trivial::debug;
 
 ArduinoStepperAdapter::ArduinoStepperAdapter(const std::size_t NUM_JOINTS, const std::chrono::duration<int64_t, std::milli>& query_period) : StepperAdapter(NUM_JOINTS, query_period) {
-    // Set the library's log level
-    boost::log::core::get()->set_filter(boost::log::trivial::severity >= LOG_LEVEL); // TODO: Do this somewhere smarter
-
     // Register to receive callbacks for responses to getPosition and getSpeed
     // Note: These callbacks will occur in another thread, so they need to be processed carefully
     this->controller.EGetPosition.connect([this](uint8_t joint, int32_t pos) -> void { this->updatePosition(joint, pos); });
