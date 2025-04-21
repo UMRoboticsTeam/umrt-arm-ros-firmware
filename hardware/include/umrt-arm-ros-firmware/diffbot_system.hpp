@@ -92,4 +92,4 @@ namespace umrt_arm_ros_firmware {
 
 } // namespace umrt_arm_ros_firmware
 
-#endif // UMRT_ARM_ROS_FIRMWARE__DIFFBOT_SYSTEM_HPP
+#endif // UMRT_ARM_ROS_FIRMWARE_DIFFBOT_SYSTEM_HPP
