@@ -1,29 +1,12 @@
 #include "umrt-arm-ros-firmware/ArduinoStepperAdapter.hpp"
-#include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
+#include <boost/log/trivial.hpp>
 
 constexpr boost::log::trivial::severity_level LOG_LEVEL = boost::log::trivial::debug;
 
-ArduinoStepperAdapter::~ArduinoStepperAdapter() {
-    if (this->initialized) {
-        this->disconnect();
-    }
-}
-
-void ArduinoStepperAdapter::init(
-        const std::size_t NUM_JOINTS,
-        const std::chrono::duration<int64_t, std::milli>& query_period
-) {
+ArduinoStepperAdapter::ArduinoStepperAdapter(const std::size_t NUM_JOINTS, const std::chrono::duration<int64_t, std::milli>& query_period) : StepperAdapter(NUM_JOINTS, query_period) {
     // Set the library's log level
-    boost::log::core::get()->set_filter(boost::log::trivial::severity >= LOG_LEVEL);
-
-    // Set the size of the vectors
-    // See note in header about how important it is for these to not change
-    this->positions.resize(NUM_JOINTS);
-    this->velocities.resize(NUM_JOINTS);
-    this->commands.resize(NUM_JOINTS);
-    this->positions_buffer.resize(NUM_JOINTS);
-    this->velocities_buffer.resize(NUM_JOINTS);
+    boost::log::core::get()->set_filter(boost::log::trivial::severity >= LOG_LEVEL); // TODO: Do this somewhere smarter
 
     // Register to receive callbacks for responses to getPosition and getSpeed
     // Note: These callbacks will occur in another thread, so they need to be processed carefully
@@ -34,24 +17,25 @@ void ArduinoStepperAdapter::init(
     this->continue_polling = true;
     this->polling_thread = std::thread([this]() -> void { this->poll(); });
     this->querying_thread = std::thread([this, query_period]() -> void { this->queryPoll(query_period); });
+}
 
-    this->initialized = true;
+ArduinoStepperAdapter::~ArduinoStepperAdapter() {
+    if (true) { // TODO: Figure out how to tell if disconnect need to be called
+        ArduinoStepperAdapter::disconnect();
+    }
 }
 
 void ArduinoStepperAdapter::connect(const std::string device, const int baud_rate) {
-    initializedCheck();
     this->controller.connect(device, baud_rate);
 }
 
 void ArduinoStepperAdapter::disconnect() {
-    initializedCheck();
     this->continue_polling = false;
     this->controller.disconnect();
 }
 
 
 void ArduinoStepperAdapter::setValues() {
-    initializedCheck();
     for (auto i = 0u; i < commands.size(); ++i) {
         // Note that the StepperController speed is specified in units of in 1/10 RPM
         this->controller.setSpeed(i, (int16_t)std::round(10 * this->commands[i]));
@@ -108,10 +92,6 @@ void ArduinoStepperAdapter::updateVelocity(const uint8_t joint, const int16_t sp
         std::scoped_lock lock(this->velocities_buffer_mx);
         this->velocities_buffer[joint] = speed;
     }
-}
-
-void ArduinoStepperAdapter::initializedCheck() {
-    if (!this->initialized) { throw std::logic_error("ArduinoStepperAdapter not initialized"); }
 }
 
 void ArduinoStepperAdapter::queryPoll(const std::chrono::milliseconds& period) {

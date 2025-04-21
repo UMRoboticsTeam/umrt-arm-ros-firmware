@@ -18,24 +18,20 @@
 class StepperAdapter {
 public:
     /**
-     * If initialized, calls @ref disconnect
-     */
-    virtual ~StepperAdapter();
-
-    /**
-    * Initializes this StepperAdapter. Must be called before any other method,
-    * and only once.
-    *
+    * Creates a StepperAdapter.
+     *
     * The number of joints available must be specified here in order to
     * facilitate initialization such as array sizing.
     *
     * @param NUM_JOINTS the number of joints
     * @param query_period the time to wait between controller queries for position, velocity, etc.
     */
-    virtual void init(
+    StepperAdapter(
             const std::size_t NUM_JOINTS,
             const std::chrono::duration<int64_t, std::milli>& query_period
-    ) = 0;
+    );
+
+    virtual ~StepperAdapter();
 
     /**
     * Connect to an Arduino running the Stepper Controller program.
@@ -146,12 +142,6 @@ protected:
      * Lock to protect @ref velocities_buffer.
      */
     std::mutex velocities_buffer_mx;
-
-private:
-    /**
-     * Flag which indicates whether @ref init has completed.
-     */
-    bool initialized = false;
 };
 
 #endif // STEPPER_ADAPTER_HPP

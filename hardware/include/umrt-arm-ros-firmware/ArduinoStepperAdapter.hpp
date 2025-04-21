@@ -17,24 +17,17 @@
 class ArduinoStepperAdapter : public StepperAdapter {
 public:
     /**
-     * If initialized, calls @ref disconnect
-     */
-    ~ArduinoStepperAdapter();
-
-    /**
-    * Initializes this ArduinoStepperAdapter. Must be called before any other method,
-    * and only once.
-    *
-    * The number of joints available must be specified here in order to
-    * facilitate initialization such as array sizing.
+    * Initializes an ArduinoStepperAdapter, but does not connect it.
     *
     * @param NUM_JOINTS the number of joints
     * @param query_period the time to wait between controller queries for position, velocity, etc.
     */
-    void init(
+    ArduinoStepperAdapter(
             const std::size_t NUM_JOINTS,
             const std::chrono::duration<int64_t, std::milli>& query_period
-    ) override;
+    );
+
+    ~ArduinoStepperAdapter();
 
     /**
     * Connect to an Arduino running the Stepper Controller program.
@@ -105,25 +98,11 @@ protected:
     void updateVelocity(const uint8_t joint, const int16_t speed);
 
     /**
-     * Helper function to ensure that this ArduinoStepperAdapter has been initialized
-     * before attempting operations.
-     *
-     * @throws std::logic_error if this ArduinoStepperAdapter has not been initialized
-     *                          at the time of calling
-     */
-    void initializedCheck();
-
-    /**
      * Poll loop used to trigger motor queries.
      *
      * @param period Amount of time to wait in milliseconds between queries
      */
     void queryPoll(const std::chrono::milliseconds& period);
-private:
-    /**
-     * Flag which indicates whether @ref init has completed.
-     */
-    bool initialized = false;
 };
 
 #endif //UMRT_ARM_ROS_FIRMWARE_ARDUINOSTEPPERCONTROLLER_HPP
