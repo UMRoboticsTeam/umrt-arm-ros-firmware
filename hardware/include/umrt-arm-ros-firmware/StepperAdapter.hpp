@@ -20,7 +20,7 @@ public:
     /**
      * If initialized, calls @ref disconnect
      */
-    ~StepperAdapter();
+    virtual ~StepperAdapter();
 
     /**
     * Initializes this StepperAdapter. Must be called before any other method,
@@ -32,10 +32,10 @@ public:
     * @param NUM_JOINTS the number of joints
     * @param query_period the time to wait between controller queries for position, velocity, etc.
     */
-    void init(
+    virtual void init(
             const std::size_t NUM_JOINTS,
             const std::chrono::duration<int64_t, std::milli>& query_period
-    );
+    ) = 0;
 
     /**
     * Connect to an Arduino running the Stepper Controller program.
@@ -43,25 +43,25 @@ public:
     * @param device the path to the serial device connected to the Arduino
     * @param baud_rate baud rate to use for the Firmata connection
     */
-    void connect(const std::string device, const int baud_rate);
+    virtual void connect(const std::string device, const int baud_rate) = 0;
 
     /**
      * Disconnect from the Arduino and close polling loops.
      */
-    void disconnect();
+    virtual void disconnect() = 0;
 
     /**
      * Write the current contents of the command registers, which are accessible
      * through @ref getCommandRef, to the Stepper Controller program.
      */
-    void setValues();
+    virtual void setValues() = 0;
 
     /**
      * Read the current values from the Stepper Controller program into the
      * position and velocity registers, which are accessible through
      * @ref getPositionRef and @ref getVelocityRef respectively.
      */
-    void readValues();
+    virtual void readValues() = 0;
 
     /**
      * Exposes the position register for the specified joint. Refreshed by
@@ -146,58 +146,6 @@ protected:
      * Lock to protect @ref velocities_buffer.
      */
     std::mutex velocities_buffer_mx;
-
-    /**
-     * Thread used to run @ref poll indefinitely.
-     */
-    std::thread polling_thread;
-
-    /**
-     * Thread used to periodically query motor speed/position.
-     */
-    std::thread querying_thread;
-
-    /**
-     * Signal used to shutdown the polling threads.
-     */
-    std::atomic<bool> continue_polling = false;
-
-
-    /**
-     * Method to indefinitely poll @ref controller for responses
-     */
-    void poll();
-
-    /**
-     * Queries the position and speed from @ref controller. Used as a callback to the wall querying_thread setup in @ref init.
-     */
-    void queryController();
-
-    /**
-     * Updates the provided joint's value in @ref positions_buffer in a thread-safe manner.
-     */
-    void updatePosition(const uint8_t joint, const int32_t position);
-
-    /**
-     * Updates the provided joint's value in @ref velocities_buffer in a thread-safe manner.
-     */
-    void updateVelocity(const uint8_t joint, const int16_t speed);
-
-    /**
-     * Helper function to ensure that this StepperAdapter has been initialized
-     * before attempting operations.
-     *
-     * @throws std::logic_error if this StepperAdapter has not been initialized
-     *                          at the time of calling
-     */
-    void initializedCheck();
-
-    /**
-     * Poll loop used to trigger motor queries.
-     *
-     * @param period Amount of time to wait in milliseconds between queries
-     */
-    void queryPoll(const std::chrono::milliseconds& period);
 
 private:
     /**

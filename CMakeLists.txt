@@ -35,7 +35,7 @@ add_library(
         SHARED
         hardware/diffbot_system.cpp
         hardware/StepperAdapter.cpp
-)
+        hardware/ArduinoStepperController.cpp)
 target_compile_features(umrt-arm-ros-firmware PUBLIC cxx_std_17)
 target_include_directories(umrt-arm-ros-firmware PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
