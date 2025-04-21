@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef UMRT_ARM_ROS_FIRMWARE__DIFFBOT_SYSTEM_HPP_
-#define UMRT_ARM_ROS_FIRMWARE__DIFFBOT_SYSTEM_HPP_
+#ifndef UMRT_ARM_ROS_FIRMWARE_DIFFBOT_SYSTEM_HPP
+#define UMRT_ARM_ROS_FIRMWARE_DIFFBOT_SYSTEM_HPP
 
 #include <memory>
 #include <string>
@@ -92,4 +92,4 @@ namespace umrt_arm_ros_firmware {
 
 } // namespace umrt_arm_ros_firmware
 
-#endif // UMRT_ARM_ROS_FIRMWARE__DIFFBOT_SYSTEM_HPP_
+#endif // UMRT_ARM_ROS_FIRMWARE__DIFFBOT_SYSTEM_HPP

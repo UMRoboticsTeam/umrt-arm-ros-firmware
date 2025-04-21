@@ -1,5 +1,5 @@
-#ifndef STEPPER_ADAPTER_HPP
-#define STEPPER_ADAPTER_HPP
+#ifndef UMRT_ARM_ROS_FIRMWARE_STEPPER_ADAPTER_HPP
+#define UMRT_ARM_ROS_FIRMWARE_STEPPER_ADAPTER_HPP
 
 #include <cstddef>
 #include <exception>
@@ -141,4 +141,4 @@ protected:
     std::mutex velocities_buffer_mx;
 };
 
-#endif // STEPPER_ADAPTER_HPP
+#endif // UMRT_ARM_ROS_FIRMWARE_STEPPER_ADAPTER_HPP
