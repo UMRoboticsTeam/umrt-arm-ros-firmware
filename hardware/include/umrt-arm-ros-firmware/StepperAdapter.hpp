@@ -100,12 +100,6 @@ public:
     double& getGripperPositionCommandRef();
 
 protected:
-    /**
-     * The StepperController which implements the functionality exposed by this
-     * StepperAdapter.
-     */
-    StepperController controller;
-
     // It is very important that the size of these vectors is not changed after init has been called, since we need
     // element pointer stability. Unfortunately, we also need element mutability so const vectors can't be used. As
     // well, the size cannot be determined at compile-time so std::arrays can't be used either. Random-access is
