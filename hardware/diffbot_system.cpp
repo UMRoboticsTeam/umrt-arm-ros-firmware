@@ -32,7 +32,7 @@
 constexpr boost::log::trivial::severity_level LOG_LEVEL = boost::log::trivial::debug;
 
 namespace umrt_arm_ros_firmware {
-    hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
+    hardware_interface::CallbackReturn RoboticArmControlSystem::on_init(
             const hardware_interface::HardwareInfo& info
     ) {
         if (
@@ -49,7 +49,7 @@ namespace umrt_arm_ros_firmware {
             // DiffBotSystem has exactly two states and one command interface on each joint
             if (joint.command_interfaces.size() != 1) {
                 RCLCPP_FATAL(
-                        rclcpp::get_logger("DiffBotSystemHardware"),
+                        rclcpp::get_logger("RoboticArmControlSystem"),
                         "Joint '%s' has %zu command interfaces found. 1 expected.", joint.name.c_str(),
                         joint.command_interfaces.size()
                 );
@@ -58,7 +58,7 @@ namespace umrt_arm_ros_firmware {
 
             if (joint.command_interfaces[0].name != hardware_interface::HW_IF_VELOCITY) {
                 RCLCPP_FATAL(
-                        rclcpp::get_logger("DiffBotSystemHardware"),
+                        rclcpp::get_logger("RoboticArmControlSystem"),
                         "Joint '%s' have %s command interfaces found. '%s' expected.", joint.name.c_str(),
                         joint.command_interfaces[0].name.c_str(), hardware_interface::HW_IF_VELOCITY
                 );
@@ -67,7 +67,7 @@ namespace umrt_arm_ros_firmware {
 
             if (joint.state_interfaces.size() != 2) {
                 RCLCPP_FATAL(
-                        rclcpp::get_logger("DiffBotSystemHardware"),
+                        rclcpp::get_logger("RoboticArmControlSystem"),
                         "Joint '%s' has %zu state interface. 2 expected.", joint.name.c_str(),
                         joint.state_interfaces.size()
                 );
@@ -76,7 +76,7 @@ namespace umrt_arm_ros_firmware {
 
             if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
                 RCLCPP_FATAL(
-                        rclcpp::get_logger("DiffBotSystemHardware"),
+                        rclcpp::get_logger("RoboticArmControlSystem"),
                         "Joint '%s' have '%s' as first state interface. '%s' expected.", joint.name.c_str(),
                         joint.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION
                 );
@@ -85,7 +85,7 @@ namespace umrt_arm_ros_firmware {
 
             if (joint.state_interfaces[1].name != hardware_interface::HW_IF_VELOCITY) {
                 RCLCPP_FATAL(
-                        rclcpp::get_logger("DiffBotSystemHardware"),
+                        rclcpp::get_logger("RoboticArmControlSystem"),
                         "Joint '%s' have '%s' as second state interface. '%s' expected.", joint.name.c_str(),
                         joint.state_interfaces[1].name.c_str(), hardware_interface::HW_IF_VELOCITY
                 );
@@ -97,7 +97,7 @@ namespace umrt_arm_ros_firmware {
             // Gripper has exactly one states and one command interface
             if (gpio.command_interfaces.size() != 1) {
                 RCLCPP_FATAL(
-                        rclcpp::get_logger("DiffBotSystemHardware"),
+                        rclcpp::get_logger("RoboticArmControlSystem"),
                         "GPIO '%s' has %zu command interfaces found. 1 expected.", gpio.name.c_str(),
                         gpio.command_interfaces.size()
                 );
@@ -106,7 +106,7 @@ namespace umrt_arm_ros_firmware {
 
             if (gpio.command_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
                 RCLCPP_FATAL(
-                        rclcpp::get_logger("DiffBotSystemHardware"),
+                        rclcpp::get_logger("RoboticArmControlSystem"),
                         "GPIO '%s' have %s command interfaces found. '%s' expected.", gpio.name.c_str(),
                         gpio.command_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION
                 );
@@ -115,7 +115,7 @@ namespace umrt_arm_ros_firmware {
 
             if (gpio.state_interfaces.size() != 1) {
                 RCLCPP_FATAL(
-                        rclcpp::get_logger("DiffBotSystemHardware"),
+                        rclcpp::get_logger("RoboticArmControlSystem"),
                         "GPIO '%s' has %zu state interface. 2 expected.", gpio.name.c_str(),
                         gpio.state_interfaces.size()
                 );
@@ -124,7 +124,7 @@ namespace umrt_arm_ros_firmware {
 
             if (gpio.state_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
                 RCLCPP_FATAL(
-                        rclcpp::get_logger("DiffBotSystemHardware"),
+                        rclcpp::get_logger("RoboticArmControlSystem"),
                         "GPIO '%s' have '%s' as first state interface. '%s' expected.", gpio.name.c_str(),
                         gpio.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION
                 );
@@ -144,7 +144,7 @@ namespace umrt_arm_ros_firmware {
         return hardware_interface::CallbackReturn::SUCCESS;
     }
 
-    std::vector<hardware_interface::StateInterface> DiffBotSystemHardware::export_state_interfaces() {
+    std::vector<hardware_interface::StateInterface> RoboticArmControlSystem::export_state_interfaces() {
         std::vector<hardware_interface::StateInterface> state_interfaces;
         for (auto i = 0u; i < info_.joints.size(); i++) {
             state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -162,7 +162,7 @@ namespace umrt_arm_ros_firmware {
         return state_interfaces;
     }
 
-    std::vector<hardware_interface::CommandInterface> DiffBotSystemHardware::export_command_interfaces() {
+    std::vector<hardware_interface::CommandInterface> RoboticArmControlSystem::export_command_interfaces() {
         std::vector<hardware_interface::CommandInterface> command_interfaces;
         for (auto i = 0u; i < info_.joints.size(); i++) {
             command_interfaces.emplace_back(hardware_interface::CommandInterface(
@@ -177,51 +177,51 @@ namespace umrt_arm_ros_firmware {
         return command_interfaces;
     }
 
-    hardware_interface::CallbackReturn DiffBotSystemHardware::on_configure(
+    hardware_interface::CallbackReturn RoboticArmControlSystem::on_configure(
             const rclcpp_lifecycle::State& /*previous_state*/
     ) {
-        RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Configuring ...please wait...");
+        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Configuring ...please wait...");
 
         steppers->connect(cfg.device, cfg.baud_rate);
 
-        RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully configured!");
+        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Successfully configured!");
 
         return hardware_interface::CallbackReturn::SUCCESS;
     }
 
-    hardware_interface::CallbackReturn DiffBotSystemHardware::on_cleanup(
+    hardware_interface::CallbackReturn RoboticArmControlSystem::on_cleanup(
             const rclcpp_lifecycle::State& /*previous_state*/
     ) {
-        RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Cleaning up ...please wait...");
+        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Cleaning up ...please wait...");
 
         steppers->disconnect();
 
-        RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully cleaned up!");
+        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Successfully cleaned up!");
 
         return hardware_interface::CallbackReturn::SUCCESS;
     }
 
-    hardware_interface::CallbackReturn DiffBotSystemHardware::on_activate(
+    hardware_interface::CallbackReturn RoboticArmControlSystem::on_activate(
             const rclcpp_lifecycle::State& /*previous_state*/
     ) {
-        RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Activating ...please wait...");
+        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Activating ...please wait...");
 
-        RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully activated!");
+        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Successfully activated!");
 
         return hardware_interface::CallbackReturn::SUCCESS;
     }
 
-    hardware_interface::CallbackReturn DiffBotSystemHardware::on_deactivate(
+    hardware_interface::CallbackReturn RoboticArmControlSystem::on_deactivate(
             const rclcpp_lifecycle::State& /*previous_state*/
     ) {
-        RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Deactivating ...please wait...");
+        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Deactivating ...please wait...");
 
-        RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully deactivated!");
+        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Successfully deactivated!");
 
         return hardware_interface::CallbackReturn::SUCCESS;
     }
 
-    hardware_interface::return_type DiffBotSystemHardware::read(
+    hardware_interface::return_type RoboticArmControlSystem::read(
             const rclcpp::Time& /*time*/, const rclcpp::Duration& period
     ) {
         steppers->readValues();
@@ -229,7 +229,7 @@ namespace umrt_arm_ros_firmware {
         return hardware_interface::return_type::OK;
     }
 
-    hardware_interface::return_type umrt_arm_ros_firmware::DiffBotSystemHardware::write(
+    hardware_interface::return_type umrt_arm_ros_firmware::RoboticArmControlSystem::write(
             const rclcpp::Time& /*time*/, const rclcpp::Duration& /*period*/
     ) {
         steppers->setValues();
@@ -243,5 +243,5 @@ namespace umrt_arm_ros_firmware {
 
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(
-        umrt_arm_ros_firmware::DiffBotSystemHardware, hardware_interface::SystemInterface
+        umrt_arm_ros_firmware::RoboticArmControlSystem, hardware_interface::SystemInterface
 )

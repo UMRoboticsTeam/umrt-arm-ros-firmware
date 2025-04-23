@@ -35,14 +35,14 @@
 #include "StepperAdapter.hpp"
 
 namespace umrt_arm_ros_firmware {
-    class DiffBotSystemHardware : public hardware_interface::SystemInterface {
+    class RoboticArmControlSystem : public hardware_interface::SystemInterface {
         struct Config {
             std::string device = "";
             int baud_rate = 0;
         };
 
     public:
-        RCLCPP_SHARED_PTR_DEFINITIONS(DiffBotSystemHardware);
+        RCLCPP_SHARED_PTR_DEFINITIONS(RoboticArmControlSystem);
 
         UMRT_ARM_ROS_FIRMWARE_PUBLIC
         hardware_interface::CallbackReturn on_init(
