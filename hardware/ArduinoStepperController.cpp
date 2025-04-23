@@ -37,22 +37,6 @@ void ArduinoStepperAdapter::setValues() {
     this->controller.setGripper((uint8_t)std::round(this->cmd_gripper_pos));
 }
 
-void ArduinoStepperAdapter::readValues() {
-    // Acquire the locks for positions_buffer and velocities_buffer, and transfer the values
-    {
-        std::scoped_lock lock(this->positions_buffer_mx, this->velocities_buffer_mx);
-
-        // Remember that we can't invalidate references, so we need to manually copy values
-        for (auto i = 0u; i < commands.size(); ++i) {
-            this->positions[i] = this->positions_buffer[i];
-            this->velocities[i] = this->velocities_buffer[i];
-        }
-    }
-
-    // Simply copy gripper position
-    this->gripper_position = this->cmd_gripper_pos;
-}
-
 void ArduinoStepperAdapter::poll() {
     // Run update loop approximately forever
     // TODO: Look into a better way of doing the polling loop which isn't so intensive

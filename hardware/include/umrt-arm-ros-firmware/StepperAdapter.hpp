@@ -50,11 +50,10 @@ public:
     virtual void setValues() = 0;
 
     /**
-     * Read the current values from the Stepper Controller program into the
-     * position and velocity registers, which are accessible through
-     * @ref getPositionRef and @ref getVelocityRef respectively.
+     * Safely updates the registers @ref positions and @ref velocities with the contents of the buffers
+     * @ref positions_buffer and @ref velocities_buffer, respectively.
      */
-    virtual void readValues() = 0;
+    virtual void readValues();
 
     /**
      * Exposes the position register for the specified joint. Refreshed by

@@ -48,13 +48,6 @@ public:
      */
     void setValues() override;
 
-    /**
-     * Read the current values from the Stepper Controller program into the
-     * position and velocity registers, which are accessible through
-     * @ref getPositionRef and @ref getVelocityRef respectively.
-     */
-    void readValues() override;
-
 protected:
     /**
      * The StepperController which implements the functionality exposed by this
