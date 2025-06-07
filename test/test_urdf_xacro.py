@@ -55,7 +55,7 @@ def test_urdf_xacro():
 
     # Try to call processes but finally remove the temp file
     try:
-        xacro_process = subprocess.run(
+        xacro_process = subprocess.run(co
             xacro_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
         )
 

@@ -26,8 +26,8 @@ endforeach()
 
 # Setup ros2_control_demo_description
 install(
-        DIRECTORY hardware/include/ros2_control_demo_description/diffbot/urdf hardware/include/ros2_control_demo_description/diffbot/rviz
-        DESTINATION share/${PROJECT_NAME}/ros2_control_demo_description/diffbot
+        DIRECTORY hardware/include/ros2_control_demo_description/prairie_pioneer/urdf hardware/include/ros2_control_demo_description/prairie_pioneer/rviz
+        DESTINATION share/${PROJECT_NAME}/ros2_control_demo_description/prairie_pioneer
 )
 
 add_library(
