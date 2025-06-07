@@ -33,7 +33,7 @@ install(
 add_library(
         umrt-arm-ros-firmware
         SHARED
-        hardware/diffbot_system.cpp
+        hardware/robotic_arm_control_system.cpp
         hardware/StepperAdapter.cpp
         hardware/ArduinoStepperController.cpp)
 target_compile_features(umrt-arm-ros-firmware PUBLIC cxx_std_17)

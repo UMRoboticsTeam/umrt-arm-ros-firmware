@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "umrt-arm-ros-firmware/diffbot_system.hpp"
+#include "umrt-arm-ros-firmware/robotic_arm_control_system.hpp"
 #include "umrt-arm-ros-firmware/ArduinoStepperAdapter.hpp"
 
 #include <hardware_interface/lexical_casts.hpp>
