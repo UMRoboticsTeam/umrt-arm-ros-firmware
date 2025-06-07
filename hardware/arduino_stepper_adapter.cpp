@@ -1,4 +1,4 @@
-#include "umrt-arm-ros-firmware/ArduinoStepperAdapter.hpp"
+#include "umrt-arm-ros-firmware/arduino_stepper_adapter.hpp"
 
 ArduinoStepperAdapter::ArduinoStepperAdapter(const std::size_t NUM_JOINTS, const std::chrono::duration<int64_t, std::milli>& query_period) : StepperAdapter(NUM_JOINTS) {
     // Register to receive callbacks for responses to getPosition and getSpeed

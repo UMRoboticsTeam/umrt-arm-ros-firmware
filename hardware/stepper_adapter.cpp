@@ -1,4 +1,4 @@
-#include "umrt-arm-ros-firmware/StepperAdapter.hpp"
+#include "umrt-arm-ros-firmware/stepper_adapter.hpp"
 
 StepperAdapter::StepperAdapter(const std::size_t NUM_JOINTS) {
     // Set the size of the vectors

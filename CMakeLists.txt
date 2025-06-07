@@ -34,8 +34,8 @@ add_library(
         umrt-arm-ros-firmware
         SHARED
         hardware/robotic_arm_control_system.cpp
-        hardware/StepperAdapter.cpp
-        hardware/ArduinoStepperController.cpp)
+        hardware/stepper_adapter.cpp
+        hardware/arduino_stepper_adapter.cpp)
 target_compile_features(umrt-arm-ros-firmware PUBLIC cxx_std_17)
 target_include_directories(umrt-arm-ros-firmware PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>

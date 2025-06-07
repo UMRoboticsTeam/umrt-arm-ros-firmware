@@ -32,7 +32,7 @@
 
 #include "umrt-arm-ros-firmware/visibility_control.h"
 
-#include "StepperAdapter.hpp"
+#include "stepper_adapter.hpp"
 
 namespace umrt_arm_ros_firmware {
     class RoboticArmControlSystem : public hardware_interface::SystemInterface {

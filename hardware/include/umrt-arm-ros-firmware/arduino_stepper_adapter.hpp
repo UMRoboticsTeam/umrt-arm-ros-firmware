@@ -1,7 +1,7 @@
 #ifndef UMRT_ARM_ROS_FIRMWARE_ARDUINOSTEPPERCONTROLLER_HPP
 #define UMRT_ARM_ROS_FIRMWARE_ARDUINOSTEPPERCONTROLLER_HPP
 
-#include "umrt-arm-ros-firmware/StepperAdapter.hpp"
+#include "umrt-arm-ros-firmware/stepper_adapter.hpp"
 
 #include <atomic>
 #include <chrono>

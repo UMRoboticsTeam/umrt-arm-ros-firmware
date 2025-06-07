@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "umrt-arm-ros-firmware/robotic_arm_control_system.hpp"
-#include "umrt-arm-ros-firmware/ArduinoStepperAdapter.hpp"
+#include "umrt-arm-ros-firmware/arduino_stepper_adapter.hpp"
 
 #include <hardware_interface/lexical_casts.hpp>
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
