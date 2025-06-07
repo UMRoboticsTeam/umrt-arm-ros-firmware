@@ -10,7 +10,7 @@
   <xacro:include filename="$(find umrt-arm-ros-firmware)/ros2_control_demo_description/diffbot/urdf/diffbot.materials.xacro" />
 
   <!-- Import diffbot ros2_control description -->
-  <xacro:include filename="$(find umrt-arm-ros-firmware)/ros2_control/diffbot.ros2_control.xacro" />
+  <xacro:include filename="$(find umrt-arm-ros-firmware)/ros2_control/prairie_pioneer.ros2_control.xacro" />
 
   <xacro:diffbot prefix="$(arg prefix)" />
 

@@ -19,7 +19,7 @@ class KeyboardController(Node):
     def __init__(self):
         super().__init__('arm_keyboard_controller')
 
-        self.vel_publisher = self.create_publisher(Float64MultiArray, '/diffbot_base_controller/commands', 10)
+        self.vel_publisher = self.create_publisher(Float64MultiArray, '/arm_base_controller/commands', 10)
         self.gripper_publisher = self.create_publisher(Float64MultiArray, '/gripper_controller/commands', 10)
 
     def run(self):

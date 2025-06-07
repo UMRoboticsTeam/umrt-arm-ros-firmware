@@ -5,13 +5,13 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
-    diffbot_base_controller:
+    arm_base_controller:
       type: velocity_controllers/JointGroupVelocityController
 
     gripper_controller:
       type: position_controllers/JointGroupPositionController
 
-diffbot_base_controller:
+arm_base_controller:
   ros__parameters:
     joints:
       - base_yaw_joint
