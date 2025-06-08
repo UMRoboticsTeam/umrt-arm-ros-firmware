@@ -44,6 +44,7 @@ namespace umrt_arm_ros_firmware {
 
         cfg.device = info_.hardware_parameters["device"];
         cfg.baud_rate = std::stoi(info_.hardware_parameters["baud_rate"]);
+        cfg.controller_type = Config::controller_type_from_string(info_.hardware_parameters["controller_type"]);
 
         for (const hardware_interface::ComponentInfo& joint : info_.joints) {
             // DiffBotSystem has exactly two states and one command interface on each joint
@@ -139,7 +140,12 @@ namespace umrt_arm_ros_firmware {
 
         // Select the StepperAdapter implementation we want to use
         // (For now the only implementation is ArduinoStepperAdapter)
-        steppers = std::make_unique<ArduinoStepperAdapter>(info_.joints.size(), std::chrono::milliseconds(100));
+        switch (cfg.controller_type) {
+            case Config::ControllerType::ARDUINO:
+                steppers = std::make_unique<ArduinoStepperAdapter>(info_.joints.size(), std::chrono::milliseconds(100));
+                break;
+            default: throw std::invalid_argument("Unknown controller type");
+        }
 
         return hardware_interface::CallbackReturn::SUCCESS;
     }
