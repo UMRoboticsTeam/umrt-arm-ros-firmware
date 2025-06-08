@@ -1,0 +1,11 @@
+University of Manitoba Robotics Team
+Copyright 2024-2025
+
+This project was originally based on "example_2" from the ros2_control_demos repository (https://github.com/ros-controls/ros2_control_demos).
+These files are licensed under Apache-2.0, described in LICENSE-ros2_control_demos, Copyright 2021 ros2_control Development Team
+
+Extensive changes have been made to convert the example's hardware_interface into one applicable to a 3-joint robotic arm.
+Details of these changes can be found in the Git history.
+
+All changes made by the University of Manitoba Robotics Team are licensed under MPL-2.0.
+The MPL-2.0 license is available in LICENSE.
