@@ -36,7 +36,7 @@ namespace umrt_arm_ros_firmware {
             const hardware_interface::HardwareInfo& info
     ) {
         if (
-                hardware_interface::SystemInterface::on_init(info) !=
+                SystemInterface::on_init(info) !=
                 hardware_interface::CallbackReturn::SUCCESS
         ) {
             return hardware_interface::CallbackReturn::ERROR;
@@ -147,17 +147,11 @@ namespace umrt_arm_ros_firmware {
     std::vector<hardware_interface::StateInterface> RoboticArmControlSystem::export_state_interfaces() {
         std::vector<hardware_interface::StateInterface> state_interfaces;
         for (auto i = 0u; i < info_.joints.size(); i++) {
-            state_interfaces.emplace_back(hardware_interface::StateInterface(
-                    info_.joints[i].name, hardware_interface::HW_IF_POSITION, &steppers->getPositionRef(i)
-            ));
-            state_interfaces.emplace_back(hardware_interface::StateInterface(
-                    info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getVelocityRef(i)
-            ));
+            state_interfaces.emplace_back(info_.joints[i].name, hardware_interface::HW_IF_POSITION, &steppers->getPositionRef(i));
+            state_interfaces.emplace_back(info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getVelocityRef(i));
         }
 
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-                info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionRef()
-        ));
+        state_interfaces.emplace_back(info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionRef());
 
         return state_interfaces;
     }
@@ -165,14 +159,10 @@ namespace umrt_arm_ros_firmware {
     std::vector<hardware_interface::CommandInterface> RoboticArmControlSystem::export_command_interfaces() {
         std::vector<hardware_interface::CommandInterface> command_interfaces;
         for (auto i = 0u; i < info_.joints.size(); i++) {
-            command_interfaces.emplace_back(hardware_interface::CommandInterface(
-                    info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getCommandRef(i)
-            ));
+            command_interfaces.emplace_back(info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getCommandRef(i));
         }
 
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-                info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionCommandRef()
-        ));
+        command_interfaces.emplace_back(info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionCommandRef());
 
         return command_interfaces;
     }
@@ -229,7 +219,7 @@ namespace umrt_arm_ros_firmware {
         return hardware_interface::return_type::OK;
     }
 
-    hardware_interface::return_type umrt_arm_ros_firmware::RoboticArmControlSystem::write(
+    hardware_interface::return_type RoboticArmControlSystem::write(
             const rclcpp::Time& /*time*/, const rclcpp::Duration& /*period*/
     ) {
         steppers->setValues();

@@ -3,8 +3,8 @@
 ArduinoStepperAdapter::ArduinoStepperAdapter(const std::size_t NUM_JOINTS, const std::chrono::duration<int64_t, std::milli>& query_period) : StepperAdapter(NUM_JOINTS) {
     // Register to receive callbacks for responses to getPosition and getSpeed
     // Note: These callbacks will occur in another thread, so they need to be processed carefully
-    this->controller.EGetPosition.connect([this](uint8_t joint, int32_t pos) -> void { this->updatePosition(joint, pos); });
-    this->controller.EGetSpeed.connect([this](uint8_t joint, int16_t speed) -> void { this->updateVelocity(joint, speed); });
+    this->controller.EGetPosition.connect([this](const uint8_t joint, const int32_t pos) -> void { this->updatePosition(joint, pos); });
+    this->controller.EGetSpeed.connect([this](const uint8_t joint, const int16_t speed) -> void { this->updateVelocity(joint, speed); });
 
     // Start the polling loops for message handling and joint state querying
     this->continue_polling = true;
@@ -31,10 +31,10 @@ void ArduinoStepperAdapter::disconnect() {
 void ArduinoStepperAdapter::setValues() {
     for (auto i = 0u; i < commands.size(); ++i) {
         // Note that the StepperController speed is specified in units of in 1/10 RPM
-        this->controller.setSpeed(i, (int16_t)std::round(10 * this->commands[i]));
+        this->controller.setSpeed(i, static_cast<int16_t>(std::round(10 * this->commands[i])));
     }
 
-    this->controller.setGripper((uint8_t)std::round(this->cmd_gripper_pos));
+    this->controller.setGripper(static_cast<uint8_t>(std::round(this->cmd_gripper_pos)));
 }
 
 void ArduinoStepperAdapter::poll() {
