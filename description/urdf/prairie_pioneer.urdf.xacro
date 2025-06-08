@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!-- Basic differential drive mobile base -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="diffdrive_robot">
+  <xacro:arg name="prefix" default="" />
+  <xacro:arg name="use_mock_hardware" default="false" />
+
+  <xacro:include filename="$(find umrt-arm-ros-firmware)/ros2_control_demo_description/prairie_pioneer/urdf/prairie_pioneer_description.urdf.xacro" />
+
+  <!-- Import Rviz colors -->
+  <xacro:include filename="$(find umrt-arm-ros-firmware)/ros2_control_demo_description/prairie_pioneer/urdf/prairie_pioneer.materials.xacro" />
+
+  <!-- Import prairie_pioneer ros2_control description -->
+  <xacro:include filename="$(find umrt-arm-ros-firmware)/ros2_control/prairie_pioneer.ros2_control.xacro" />
+
+  <xacro:prairie_pioneer prefix="$(arg prefix)" />
+
+  <xacro:prairie_pioneer_ros2_control
+    name="PrairiePioneer" prefix="$(arg prefix)" use_mock_hardware="$(arg use_mock_hardware)"/>
+
+</robot>

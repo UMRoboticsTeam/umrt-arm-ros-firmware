@@ -104,8 +104,8 @@ Tutorial steps
 
    .. code-block:: shell
 
-    [DiffBotSystemHardware]: Got command 43.33333 for 'left_wheel_joint'!
-    [DiffBotSystemHardware]: Got command 50.00000 for 'right_wheel_joint'!
+    [RoboticArmControlSystem]: Got command 43.33333 for 'left_wheel_joint'!
+    [RoboticArmControlSystem]: Got command 50.00000 for 'right_wheel_joint'!
 
 6. Let's introspect the ros2_control hardware component. Calling
 
@@ -120,7 +120,7 @@ Tutorial steps
     Hardware Component 1
             name: DiffBot
             type: system
-            plugin name: umrt-arm-ros-firmware/DiffBotSystemHardware
+            plugin name: umrt-arm-ros-firmware/RoboticArmControlSystem
             state: id=3 label=active
             command interfaces
                     left_wheel_joint/velocity [available] [claimed]

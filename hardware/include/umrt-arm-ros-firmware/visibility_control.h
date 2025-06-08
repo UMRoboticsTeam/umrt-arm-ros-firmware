@@ -19,8 +19,8 @@
  * library cannot have, but the consuming code must have inorder to link.
  */
 
-#ifndef UMRT_ARM_ROS_FIRMWARE__VISIBILITY_CONTROL_H_
-#define UMRT_ARM_ROS_FIRMWARE__VISIBILITY_CONTROL_H_
+#ifndef UMRT_ARM_ROS_FIRMWARE_VISIBILITY_CONTROL_H
+#define UMRT_ARM_ROS_FIRMWARE_VISIBILITY_CONTROL_H
 
 // This logic was borrowed (then namespaced) from the examples on the gcc wiki:
 //     https://gcc.gnu.org/wiki/Visibility
@@ -53,4 +53,4 @@
 #define UMRT_ARM_ROS_FIRMWARE_PUBLIC_TYPE
 #endif
 
-#endif  // UMRT_ARM_ROS_FIRMWARE__VISIBILITY_CONTROL_H_
+#endif // UMRT_ARM_ROS_FIRMWARE_VISIBILITY_CONTROL_H
