@@ -46,11 +46,9 @@ namespace umrt_arm_ros_firmware {
             ControllerType controller_type = ControllerType::INVALID;
 
             static ControllerType controller_type_from_string(const std::string& controller_type) {
-                switch (controller_type) {
-                    case "ARDUINO": return ControllerType::ARDUINO;
-                    case "MKS": return ControllerType::MKS;
-                    default: throw std::invalid_argument("Invalid controller type");
-                };
+                if (controller_type == "ARDUINO") { return ControllerType::ARDUINO; }
+                if (controller_type == "MKS") { return ControllerType::MKS; }
+                throw std::invalid_argument((std::stringstream() << "Invalid controller type: " << controller_type).str());
             }
         };
 
