@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <mutex>
 #include <thread>
-#include <umrt-arm-firmware-lib/StepperController.h>
+#include <umrt-arm-firmware-lib/arduino_stepper_controller.hpp>
 
 /**
  * Adapter class to interface a @ref StepperController with a ros2_control
@@ -50,10 +50,10 @@ public:
 
 protected:
     /**
-     * The StepperController which implements the functionality exposed by this
+     * The ArduinoStepperController which implements the functionality exposed by this
      * ArduinoStepperAdapter.
      */
-    StepperController controller;
+    ArduinoStepperController controller;
 
     /**
      * Thread used to run @ref poll indefinitely.
