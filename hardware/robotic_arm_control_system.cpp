@@ -14,6 +14,7 @@
 
 #include "umrt-arm-ros-firmware/robotic_arm_control_system.hpp"
 #include "umrt-arm-ros-firmware/arduino_stepper_adapter.hpp"
+#include "umrt-arm-ros-firmware/mks_stepper_adapter.hpp"
 
 #include <hardware_interface/lexical_casts.hpp>
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
@@ -144,6 +145,10 @@ namespace umrt_arm_ros_firmware {
             case Config::ControllerType::ARDUINO:
                 steppers = std::make_unique<ArduinoStepperAdapter>(info_.joints.size(), std::chrono::milliseconds(100));
                 break;
+            case Config::ControllerType::MKS:
+                // TODO: Load motor IDs from xacro
+                steppers = std::make_unique<MksStepperAdapter>(cfg.device, std::vector<uint16_t>({1}), std::chrono::milliseconds(100));
+            break;
             default: throw std::invalid_argument("Unknown controller type");
         }
 
