@@ -1,10 +1,21 @@
 #include "umrt-arm-ros-firmware/mks_stepper_adapter.hpp"
+#include <boost/bimap.hpp>
 
-MksStepperAdapter::MksStepperAdapter(const std::size_t NUM_JOINTS, const std::chrono::duration<int64_t, std::milli>& query_period) : StepperAdapter(NUM_JOINTS) {
+constexpr uint8_t NORM_FACTOR = 16;
+
+MksStepperAdapter::MksStepperAdapter(const std::string& can_interface, const std::vector<uint16_t>& motor_ids, const std::chrono::duration<int64_t, std::milli>& query_period) : StepperAdapter(motor_ids.size()) {
+    // Preprocess motor IDs into bimap we can use to convert between joint index and motor, and an unordered_set
+    //     that MksController can use for its packet address lookups
+    auto motor_ids_for_controller = std::make_unique<std::unordered_set<uint16_t>>(motor_ids.cbegin(), motor_ids.cend());
+    this->motor_ids = std::make_unique<boost::bimap<uint16_t, uint16_t>>();
+    for (size_t i = 0; i < motor_ids.size(); ++i) {
+        this->motor_ids->insert(boost::bimap<uint16_t, uint16_t>::value_type(i, motor_ids.at(i)));
+    }
+    controller = std::make_unique<MksStepperController>(can_interface, std::move(motor_ids_for_controller), NORM_FACTOR);
+
     // Register to receive callbacks for responses to getPosition and getSpeed
     // Note: These callbacks will occur in another thread, so they need to be processed carefully
-    this->controller.EGetPosition.connect([this](const uint8_t joint, const int32_t pos) -> void { this->updatePosition(joint, pos); });
-    this->controller.EGetSpeed.connect([this](const uint8_t joint, const int16_t speed) -> void { this->updateVelocity(joint, speed); });
+    this->controller->EGetPosition.connect([this](const uint16_t motor, const int32_t pos) -> void { this->updatePosition(this->motor_ids->right.at(motor), pos); });
 
     // Start the polling loops for message handling and joint state querying
     this->continue_polling = true;
@@ -13,28 +24,21 @@ MksStepperAdapter::MksStepperAdapter(const std::size_t NUM_JOINTS, const std::ch
 }
 
 MksStepperAdapter::~MksStepperAdapter() {
-    if (true) { // TODO: Figure out how to tell if disconnect need to be called
-        MksStepperAdapter::disconnect();
+    if (this->continue_polling) {
+        this->continue_polling = false;
+        this->polling_thread.join();
+        this->querying_thread.join();
     }
-}
-
-void MksStepperAdapter::connect(const std::string device, const int baud_rate) {
-    this->controller.connect(device, baud_rate);
-}
-
-void MksStepperAdapter::disconnect() {
-    this->continue_polling = false;
-    this->controller.disconnect();
 }
 
 
 void MksStepperAdapter::setValues() {
     for (auto i = 0u; i < commands.size(); ++i) {
-        // Note that the StepperController speed is specified in units of in 1/10 RPM
-        this->controller.setSpeed(i, static_cast<int16_t>(std::round(10 * this->commands[i])));
+        // Note that the MksStepperController speed is in units of RPM (since we're using interpolated normalisation)
+        this->controller->setSpeed(motor_ids->left.at(i), static_cast<int16_t>(std::round(this->commands.at(i))));
     }
 
-    this->controller.setGripper(static_cast<uint8_t>(std::round(this->cmd_gripper_pos)));
+    // TODO: Add gripper support
 }
 
 void MksStepperAdapter::poll() {
@@ -42,14 +46,13 @@ void MksStepperAdapter::poll() {
     // TODO: Look into a better way of doing the polling loop which isn't so intensive
     while (continue_polling) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        this->controller.update();
+        this->controller->update();
     }
 }
 
 void MksStepperAdapter::queryController() {
     for (auto i = 0u; i < commands.size(); ++i) {
-        this->controller.getPosition(i);
-        this->controller.getSpeed(i);
+        this->controller->getPosition(this->motor_ids->left.at(i));
     }
 }
 

@@ -6,41 +6,35 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
-#include <mutex>
 #include <thread>
-#include <umrt-arm-firmware-lib/arduino_stepper_controller.hpp>
+
+#include <boost/bimap.hpp>
+
+#include <umrt-arm-firmware-lib/mks_stepper_controller.hpp>
 
 /**
- * Adapter class to interface a @ref StepperController with a ros2_control
+ * Adapter class to interface an @ref MksStepperController with a ros2_control
  * hardware_interface.
+ *
+ * Unlike @ref ArduinoStepperController, this class follows the RAII paradigm.
  */
 class MksStepperAdapter : public StepperAdapter {
 public:
     /**
-    * Initializes an MksStepperAdapter, but does not connect it.
+    * Initializes an MksStepperAdapter.
+    * The number of joints is inferred from the number of motor IDs provided.
     *
-    * @param NUM_JOINTS the number of joints
+    * @param can_interface SocketCAN network interface corresponding to the CAN bus
+    * @param motor_ids CAN IDs for the motor controller
     * @param query_period the time to wait between controller queries for position, velocity, etc.
     */
     MksStepperAdapter(
-            const std::size_t NUM_JOINTS,
+            const std::string& can_interface,
+            const std::vector<uint16_t>& motor_ids,
             const std::chrono::duration<int64_t, std::milli>& query_period
     );
 
     ~MksStepperAdapter() override;
-
-    /**
-    * Connect to an Arduino running the Stepper Controller program.
-    *
-    * @param device the path to the serial device connected to the Arduino
-    * @param baud_rate baud rate to use for the Firmata connection
-    */
-    void connect(const std::string device, const int baud_rate) override;
-
-    /**
-     * Disconnect from the Arduino and close polling loops.
-     */
-    void disconnect() override;
 
     /**
      * Write the current contents of the command registers, which are accessible
@@ -50,10 +44,10 @@ public:
 
 protected:
     /**
-     * The ArduinoStepperController which implements the functionality exposed by this
+     * The MksStepperController which implements the functionality exposed by this
      * MksStepperAdapter.
      */
-    ArduinoStepperController controller;
+    std::unique_ptr<MksStepperController> controller;
 
     /**
      * Thread used to run @ref poll indefinitely.
@@ -69,6 +63,11 @@ protected:
      * Signal used to shutdown the polling threads.
      */
     std::atomic<bool> continue_polling = false;
+
+    /**
+     * Maps joint index to motor CAN IDs.
+     */
+    std::unique_ptr<boost::bimap<uint16_t, uint16_t>> motor_ids;
 
     /**
      * Method to indefinitely poll @ref controller for responses
