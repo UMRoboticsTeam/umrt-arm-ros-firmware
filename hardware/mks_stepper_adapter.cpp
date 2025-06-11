@@ -49,7 +49,7 @@ void MksStepperAdapter::poll() {
     // TODO: Look into a better way of doing the polling loop which isn't so intensive
     while (continue_polling) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        this->controller->update();
+        this->controller->update(std::chrono::milliseconds(10));
     }
 }
 
