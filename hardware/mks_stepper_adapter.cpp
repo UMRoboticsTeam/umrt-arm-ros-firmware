@@ -31,6 +31,9 @@ MksStepperAdapter::~MksStepperAdapter() {
     }
 }
 
+void MksStepperAdapter::connect(const std::string device, const int baud_rate) {}
+
+void MksStepperAdapter::disconnect() {}
 
 void MksStepperAdapter::setValues() {
     for (auto i = 0u; i < commands.size(); ++i) {

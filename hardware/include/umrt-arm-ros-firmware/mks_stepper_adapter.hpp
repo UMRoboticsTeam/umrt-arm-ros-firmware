@@ -36,6 +36,12 @@ public:
 
     ~MksStepperAdapter() override;
 
+    /** Does nothing. */
+    void connect(const std::string device, const int baud_rate) override;
+
+    /** Does nothing. */
+    void disconnect() override;
+
     /**
      * Write the current contents of the command registers, which are accessible
      * through @ref getCommandRef, to the Stepper Controller program.
