@@ -8,4 +8,9 @@ install(
   DESTINATION share/${PROJECT_NAME}/prairie_pioneer
 )
 
+install(
+        DIRECTORY project_perry/urdf project_perry/rviz
+        DESTINATION share/${PROJECT_NAME}/project_perry
+)
+
 ament_package()
