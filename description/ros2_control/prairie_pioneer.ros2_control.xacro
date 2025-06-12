@@ -7,9 +7,9 @@
       <xacro:unless value="${use_mock_hardware}">
         <hardware>
           <plugin>umrt-arm-ros-firmware/RoboticArmControlSystem</plugin>
-          <param name="device">can0</param>
+          <param name="device">/dev/umrt-arm</param>
           <param name="baud_rate">57600</param>
-          <param name="controller_type">MKS</param>
+          <param name="controller_type">ARDUINO</param>
         </hardware>
       </xacro:unless>
       <xacro:if value="${use_mock_hardware}">
