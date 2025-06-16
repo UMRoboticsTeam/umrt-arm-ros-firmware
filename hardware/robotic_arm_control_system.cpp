@@ -29,6 +29,8 @@
 #include <limits>
 #include <memory>
 #include <vector>
+#include <boost/tokenizer.hpp>
+#include <boost/lexical_cast.hpp>
 
 constexpr boost::log::trivial::severity_level LOG_LEVEL = boost::log::trivial::debug;
 
@@ -46,6 +48,11 @@ namespace umrt_arm_ros_firmware {
         cfg.device = info_.hardware_parameters["device"];
         cfg.baud_rate = std::stoi(info_.hardware_parameters["baud_rate"]);
         cfg.controller_type = Config::controller_type_from_string(info_.hardware_parameters["controller_type"]);
+
+        // Parse the comma-delimited motor IDs into a vector
+        std::string serialised_motor_ids = info_.hardware_parameters["motor_ids"];
+        boost::tokenizer<boost::char_separator<char>> motor_id_tokens(serialised_motor_ids, boost::char_separator<char>(","));
+        std::transform(motor_id_tokens.begin(), motor_id_tokens.end(), std::back_inserter(cfg.motor_ids), &boost::lexical_cast<uint16_t, std::string>);
 
         for (const hardware_interface::ComponentInfo& joint : info_.joints) {
             // DiffBotSystem has exactly two states and one command interface on each joint
@@ -146,9 +153,8 @@ namespace umrt_arm_ros_firmware {
                 steppers = std::make_unique<ArduinoStepperAdapter>(info_.joints.size(), std::chrono::milliseconds(100));
                 break;
             case Config::ControllerType::MKS:
-                // TODO: Load motor IDs from xacro
-                steppers = std::make_unique<MksStepperAdapter>(cfg.device, std::vector<uint16_t>({1}), std::chrono::milliseconds(100));
-            break;
+                steppers = std::make_unique<MksStepperAdapter>(cfg.device, cfg.motor_ids, std::chrono::milliseconds(100));
+                break;
             default: throw std::invalid_argument("Unknown controller type");
         }
 

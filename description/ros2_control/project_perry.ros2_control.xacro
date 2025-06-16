@@ -10,6 +10,7 @@
           <param name="device">can0</param>
           <param name="baud_rate">500000</param>
           <param name="controller_type">MKS</param>
+          <param name="motor_ids">1,2,3</param>
         </hardware>
       </xacro:unless>
       <xacro:if value="${use_mock_hardware}">
