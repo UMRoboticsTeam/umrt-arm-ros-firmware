@@ -10,6 +10,7 @@
           <param name="device">/dev/umrt-arm</param>
           <param name="baud_rate">57600</param>
           <param name="controller_type">ARDUINO</param>
+          <param name="motor_ids">1,2,3</param>
         </hardware>
       </xacro:unless>
       <xacro:if value="${use_mock_hardware}">

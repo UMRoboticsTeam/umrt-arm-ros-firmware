@@ -20,8 +20,10 @@
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 #include <rclcpp/rclcpp.hpp>
 
+#include <boost/lexical_cast.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/tokenizer.hpp>
 
 #include <chrono>
 #include <cmath>
@@ -29,8 +31,6 @@
 #include <limits>
 #include <memory>
 #include <vector>
-#include <boost/tokenizer.hpp>
-#include <boost/lexical_cast.hpp>
 
 constexpr boost::log::trivial::severity_level LOG_LEVEL = boost::log::trivial::debug;
 
@@ -51,8 +51,16 @@ namespace umrt_arm_ros_firmware {
 
         // Parse the comma-delimited motor IDs into a vector
         std::string serialised_motor_ids = info_.hardware_parameters["motor_ids"];
+        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Parsing motor IDs from string: %s", serialised_motor_ids.c_str());
         boost::tokenizer<boost::char_separator<char>> motor_id_tokens(serialised_motor_ids, boost::char_separator<char>(","));
         std::transform(motor_id_tokens.begin(), motor_id_tokens.end(), std::back_inserter(cfg.motor_ids), &boost::lexical_cast<uint16_t, std::string>);
+
+        // Make sure we read an ID for each joint
+        if (cfg.motor_ids.size() != info_.joints.size()) {
+            RCLCPP_FATAL(rclcpp::get_logger("RoboticArmControlSystem"), "The number of joints specified was different than the number of motor IDs provided. "
+                                                                        "Found %zu joints, read %zu motor IDs from string: %s",
+                         info_.joints.size(), cfg.motor_ids.size(), serialised_motor_ids.c_str());
+        }
 
         for (const hardware_interface::ComponentInfo& joint : info_.joints) {
             // DiffBotSystem has exactly two states and one command interface on each joint
