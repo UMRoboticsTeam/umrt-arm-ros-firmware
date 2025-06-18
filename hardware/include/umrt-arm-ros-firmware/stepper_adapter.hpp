@@ -9,8 +9,6 @@
 
 #include <rclcpp/node.hpp>
 
-#include <umrt-arm-firmware-lib/StepperController.h>
-
 /**
  * Adapter class to interface a @ref StepperController with a ros2_control
  * hardware_interface.

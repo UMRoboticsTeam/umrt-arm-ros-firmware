@@ -8,6 +8,8 @@ StepperAdapter::StepperAdapter(const std::size_t NUM_JOINTS) {
     this->commands.resize(NUM_JOINTS);
     this->positions_buffer.resize(NUM_JOINTS);
     this->velocities_buffer.resize(NUM_JOINTS);
+    this->cmd_gripper_pos = 0;
+    this->gripper_position = 0;
 }
 
 StepperAdapter::~StepperAdapter() = default;
@@ -28,11 +30,11 @@ void StepperAdapter::readValues() {
     this->gripper_position = this->cmd_gripper_pos;
 }
 
-double& StepperAdapter::getPositionRef(size_t index) {
+double& StepperAdapter::getPositionRef(const size_t index) {
     return this->positions[index];
 }
 
-double& StepperAdapter::getVelocityRef(std::size_t index) {
+double& StepperAdapter::getVelocityRef(const std::size_t index) {
     return this->velocities[index];
 }
 
@@ -40,7 +42,7 @@ double& StepperAdapter::getGripperPositionRef() {
     return this->gripper_position;
 }
 
-double& StepperAdapter::getCommandRef(std::size_t index) {
+double& StepperAdapter::getCommandRef(const std::size_t index) {
     return this->commands[index];
 }
 

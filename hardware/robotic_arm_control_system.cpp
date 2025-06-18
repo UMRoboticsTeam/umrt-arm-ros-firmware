@@ -14,13 +14,16 @@
 
 #include "umrt-arm-ros-firmware/robotic_arm_control_system.hpp"
 #include "umrt-arm-ros-firmware/arduino_stepper_adapter.hpp"
+#include "umrt-arm-ros-firmware/mks_stepper_adapter.hpp"
 
 #include <hardware_interface/lexical_casts.hpp>
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 #include <rclcpp/rclcpp.hpp>
 
+#include <boost/lexical_cast.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/tokenizer.hpp>
 
 #include <chrono>
 #include <cmath>
@@ -36,7 +39,7 @@ namespace umrt_arm_ros_firmware {
             const hardware_interface::HardwareInfo& info
     ) {
         if (
-                hardware_interface::SystemInterface::on_init(info) !=
+                SystemInterface::on_init(info) !=
                 hardware_interface::CallbackReturn::SUCCESS
         ) {
             return hardware_interface::CallbackReturn::ERROR;
@@ -44,6 +47,20 @@ namespace umrt_arm_ros_firmware {
 
         cfg.device = info_.hardware_parameters["device"];
         cfg.baud_rate = std::stoi(info_.hardware_parameters["baud_rate"]);
+        cfg.controller_type = Config::controller_type_from_string(info_.hardware_parameters["controller_type"]);
+
+        // Parse the comma-delimited motor IDs into a vector
+        std::string serialised_motor_ids = info_.hardware_parameters["motor_ids"];
+        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Parsing motor IDs from string: %s", serialised_motor_ids.c_str());
+        boost::tokenizer<boost::char_separator<char>> motor_id_tokens(serialised_motor_ids, boost::char_separator<char>(","));
+        std::transform(motor_id_tokens.begin(), motor_id_tokens.end(), std::back_inserter(cfg.motor_ids), &boost::lexical_cast<uint16_t, std::string>);
+
+        // Make sure we read an ID for each joint
+        if (cfg.motor_ids.size() != info_.joints.size()) {
+            RCLCPP_FATAL(rclcpp::get_logger("RoboticArmControlSystem"), "The number of joints specified was different than the number of motor IDs provided. "
+                                                                        "Found %zu joints, read %zu motor IDs from string: %s",
+                         info_.joints.size(), cfg.motor_ids.size(), serialised_motor_ids.c_str());
+        }
 
         for (const hardware_interface::ComponentInfo& joint : info_.joints) {
             // DiffBotSystem has exactly two states and one command interface on each joint
@@ -139,7 +156,15 @@ namespace umrt_arm_ros_firmware {
 
         // Select the StepperAdapter implementation we want to use
         // (For now the only implementation is ArduinoStepperAdapter)
-        steppers = std::make_unique<ArduinoStepperAdapter>(info_.joints.size(), std::chrono::milliseconds(100));
+        switch (cfg.controller_type) {
+            case Config::ControllerType::ARDUINO:
+                steppers = std::make_unique<ArduinoStepperAdapter>(info_.joints.size(), std::chrono::milliseconds(100));
+                break;
+            case Config::ControllerType::MKS:
+                steppers = std::make_unique<MksStepperAdapter>(cfg.device, cfg.motor_ids, std::chrono::milliseconds(100));
+                break;
+            default: throw std::invalid_argument("Unknown controller type");
+        }
 
         return hardware_interface::CallbackReturn::SUCCESS;
     }
@@ -147,17 +172,11 @@ namespace umrt_arm_ros_firmware {
     std::vector<hardware_interface::StateInterface> RoboticArmControlSystem::export_state_interfaces() {
         std::vector<hardware_interface::StateInterface> state_interfaces;
         for (auto i = 0u; i < info_.joints.size(); i++) {
-            state_interfaces.emplace_back(hardware_interface::StateInterface(
-                    info_.joints[i].name, hardware_interface::HW_IF_POSITION, &steppers->getPositionRef(i)
-            ));
-            state_interfaces.emplace_back(hardware_interface::StateInterface(
-                    info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getVelocityRef(i)
-            ));
+            state_interfaces.emplace_back(info_.joints[i].name, hardware_interface::HW_IF_POSITION, &steppers->getPositionRef(i));
+            state_interfaces.emplace_back(info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getVelocityRef(i));
         }
 
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-                info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionRef()
-        ));
+        state_interfaces.emplace_back(info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionRef());
 
         return state_interfaces;
     }
@@ -165,14 +184,10 @@ namespace umrt_arm_ros_firmware {
     std::vector<hardware_interface::CommandInterface> RoboticArmControlSystem::export_command_interfaces() {
         std::vector<hardware_interface::CommandInterface> command_interfaces;
         for (auto i = 0u; i < info_.joints.size(); i++) {
-            command_interfaces.emplace_back(hardware_interface::CommandInterface(
-                    info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getCommandRef(i)
-            ));
+            command_interfaces.emplace_back(info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getCommandRef(i));
         }
 
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-                info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionCommandRef()
-        ));
+        command_interfaces.emplace_back(info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionCommandRef());
 
         return command_interfaces;
     }
@@ -229,7 +244,7 @@ namespace umrt_arm_ros_firmware {
         return hardware_interface::return_type::OK;
     }
 
-    hardware_interface::return_type umrt_arm_ros_firmware::RoboticArmControlSystem::write(
+    hardware_interface::return_type RoboticArmControlSystem::write(
             const rclcpp::Time& /*time*/, const rclcpp::Duration& /*period*/
     ) {
         steppers->setValues();
