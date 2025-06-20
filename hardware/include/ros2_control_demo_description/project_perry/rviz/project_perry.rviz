@@ -92,7 +92,11 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        tool_link:
+        finger_left_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        finger_right_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
