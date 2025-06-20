@@ -12,7 +12,12 @@
   <!-- Import project_perry ros2_control description -->
   <xacro:include filename="$(find umrt-arm-ros-firmware)/ros2_control/project_perry.ros2_control.xacro" />
 
-  <xacro:project_perry prefix="$(arg prefix)" />
+  <!-- Used for fixing robot -->
+  <link name="world"/>
+
+  <xacro:project_perry parent="world" prefix="$(arg prefix)">
+          <origin xyz="0 0 0" rpy="0 0 0" />
+  </xacro:project_perry>
 
   <xacro:project_perry_ros2_control
     name="ProjectPerry" prefix="$(arg prefix)" use_mock_hardware="$(arg use_mock_hardware)"/>

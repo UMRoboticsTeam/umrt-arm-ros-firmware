@@ -27,7 +27,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "description_file",
-            default_value="prairie_pioneer.urdf.xacro",
+            default_value="project_perry.urdf.xacro",
             description="URDF/XACRO description file with the robot.",
         )
     )
@@ -71,7 +71,8 @@ def generate_launch_description():
     robot_description = {"robot_description": robot_description_content}
 
     rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare(description_package), "prairie_pioneer/rviz", "prairie_pioneer_view.rviz"]
+        #[FindPackageShare(description_package), "prairie_pioneer/rviz", "prairie_pioneer_view.rviz"]
+        [FindPackageShare("umrt-arm-ros-firmware"), "ros2_control_demo_description", "project_perry/rviz", "project_perry_view.rviz"]
     )
 
     joint_state_publisher_node = Node(
