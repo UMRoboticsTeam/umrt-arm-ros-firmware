@@ -67,7 +67,7 @@ def generate_launch_description():
         ]
     )
     rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare("umrt-arm-ros-firmware"), "ros2_control_demo_description/project_perry/rviz", "ros2_control_demo_description/project_perry.rviz"]
+        [FindPackageShare("umrt-arm-ros-firmware"), "ros2_control_demo_description", "project_perry/rviz", "project_perry_view.rviz"]
     )
 
     control_node = Node(
