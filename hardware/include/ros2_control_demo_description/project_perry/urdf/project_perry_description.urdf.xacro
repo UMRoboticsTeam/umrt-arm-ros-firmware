@@ -5,6 +5,10 @@
 
         <!-- Constants for robot dimensions -->
         <xacro:property name="mass" value="1"/> <!-- arbitrary value for mass -->
+        <xacro:property name="base_width" value="1"/>
+        <xacro:property name="base_height" value="0.6"/>
+        <xacro:property name="platter_radius" value="0.75"/>
+        <xacro:property name="platter_height" value="0.1"/>
         <xacro:property name="width" value="0.1"/> <!-- Square dimensions (widthxwidth) of beams -->
         <xacro:property name="height1" value="2"/> <!-- Link 1 -->
         <xacro:property name="height2" value="1"/> <!-- Link 2 -->
@@ -20,35 +24,35 @@
         <!-- Base Link -->
         <link name="${prefix}base_link">
             <collision>
-                <origin xyz="0 0 ${height1/2}" rpy="0 0 0"/>
+                <origin xyz="0 0 ${base_height/2}" rpy="0 0 0"/>
                 <geometry>
-                    <box size="${width} ${width} ${height1}"/>
+                    <box size="${base_width} ${base_width} ${base_height}"/>
                 </geometry>
             </collision>
 
             <visual>
-                <origin xyz="0 0 ${height1/2}" rpy="0 0 0"/>
+                <origin xyz="0 0 ${base_height/2}" rpy="0 0 0"/>
                 <geometry>
-                    <box size="${width} ${width} ${height1}"/>
+                    <box size="${base_width} ${base_width} ${base_height}"/>
                 </geometry>
                 <material name="orange"/>
             </visual>
 
             <inertial>
-                <origin xyz="0 0 ${height1/2}" rpy="0 0 0"/>
+                <origin xyz="0 0 ${base_height/2}" rpy="0 0 0"/>
                 <mass value="${mass}"/>
                 <inertia
-                        ixx="${mass / 12.0 * (width*width + height1*height1)}" ixy="0.0" ixz="0.0"
-                        iyy="${mass / 12.0 * (height1*height1 + width*width)}" iyz="0.0"
-                        izz="${mass / 12.0 * (width*width + width*width)}"/>
+                        ixx="${mass / 12.0 * (base_width*base_width + base_height*base_height)}" ixy="0.0" ixz="0.0"
+                        iyy="${mass / 12.0 * (base_height*base_height + base_width*base_width)}" iyz="0.0"
+                        izz="${mass / 12.0 * (base_width*base_width + base_width*base_width)}"/>
             </inertial>
         </link>
 
         <joint name="${prefix}base_yaw_joint" type="continuous">
             <parent link="${prefix}base_link"/>
             <child link="${prefix}shoulder_link"/>
-            <origin xyz="0 ${width} ${height1 - axel_offset}" rpy="0 0 0"/>
-            <axis xyz="0 1 0"/>
+            <origin xyz="0 0 ${base_height - axel_offset}" rpy="0 0 0"/>
+            <axis xyz="0 0 1"/>
             <dynamics damping="0.7"/>
             <limit effort="100" velocity="1.0"/>
         </joint>
@@ -56,37 +60,37 @@
         <!-- Middle Link -->
         <link name="${prefix}shoulder_link">
             <collision>
-                <origin xyz="0 0 ${height2/2 - axel_offset}" rpy="0 0 0"/>
+                <origin xyz="0 0 ${platter_height/2 + axel_offset}" rpy="0 0 0"/>
                 <geometry>
-                    <box size="${width} ${width} ${height2}"/>
+                    <cylinder radius="${platter_radius}" length="${platter_height}"/>
                 </geometry>
             </collision>
 
             <visual>
-                <origin xyz="0 0 ${height2/2 - axel_offset}" rpy="0 0 0"/>
+                <origin xyz="0 0 ${platter_height/2 + axel_offset}" rpy="0 0 0"/>
                 <geometry>
-                    <box size="${width} ${width} ${height2}"/>
+                    <cylinder radius="${platter_radius}" length="${platter_height}"/>
                 </geometry>
                 <material name="yellow"/>
             </visual>
 
             <inertial>
-                <origin xyz="0 0 ${height2/2 - axel_offset}" rpy="0 0 0"/>
+                <origin xyz="0 0 ${platter_height/2 - axel_offset}" rpy="0 0 0"/>
                 <mass value="${mass}"/>
                 <inertia
-                        ixx="${mass / 12.0 * (width*width + height2*height2)}" ixy="0.0" ixz="0.0"
-                        iyy="${mass / 12.0 * (height2*height2 + width*width)}" iyz="0.0"
-                        izz="${mass / 12.0 * (width*width + width*width)}"/>
+                        ixx="${mass / 12.0 * (3*platter_radius*platter_radius + platter_height*platter_height)}" ixy="0.0" ixz="0.0"
+                        iyy="${mass / 12.0 * (3*platter_radius*platter_radius + platter_height*platter_height)}" iyz="0.0"
+                        izz="${mass / 2.0 * platter_radius*platter_radius}"/>
             </inertial>
         </link>
 
-        <joint name="${prefix}base_pitch_joint" type="continuous">
+        <joint name="${prefix}base_pitch_joint" type="revolute">
             <parent link="${prefix}shoulder_link"/>
             <child link="${prefix}humerus_link"/>
-            <origin xyz="0 ${width} ${height2 - axel_offset*2}" rpy="0 0 0"/>
+            <origin xyz="0 0 ${platter_height + axel_offset*2}" rpy="0 0 0"/>
             <axis xyz="0 1 0"/>
             <dynamics damping="0.7"/>
-            <limit effort="100" velocity="1.0"/>
+            <limit lower="${-pi/2.0}" upper="${pi/2.0}" effort="100" velocity="1.0"/>
         </joint>
 
         <!-- Top Link -->
@@ -116,14 +120,13 @@
             </inertial>
         </link>
 
-        <joint name="${prefix}elbow_0_joint" type="continuous">
-            <origin xyz="0 0 1" rpy="0 0 0"/>
+        <joint name="${prefix}elbow_0_joint" type="revolute">
             <parent link="${prefix}humerus_link"/>
             <child link="${prefix}gripper_link"/>
-            <origin xyz="0 ${width} ${height3 - axel_offset*3}" rpy="0 0 0"/>
+            <origin xyz="0 0 ${height3}" rpy="0 0 0"/>
             <axis xyz="0 1 0"/>
             <dynamics damping="0.7"/>
-            <limit effort="100" velocity="1.0"/>
+            <limit lower="${-3*pi/4.0}" upper="${3*pi/4.0}" effort="100" velocity="1.0"/>
         </joint>
 
         <!-- Gripper Link -->
