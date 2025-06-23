@@ -8,6 +8,7 @@
         <hardware>
           <plugin>umrt-arm-ros-firmware/RoboticArmControlSystem</plugin>
           <param name="device">/dev/umrt-arm</param>
+          <param name="log_level">info</param>
           <param name="baud_rate">57600</param>
           <param name="controller_type">ARDUINO</param>
           <param name="motor_ids">0,1,2</param>
