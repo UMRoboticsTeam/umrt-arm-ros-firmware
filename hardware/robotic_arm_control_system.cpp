@@ -282,12 +282,12 @@ PLUGINLIB_EXPORT_CLASS(
  * @return level constant
  */
 rclcpp::Logger::Level parse_log_level(const std::string& level) {
-    if (level == "Debug") { return rclcpp::Logger::Level::Debug; }
-    if (level == "Info") { return rclcpp::Logger::Level::Info; }
-    if (level == "Warn") { return rclcpp::Logger::Level::Warn; }
-    if (level == "Error") { return rclcpp::Logger::Level::Error; }
-    if (level == "Fatal") { return rclcpp::Logger::Level::Fatal; }
-    if (level == "Unset") { return rclcpp::Logger::Level::Unset; }
+    if (level == "debug") { return rclcpp::Logger::Level::Debug; }
+    if (level == "info") { return rclcpp::Logger::Level::Info; }
+    if (level == "warn") { return rclcpp::Logger::Level::Warn; }
+    if (level == "error") { return rclcpp::Logger::Level::Error; }
+    if (level == "fatal") { return rclcpp::Logger::Level::Fatal; }
+    if (level == "unset") { return rclcpp::Logger::Level::Unset; }
     throw std::runtime_error("Invalid log level");
 }
 
