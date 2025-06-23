@@ -60,19 +60,6 @@ namespace umrt_arm_ros_firmware {
         cfg.baud_rate = std::stoi(info_.hardware_parameters["baud_rate"]);
         cfg.controller_type = Config::controller_type_from_string(info_.hardware_parameters["controller_type"]);
 
-        // Parse the comma-delimited motor IDs into a vector
-        std::string serialised_motor_ids = info_.hardware_parameters["motor_ids"];
-        RCLCPP_INFO(this->logger, "Parsing motor IDs from string: %s", serialised_motor_ids.c_str());
-        boost::tokenizer<boost::char_separator<char>> motor_id_tokens(serialised_motor_ids, boost::char_separator<char>(","));
-        std::transform(motor_id_tokens.begin(), motor_id_tokens.end(), std::back_inserter(cfg.motor_ids), &boost::lexical_cast<uint16_t, std::string>);
-
-        // Make sure we read an ID for each joint
-        if (cfg.motor_ids.size() != info_.joints.size()) {
-            RCLCPP_FATAL(this->logger, "The number of joints specified was different than the number of motor IDs provided. "
-                                       "Found %zu joints, read %zu motor IDs from string: %s",
-                         info_.joints.size(), cfg.motor_ids.size(), serialised_motor_ids.c_str());
-        }
-
         for (const hardware_interface::ComponentInfo& joint : info_.joints) {
             // DiffBotSystem has exactly two states and one command interface on each joint
             if (joint.command_interfaces.size() != 1) {
@@ -119,6 +106,26 @@ namespace umrt_arm_ros_firmware {
                 );
                 return hardware_interface::CallbackReturn::ERROR;
             }
+
+            uint16_t motor_id;
+            if (const auto x = info_.hardware_parameters.find("motor_id"); x == info_.hardware_parameters.end()) {
+                RCLCPP_FATAL(
+                        this->logger,
+                        "Joint '%s' does not have a motor ID specified", joint.name.c_str()
+                );
+                return hardware_interface::CallbackReturn::ERROR;
+            } else {
+                motor_id = std::stoi(x->second);
+            }
+
+            uint16_t reduction_factor;
+            if (const auto x = info_.hardware_parameters.find("reduction_factor"); x == info_.hardware_parameters.end()) {
+                reduction_factor = 1;
+            } else {
+                reduction_factor = std::stoi(x->second);
+            }
+
+            cfg.joint_infos.emplace_back(motor_id, reduction_factor);
         }
 
         for (const hardware_interface::ComponentInfo& gpio : info_.gpios) {
@@ -161,7 +168,6 @@ namespace umrt_arm_ros_firmware {
         }
 
         // Select the StepperAdapter implementation we want to use
-        // (For now the only implementation is ArduinoStepperAdapter)
         switch (cfg.controller_type) {
             case Config::ControllerType::ARDUINO:
                 steppers = std::make_unique<ArduinoStepperAdapter>(info_.joints.size(), std::chrono::milliseconds(100));

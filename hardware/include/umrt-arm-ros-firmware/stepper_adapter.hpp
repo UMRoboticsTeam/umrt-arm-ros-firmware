@@ -17,6 +17,24 @@
 class StepperAdapter {
 public:
     /**
+    * Collection of information about a joint necessary for decoding motor feedback.
+    */
+    static struct JointInfo {
+        /**
+        * ID of the motor controller for this joint.
+        */
+        uint16_t motor_id{};
+
+        /**
+        * Mechanical reduction factor between motor feedback position and joint position, defaults to 1.
+        * E.g. for a motor driving a joint through a 16:1 gearbox, the reduction factor should be 16.
+        */
+        uint16_t reduction_factor = 1;
+
+       JointInfo(const uint16_t motor_id, const uint16_t reduction_factor) : motor_id(motor_id), reduction_factor(reduction_factor) {}
+    };
+
+    /**
     * Creates a StepperAdapter.
     *
     * The number of joints available must be specified here in order to
