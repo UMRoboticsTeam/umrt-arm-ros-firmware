@@ -1,21 +1,31 @@
+#include <cmath>
+
 #include "umrt-arm-ros-firmware/mks_stepper_adapter.hpp"
-#include <boost/bimap.hpp>
 
 constexpr uint8_t NORM_FACTOR = 16;
+constexpr double STEPS_PER_REV = 200.0;
 
-MksStepperAdapter::MksStepperAdapter(const std::string& can_interface, const std::vector<uint16_t>& motor_ids, const std::chrono::duration<int64_t, std::milli>& query_period) : StepperAdapter(motor_ids.size()) {
+MksStepperAdapter::MksStepperAdapter(const std::string& can_interface, const std::vector<JointInfo>& joint_infos, const std::chrono::duration<int64_t, std::milli>& query_period) : StepperAdapter(motor_ids.size()) {
     // Preprocess motor IDs into bimap we can use to convert between joint index and motor, and an unordered_set
     //     that MksController can use for its packet address lookups
-    auto motor_ids_for_controller = std::make_unique<std::unordered_set<uint16_t>>(motor_ids.cbegin(), motor_ids.cend());
+
+    auto motor_ids_for_controller = std::make_unique<std::unordered_set<uint16_t>>(joint_infos.size());
     this->motor_ids = std::make_unique<boost::bimap<uint16_t, uint16_t>>();
-    for (size_t i = 0; i < motor_ids.size(); ++i) {
-        this->motor_ids->insert(boost::bimap<uint16_t, uint16_t>::value_type(i, motor_ids.at(i)));
+    this->reductions = std::make_unique<std::unordered_map<uint16_t, double>>();
+    for (size_t i = 0; i < joint_infos.size(); ++i) {
+        const JointInfo& j = joint_infos.at(i);
+        motor_ids_for_controller->insert(j.motor_id);
+        this->motor_ids->insert(boost::bimap<uint16_t, uint16_t>::value_type(i, j.motor_id));
     }
     controller = std::make_unique<MksStepperController>(can_interface, std::move(motor_ids_for_controller), NORM_FACTOR);
 
     // Register to receive callbacks for responses to getPosition and getSpeed
     // Note: These callbacks will occur in another thread, so they need to be processed carefully
-    this->controller->EGetPosition.connect([this](const uint16_t motor, const int32_t pos) -> void { this->updatePosition(this->motor_ids->right.at(motor), pos); });
+    this->controller->EGetPosition.connect([this](const uint16_t motor, const int32_t pos) -> void {
+        // [rad] = [steps] / [steps / rev] * [2 pi rad / rev]
+        // Also reduction factor
+        this->updatePosition(this->motor_ids->right.at(motor), pos / this->reductions->at(motor) / STEPS_PER_REV * 2 * M_PI);
+    });
 
     // Start the polling loops for message handling and joint state querying
     this->continue_polling = true;
