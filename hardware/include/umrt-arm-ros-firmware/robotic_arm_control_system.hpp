@@ -25,9 +25,7 @@
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
 #include "rclcpp/clock.hpp"
 #include "rclcpp/duration.hpp"
-#include "rclcpp/macros.hpp"
 #include "rclcpp/time.hpp"
-#include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
 #include "umrt-arm-ros-firmware/visibility_control.h"
@@ -37,8 +35,22 @@
 namespace umrt_arm_ros_firmware {
     class RoboticArmControlSystem : public hardware_interface::SystemInterface {
         struct Config {
-            std::string device = "";
+            enum class ControllerType {
+                INVALID,
+                ARDUINO,
+                MKS
+            };
+
+            std::string device;
             int baud_rate = 0;
+            ControllerType controller_type = ControllerType::INVALID;
+            std::vector<uint16_t> motor_ids{};
+
+            static ControllerType controller_type_from_string(const std::string& controller_type) {
+                if (controller_type == "ARDUINO") { return ControllerType::ARDUINO; }
+                if (controller_type == "MKS") { return ControllerType::MKS; }
+                throw std::invalid_argument((std::stringstream() << "Invalid controller type: " << controller_type).str());
+            }
         };
 
     public:

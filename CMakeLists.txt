@@ -29,13 +29,18 @@ install(
         DIRECTORY hardware/include/ros2_control_demo_description/prairie_pioneer/urdf hardware/include/ros2_control_demo_description/prairie_pioneer/rviz
         DESTINATION share/${PROJECT_NAME}/ros2_control_demo_description/prairie_pioneer
 )
+install(
+        DIRECTORY hardware/include/ros2_control_demo_description/project_perry/urdf hardware/include/ros2_control_demo_description/project_perry/rviz
+        DESTINATION share/${PROJECT_NAME}/ros2_control_demo_description/project_perry
+)
 
 add_library(
         umrt-arm-ros-firmware
         SHARED
         hardware/robotic_arm_control_system.cpp
         hardware/stepper_adapter.cpp
-        hardware/arduino_stepper_adapter.cpp)
+        hardware/arduino_stepper_adapter.cpp
+        hardware/mks_stepper_adapter.cpp)
 target_compile_features(umrt-arm-ros-firmware PUBLIC cxx_std_17)
 target_include_directories(umrt-arm-ros-firmware PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
