@@ -32,7 +32,8 @@
 #include <memory>
 #include <vector>
 
-constexpr boost::log::trivial::severity_level LOG_LEVEL = boost::log::trivial::debug;
+rclcpp::Logger::Level parse_log_level(const std::string& level);
+boost::log::trivial::severity_level ros_log_level_to_boost(const rclcpp::Logger::Level level);
 
 namespace umrt_arm_ros_firmware {
     hardware_interface::CallbackReturn RoboticArmControlSystem::on_init(
@@ -44,6 +45,16 @@ namespace umrt_arm_ros_firmware {
         ) {
             return hardware_interface::CallbackReturn::ERROR;
         }
+
+        // Set the log level to specified, or DEBUG if not
+        rclcpp::Logger::Level log_level;
+        if (const auto x = info_.hardware_parameters.find("log_level"); x == info_.hardware_parameters.end()) {
+            log_level = rclcpp::Logger::Level::Debug;
+        } else {
+            log_level = parse_log_level(x->second);
+        }
+        this->logger.set_level(log_level);
+        boost::log::core::get()->set_filter(boost::log::trivial::severity >= ros_log_level_to_boost(log_level));
 
         cfg.device = info_.hardware_parameters["device"];
         cfg.baud_rate = std::stoi(info_.hardware_parameters["baud_rate"]);
@@ -58,7 +69,7 @@ namespace umrt_arm_ros_firmware {
         // Make sure we read an ID for each joint
         if (cfg.motor_ids.size() != info_.joints.size()) {
             RCLCPP_FATAL(this->logger, "The number of joints specified was different than the number of motor IDs provided. "
-                                                                        "Found %zu joints, read %zu motor IDs from string: %s",
+                                       "Found %zu joints, read %zu motor IDs from string: %s",
                          info_.joints.size(), cfg.motor_ids.size(), serialised_motor_ids.c_str());
         }
 
@@ -148,11 +159,6 @@ namespace umrt_arm_ros_firmware {
                 return hardware_interface::CallbackReturn::ERROR;
             }
         }
-
-
-        // Set the library's log level
-        // TODO: Might be nice to use a ROS parameter for this (or somehow tie it to the ROS log level)
-        boost::log::core::get()->set_filter(boost::log::trivial::severity >= LOG_LEVEL);
 
         // Select the StepperAdapter implementation we want to use
         // (For now the only implementation is ArduinoStepperAdapter)
@@ -260,3 +266,41 @@ namespace umrt_arm_ros_firmware {
 PLUGINLIB_EXPORT_CLASS(
         umrt_arm_ros_firmware::RoboticArmControlSystem, hardware_interface::SystemInterface
 )
+
+/**
+ * Converts a log level string to the associated constant.
+ * One would think this would be part of rclutils, but I couldn't find it.
+ *
+ * @throws std::runtime_error if an invalid log level is provided
+ * @param level level string
+ * @return level constant
+ */
+rclcpp::Logger::Level parse_log_level(const std::string& level) {
+    if (level == "Debug") { return rclcpp::Logger::Level::Debug; }
+    if (level == "Info") { return rclcpp::Logger::Level::Info; }
+    if (level == "Warn") { return rclcpp::Logger::Level::Warn; }
+    if (level == "Error") { return rclcpp::Logger::Level::Error; }
+    if (level == "Fatal") { return rclcpp::Logger::Level::Fatal; }
+    if (level == "Unset") { return rclcpp::Logger::Level::Unset; }
+    throw std::runtime_error("Invalid log level");
+}
+
+/**
+ * Converts the provided ROS2 log level to the corresponding Boost log level.
+ * Since ROS2 does not support have a log level equivalent to `trace`, it is not available here.
+ *
+ * @throws std::runtime_error if an invalid log level or Unset is provided
+ * @param level ROS2 log level
+ * @return Boost log level
+ */
+boost::log::trivial::severity_level ros_log_level_to_boost(const rclcpp::Logger::Level level) {
+    switch (level) {
+        case rclcpp::Logger::Level::Debug: return boost::log::trivial::severity_level::debug;
+        case rclcpp::Logger::Level::Info: return boost::log::trivial::severity_level::info;
+        case rclcpp::Logger::Level::Warn: return boost::log::trivial::severity_level::warning;
+        case rclcpp::Logger::Level::Error: return boost::log::trivial::severity_level::error;
+        case rclcpp::Logger::Level::Fatal: return boost::log::trivial::severity_level::fatal;
+        case rclcpp::Logger::Level::Unset:
+        default: throw std::runtime_error("Invalid log level");
+    }
+}
