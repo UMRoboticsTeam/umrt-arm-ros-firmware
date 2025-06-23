@@ -25,12 +25,12 @@ public:
     * The number of joints is inferred from the number of motor IDs provided.
     *
     * @param can_interface SocketCAN network interface corresponding to the CAN bus
-    * @param motor_ids CAN IDs for the motor controller
+    * @param joint_infos info needed to process joint feedback, requires motor_id and reduction_factor
     * @param query_period the time to wait between controller queries for position, velocity, etc.
     */
     MksStepperAdapter(
             const std::string& can_interface,
-            const std::vector<uint16_t>& motor_ids,
+            const std::vector<JointInfo>& joint_infos,
             const std::chrono::duration<int64_t, std::milli>& query_period
     );
 
@@ -74,6 +74,11 @@ protected:
      * Maps joint index to motor CAN IDs.
      */
     std::unique_ptr<boost::bimap<uint16_t, uint16_t>> motor_ids;
+
+    /**
+    * Maps joint index to reduction ratio factor.
+    */
+    std::unique_ptr<std::unordered_map<uint16_t, double>> reductions;
 
     /**
      * Method to indefinitely poll @ref controller for responses
