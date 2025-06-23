@@ -5,7 +5,7 @@
 constexpr uint8_t NORM_FACTOR = 16;
 constexpr double STEPS_PER_REV = 200.0;
 
-MksStepperAdapter::MksStepperAdapter(const std::string& can_interface, const std::vector<JointInfo>& joint_infos, const std::chrono::duration<int64_t, std::milli>& query_period) : StepperAdapter(motor_ids.size()) {
+MksStepperAdapter::MksStepperAdapter(const std::string& can_interface, const std::vector<JointInfo>& joint_infos, const std::chrono::duration<int64_t, std::milli>& query_period) : StepperAdapter(joint_infos.size()) {
     // Preprocess motor IDs into bimap we can use to convert between joint index and motor, and an unordered_set
     //     that MksController can use for its packet address lookups
 
