@@ -134,12 +134,12 @@ protected:
     /**
      * Updates the provided joint's value in @ref positions_buffer in a thread-safe manner.
      */
-    void updatePosition(const uint8_t joint, const int32_t position);
+    void updatePosition(const uint8_t joint, const double position);
 
     /**
      * Updates the provided joint's value in @ref velocities_buffer in a thread-safe manner.
      */
-    void updateVelocity(const uint8_t joint, const int16_t speed);
+    void updateVelocity(const uint8_t joint, const double speed);
 };
 
 #endif // UMRT_ARM_ROS_FIRMWARE_STEPPER_ADAPTER_HPP

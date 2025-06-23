@@ -51,7 +51,7 @@ double& StepperAdapter::getGripperPositionCommandRef() {
 }
 
 // Reminder: This is eligible to happen in another thread
-void StepperAdapter::updatePosition(const uint8_t joint, const int32_t position) {
+void StepperAdapter::updatePosition(const uint8_t joint, const double position) {
     // Acquire the lock for positions_buffer and write the new value
     {
         std::scoped_lock lock(this->positions_buffer_mx);
@@ -60,7 +60,7 @@ void StepperAdapter::updatePosition(const uint8_t joint, const int32_t position)
 }
 
 // Reminder: This is eligible to happen in another thread
-void StepperAdapter::updateVelocity(const uint8_t joint, const int16_t speed) {
+void StepperAdapter::updateVelocity(const uint8_t joint, const double speed) {
     // Acquire the lock for velocities_buffer and write the new value
     {
         std::scoped_lock lock(this->velocities_buffer_mx);
