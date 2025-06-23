@@ -19,7 +19,7 @@ public:
     /**
     * Collection of information about a joint necessary for decoding motor feedback.
     */
-    static struct JointInfo {
+    struct JointInfo {
         /**
         * ID of the motor controller for this joint.
         */
