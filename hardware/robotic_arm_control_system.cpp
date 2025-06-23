@@ -51,13 +51,13 @@ namespace umrt_arm_ros_firmware {
 
         // Parse the comma-delimited motor IDs into a vector
         std::string serialised_motor_ids = info_.hardware_parameters["motor_ids"];
-        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Parsing motor IDs from string: %s", serialised_motor_ids.c_str());
+        RCLCPP_INFO(this->logger, "Parsing motor IDs from string: %s", serialised_motor_ids.c_str());
         boost::tokenizer<boost::char_separator<char>> motor_id_tokens(serialised_motor_ids, boost::char_separator<char>(","));
         std::transform(motor_id_tokens.begin(), motor_id_tokens.end(), std::back_inserter(cfg.motor_ids), &boost::lexical_cast<uint16_t, std::string>);
 
         // Make sure we read an ID for each joint
         if (cfg.motor_ids.size() != info_.joints.size()) {
-            RCLCPP_FATAL(rclcpp::get_logger("RoboticArmControlSystem"), "The number of joints specified was different than the number of motor IDs provided. "
+            RCLCPP_FATAL(this->logger, "The number of joints specified was different than the number of motor IDs provided. "
                                                                         "Found %zu joints, read %zu motor IDs from string: %s",
                          info_.joints.size(), cfg.motor_ids.size(), serialised_motor_ids.c_str());
         }
@@ -66,7 +66,7 @@ namespace umrt_arm_ros_firmware {
             // DiffBotSystem has exactly two states and one command interface on each joint
             if (joint.command_interfaces.size() != 1) {
                 RCLCPP_FATAL(
-                        rclcpp::get_logger("RoboticArmControlSystem"),
+                        this->logger,
                         "Joint '%s' has %zu command interfaces found. 1 expected.", joint.name.c_str(),
                         joint.command_interfaces.size()
                 );
@@ -75,7 +75,7 @@ namespace umrt_arm_ros_firmware {
 
             if (joint.command_interfaces[0].name != hardware_interface::HW_IF_VELOCITY) {
                 RCLCPP_FATAL(
-                        rclcpp::get_logger("RoboticArmControlSystem"),
+                        this->logger,
                         "Joint '%s' have %s command interfaces found. '%s' expected.", joint.name.c_str(),
                         joint.command_interfaces[0].name.c_str(), hardware_interface::HW_IF_VELOCITY
                 );
@@ -84,7 +84,7 @@ namespace umrt_arm_ros_firmware {
 
             if (joint.state_interfaces.size() != 2) {
                 RCLCPP_FATAL(
-                        rclcpp::get_logger("RoboticArmControlSystem"),
+                        this->logger,
                         "Joint '%s' has %zu state interface. 2 expected.", joint.name.c_str(),
                         joint.state_interfaces.size()
                 );
@@ -93,7 +93,7 @@ namespace umrt_arm_ros_firmware {
 
             if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
                 RCLCPP_FATAL(
-                        rclcpp::get_logger("RoboticArmControlSystem"),
+                        this->logger,
                         "Joint '%s' have '%s' as first state interface. '%s' expected.", joint.name.c_str(),
                         joint.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION
                 );
@@ -102,7 +102,7 @@ namespace umrt_arm_ros_firmware {
 
             if (joint.state_interfaces[1].name != hardware_interface::HW_IF_VELOCITY) {
                 RCLCPP_FATAL(
-                        rclcpp::get_logger("RoboticArmControlSystem"),
+                        this->logger,
                         "Joint '%s' have '%s' as second state interface. '%s' expected.", joint.name.c_str(),
                         joint.state_interfaces[1].name.c_str(), hardware_interface::HW_IF_VELOCITY
                 );
@@ -114,7 +114,7 @@ namespace umrt_arm_ros_firmware {
             // Gripper has exactly one states and one command interface
             if (gpio.command_interfaces.size() != 1) {
                 RCLCPP_FATAL(
-                        rclcpp::get_logger("RoboticArmControlSystem"),
+                        this->logger,
                         "GPIO '%s' has %zu command interfaces found. 1 expected.", gpio.name.c_str(),
                         gpio.command_interfaces.size()
                 );
@@ -123,7 +123,7 @@ namespace umrt_arm_ros_firmware {
 
             if (gpio.command_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
                 RCLCPP_FATAL(
-                        rclcpp::get_logger("RoboticArmControlSystem"),
+                        this->logger,
                         "GPIO '%s' have %s command interfaces found. '%s' expected.", gpio.name.c_str(),
                         gpio.command_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION
                 );
@@ -132,7 +132,7 @@ namespace umrt_arm_ros_firmware {
 
             if (gpio.state_interfaces.size() != 1) {
                 RCLCPP_FATAL(
-                        rclcpp::get_logger("RoboticArmControlSystem"),
+                        this->logger,
                         "GPIO '%s' has %zu state interface. 2 expected.", gpio.name.c_str(),
                         gpio.state_interfaces.size()
                 );
@@ -141,7 +141,7 @@ namespace umrt_arm_ros_firmware {
 
             if (gpio.state_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
                 RCLCPP_FATAL(
-                        rclcpp::get_logger("RoboticArmControlSystem"),
+                        this->logger,
                         "GPIO '%s' have '%s' as first state interface. '%s' expected.", gpio.name.c_str(),
                         gpio.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION
                 );
@@ -195,11 +195,11 @@ namespace umrt_arm_ros_firmware {
     hardware_interface::CallbackReturn RoboticArmControlSystem::on_configure(
             const rclcpp_lifecycle::State& /*previous_state*/
     ) {
-        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Configuring ...please wait...");
+        RCLCPP_INFO(this->logger, "Configuring ...please wait...");
 
         steppers->connect(cfg.device, cfg.baud_rate);
 
-        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Successfully configured!");
+        RCLCPP_INFO(this->logger, "Successfully configured!");
 
         return hardware_interface::CallbackReturn::SUCCESS;
     }
@@ -207,11 +207,11 @@ namespace umrt_arm_ros_firmware {
     hardware_interface::CallbackReturn RoboticArmControlSystem::on_cleanup(
             const rclcpp_lifecycle::State& /*previous_state*/
     ) {
-        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Cleaning up ...please wait...");
+        RCLCPP_INFO(this->logger, "Cleaning up ...please wait...");
 
         steppers->disconnect();
 
-        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Successfully cleaned up!");
+        RCLCPP_INFO(this->logger, "Successfully cleaned up!");
 
         return hardware_interface::CallbackReturn::SUCCESS;
     }
@@ -219,9 +219,9 @@ namespace umrt_arm_ros_firmware {
     hardware_interface::CallbackReturn RoboticArmControlSystem::on_activate(
             const rclcpp_lifecycle::State& /*previous_state*/
     ) {
-        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Activating ...please wait...");
+        RCLCPP_INFO(this->logger, "Activating ...please wait...");
 
-        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Successfully activated!");
+        RCLCPP_INFO(this->logger, "Successfully activated!");
 
         return hardware_interface::CallbackReturn::SUCCESS;
     }
@@ -229,9 +229,9 @@ namespace umrt_arm_ros_firmware {
     hardware_interface::CallbackReturn RoboticArmControlSystem::on_deactivate(
             const rclcpp_lifecycle::State& /*previous_state*/
     ) {
-        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Deactivating ...please wait...");
+        RCLCPP_INFO(this->logger, "Deactivating ...please wait...");
 
-        RCLCPP_INFO(rclcpp::get_logger("RoboticArmControlSystem"), "Successfully deactivated!");
+        RCLCPP_INFO(this->logger, "Successfully deactivated!");
 
         return hardware_interface::CallbackReturn::SUCCESS;
     }

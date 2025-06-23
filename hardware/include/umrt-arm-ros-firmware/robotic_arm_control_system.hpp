@@ -99,6 +99,7 @@ namespace umrt_arm_ros_firmware {
 
     private:
         std::unique_ptr<StepperAdapter> steppers;
+        rclcpp::Logger logger = rclcpp::get_logger("RoboticArmControlSystem");
         Config cfg;
     };
 
