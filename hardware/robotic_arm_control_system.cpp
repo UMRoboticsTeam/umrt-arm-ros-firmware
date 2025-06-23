@@ -108,7 +108,7 @@ namespace umrt_arm_ros_firmware {
             }
 
             uint16_t motor_id;
-            if (const auto x = info_.hardware_parameters.find("motor_id"); x == info_.hardware_parameters.end()) {
+            if (const auto x = joint.parameters.find("motor_id"); x == joint.parameters.end()) {
                 RCLCPP_FATAL(
                         this->logger,
                         "Joint '%s' does not have a motor ID specified", joint.name.c_str()
@@ -119,7 +119,7 @@ namespace umrt_arm_ros_firmware {
             }
 
             uint16_t reduction_factor;
-            if (const auto x = info_.hardware_parameters.find("reduction_factor"); x == info_.hardware_parameters.end()) {
+            if (const auto x = joint.parameters.find("reduction_factor"); x == joint.parameters.end()) {
                 reduction_factor = 1;
             } else {
                 reduction_factor = std::stoi(x->second);
