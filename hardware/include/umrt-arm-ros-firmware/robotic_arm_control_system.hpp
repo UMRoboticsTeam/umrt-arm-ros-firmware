@@ -44,7 +44,7 @@ namespace umrt_arm_ros_firmware {
             std::string device;
             int baud_rate = 0;
             ControllerType controller_type = ControllerType::INVALID;
-            std::vector<uint16_t> motor_ids{};
+            std::vector<StepperAdapter::JointInfo> joint_infos{};
 
             static ControllerType controller_type_from_string(const std::string& controller_type) {
                 if (controller_type == "ARDUINO") { return ControllerType::ARDUINO; }

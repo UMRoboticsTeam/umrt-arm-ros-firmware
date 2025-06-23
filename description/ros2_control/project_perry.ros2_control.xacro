@@ -11,7 +11,6 @@
           <param name="log_level">info</param>
           <param name="baud_rate">500000</param>
           <param name="controller_type">MKS</param>
-          <param name="motor_ids">1,2,3</param>
         </hardware>
       </xacro:unless>
       <xacro:if value="${use_mock_hardware}">
@@ -24,16 +23,22 @@
         <command_interface name="velocity"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
+        <param name="motor_id">1</param>
+        <param name="reduction_factor">13</param>
       </joint>
       <joint name="${prefix}base_pitch_joint">
         <command_interface name="velocity"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
+        <param name="motor_id">2</param>
+        <param name="reduction_factor">252</param>
       </joint>
       <joint name="${prefix}elbow_0_joint">
         <command_interface name="velocity"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
+        <param name="motor_id">3</param>
+        <param name="reduction_factor">252</param>
       </joint>
       <gpio name="${prefix}gripper">
         <command_interface name="position"/>
