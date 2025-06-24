@@ -43,6 +43,7 @@
       <gpio name="${prefix}gripper">
         <command_interface name="position"/>
         <state_interface name="position"/>
+        <state_interface name="velocity"/>
       </gpio>
     </ros2_control>
 

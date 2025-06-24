@@ -98,6 +98,14 @@ public:
     double& getGripperPositionRef();
 
     /**
+    * Exposes the velocity register for the gripper. Refreshed by
+    * @ref readValues.
+    *
+    * @return a reference to the gripper's current velocity
+    */
+    double& getGripperVelocityRef();
+
+    /**
      * Exposes the velocity command register for the specified joint. Pushed by
      * @ref setValues.
      *
@@ -125,6 +133,7 @@ protected:
     std::vector<double> positions;
     std::vector<double> velocities;
     double gripper_position;
+    double gripper_velocity;
     double cmd_gripper_pos;
 
     /**

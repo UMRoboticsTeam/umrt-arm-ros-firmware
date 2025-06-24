@@ -129,7 +129,7 @@ namespace umrt_arm_ros_firmware {
         }
 
         for (const hardware_interface::ComponentInfo& gpio : info_.gpios) {
-            // Gripper has exactly one states and one command interface
+            // Gripper has exactly two states and one command interface
             if (gpio.command_interfaces.size() != 1) {
                 RCLCPP_FATAL(
                         this->logger,
@@ -148,7 +148,7 @@ namespace umrt_arm_ros_firmware {
                 return hardware_interface::CallbackReturn::ERROR;
             }
 
-            if (gpio.state_interfaces.size() != 1) {
+            if (gpio.state_interfaces.size() != 2) {
                 RCLCPP_FATAL(
                         this->logger,
                         "GPIO '%s' has %zu state interface. 2 expected.", gpio.name.c_str(),
@@ -165,9 +165,19 @@ namespace umrt_arm_ros_firmware {
                 );
                 return hardware_interface::CallbackReturn::ERROR;
             }
+
+            if (gpio.state_interfaces[1].name != hardware_interface::HW_IF_VELOCITY) {
+                RCLCPP_FATAL(
+                        this->logger,
+                        "GPIO '%s' have '%s' as second state interface. '%s' expected.", gpio.name.c_str(),
+                        gpio.state_interfaces[1].name.c_str(), hardware_interface::HW_IF_VELOCITY
+                );
+                return hardware_interface::CallbackReturn::ERROR;
+            }
         }
 
         // Select the StepperAdapter implementation we want to use
+        RCLCPP_INFO(this->logger, "Creating %s adapter with %zu joints", info_.hardware_parameters["controller_type"].c_str(), cfg.joint_infos.size());
         switch (cfg.controller_type) {
             case Config::ControllerType::ARDUINO:
                 steppers = std::make_unique<ArduinoStepperAdapter>(info_.joints.size(), std::chrono::milliseconds(100));
@@ -189,6 +199,7 @@ namespace umrt_arm_ros_firmware {
         }
 
         state_interfaces.emplace_back(info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionRef());
+        state_interfaces.emplace_back(info_.gpios[0].name, hardware_interface::HW_IF_VELOCITY, &steppers->getGripperVelocityRef());
 
         return state_interfaces;
     }

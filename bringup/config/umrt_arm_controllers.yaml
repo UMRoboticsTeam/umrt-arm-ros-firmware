@@ -6,10 +6,10 @@ controller_manager:
       type: joint_state_broadcaster/JointStateBroadcaster
 
     arm_base_controller:
-      type: velocity_controllers/JointGroupVelocityController
+      type: joint_trajectory_controller/JointTrajectoryController
 
     gripper_controller:
-      type: position_controllers/JointGroupPositionController
+      type: position_controllers/GripperActionController
 
 arm_base_controller:
   ros__parameters:
@@ -17,6 +17,13 @@ arm_base_controller:
       - base_yaw_joint
       - base_pitch_joint
       - elbow_0_joint
+
+    command_interfaces:
+      - velocity
+
+    state_interfaces:
+      - position
+      - velocity
     
 gains:
   ros__parameters:
@@ -26,5 +33,4 @@ gains:
 
 gripper_controller:
   ros__parameters:
-    joints:
-      - gripper
+    joint: 'gripper'

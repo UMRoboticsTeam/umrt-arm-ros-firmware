@@ -10,6 +10,7 @@ StepperAdapter::StepperAdapter(const std::size_t NUM_JOINTS) {
     this->velocities_buffer.resize(NUM_JOINTS);
     this->cmd_gripper_pos = 0;
     this->gripper_position = 0;
+    this->gripper_velocity = 0;
 }
 
 StepperAdapter::~StepperAdapter() = default;
@@ -42,6 +43,10 @@ double& StepperAdapter::getGripperPositionRef() {
     return this->gripper_position;
 }
 
+double& StepperAdapter::getGripperVelocityRef() {
+    return this->gripper_velocity;
+}
+
 double& StepperAdapter::getCommandRef(const std::size_t index) {
     return this->commands[index];
 }
@@ -54,6 +59,7 @@ double& StepperAdapter::getGripperPositionCommandRef() {
 void StepperAdapter::updatePosition(const uint8_t joint, const double position) {
     // Acquire the lock for positions_buffer and write the new value
     {
+        RCLCPP_DEBUG(rclcpp::get_logger("MEEEEE"), "updatePosition: %ud, %f", joint, position);
         std::scoped_lock lock(this->positions_buffer_mx);
         this->positions_buffer[joint] = position;
     }
