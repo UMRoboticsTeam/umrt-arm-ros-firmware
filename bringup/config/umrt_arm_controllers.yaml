@@ -18,6 +18,42 @@ arm_base_controller:
       - base_pitch_joint
       - elbow_0_joint
 
+    action_monitor_rate: 20.0
+    allow_integration_in_goal_trajectories: true
+    allow_nonzero_velocity_at_trajectory_end: true
+    allow_partial_joints_goal: false
+    cmd_timeout: 0.0
+    open_loop_control: true
+
+    constraints:
+      base_yaw_joint:
+        goal: 0.0
+        trajectory: 0.0
+      base_pitch_joint:
+        goal: 0.0
+        trajectory: 0.0
+      elbow_0_joint:
+        goal: 0.0
+        trajectory: 0.0
+      goal_time: 0.0
+      stopped_velocity_tolerance: 0.01
+    gains:
+      base_yaw_joint:
+        p: 10000.0
+        i: 1.0
+        d: 1000.0
+      base_pitch_joint:
+        p: 10000.0
+        i: 1.0
+        d: 1000.0
+      elbow_0_joint:
+        p: 10000.0
+        i: 1.0
+        d: 1000.0
+    interpolate_from_desired_state: true
+    interpolation_method: splines
+    set_last_command_interface_value_as_state_on_activation: true
+
     command_interfaces:
       - velocity
 

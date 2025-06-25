@@ -48,6 +48,7 @@ void MksStepperAdapter::disconnect() {}
 
 void MksStepperAdapter::setValues() {
     for (auto i = 0u; i < commands.size(); ++i) {
+        if (i == 0) { RCLCPP_WARN(rclcpp::get_logger("MEEEE"), "set %f", commands.at(i)); }
         // Note that the MksStepperController speed is in units of RPM (since we're using interpolated normalisation)
         this->controller->setSpeed(motor_ids->left.at(i), static_cast<int16_t>(std::round(this->commands.at(i))));
     }
