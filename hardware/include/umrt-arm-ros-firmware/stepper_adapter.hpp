@@ -31,7 +31,7 @@ public:
         */
         uint16_t reduction_factor = 1;
 
-       JointInfo(const uint16_t motor_id, const uint16_t reduction_factor) : motor_id(motor_id), reduction_factor(reduction_factor) {}
+        JointInfo(const uint16_t motor_id, const uint16_t reduction_factor) : motor_id(motor_id), reduction_factor(reduction_factor) {}
     };
 
     /**
@@ -72,22 +72,22 @@ public:
     virtual void readValues();
 
     /**
-     * Exposes the position register for the specified joint. Refreshed by
-     * @ref readValues.
-     *
-     * @param index index of the joint to access
-     * @return a reference to the joint's current position
-     */
-    double& getPositionRef(std::size_t index);
+    * Exposes the position register for the specified joint. Refreshed by
+    * @ref readValues.
+    *
+    * @param index index of the joint to access
+    * @return a reference to the joint's current velocity
+    */
+    double& getStateVelocityRef(std::size_t index);
 
     /**
      * Exposes the position register for the specified joint. Refreshed by
      * @ref readValues.
      *
      * @param index index of the joint to access
-     * @return a reference to the joint's current velocity
+     * @return a reference to the joint's current position
      */
-    double& getVelocityRef(std::size_t index);
+    double& getStatePositionRef(std::size_t index);
 
     /**
      * Exposes the position register for the gripper. Refreshed by
@@ -104,7 +104,16 @@ public:
      * @param index index of the joint to access
      * @return a reference to the joint's requested velocity
      */
-    double& getCommandRef(std::size_t index);
+    double& getCommandVelocityRef(std::size_t index);
+
+    /**
+     * Exposes the position command register for the specified joint. Pushed by
+     * @ref setValues.
+     *
+     * @param index index of the joint to access
+     * @return a reference to the joint's requested position
+     */
+    double& getCommandPositionRef(std::size_t index);
 
     /**
      * Exposes the position command register for the gripper. Pushed by
@@ -114,6 +123,11 @@ public:
      */
     double& getGripperPositionCommandRef();
 
+    /**
+     * The number of joints belonging to this StepperAdapter.
+     */
+    const std::size_t NUM_JOINTS;
+
 protected:
     // It is very important that the size of these vectors is not changed after init has been called, since we need
     // element pointer stability. Unfortunately, we also need element mutability so const vectors can't be used. As
@@ -121,7 +135,8 @@ protected:
     // required, so std::lists are not a good option either.
     // Note that while it may seem a little silly to expose references to the vector elements, but hide the vectors
     // themselves, this is an important way to prevent the invalidation of references by changing the vectors' sizes
-    std::vector<double> commands;
+    std::vector<double> velocity_commands;
+    std::vector<double> position_commands;
     std::vector<double> positions;
     std::vector<double> velocities;
     double gripper_position;
