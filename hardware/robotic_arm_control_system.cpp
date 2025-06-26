@@ -20,10 +20,8 @@
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 #include <rclcpp/rclcpp.hpp>
 
-#include <boost/lexical_cast.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
-#include <boost/tokenizer.hpp>
 
 #include <chrono>
 #include <cmath>
@@ -34,15 +32,12 @@
 
 rclcpp::Logger::Level parse_log_level(const std::string& level);
 boost::log::trivial::severity_level ros_log_level_to_boost(const rclcpp::Logger::Level level);
+hardware_interface::CallbackReturn validate_joint(const hardware_interface::ComponentInfo& joint, rclcpp::Logger& logger, bool position_commandable);
+hardware_interface::CallbackReturn validate_gpio(const hardware_interface::ComponentInfo& gpio, rclcpp::Logger& logger);
 
 namespace umrt_arm_ros_firmware {
-    hardware_interface::CallbackReturn RoboticArmControlSystem::on_init(
-            const hardware_interface::HardwareInfo& info
-    ) {
-        if (
-                SystemInterface::on_init(info) !=
-                hardware_interface::CallbackReturn::SUCCESS
-        ) {
+    hardware_interface::CallbackReturn RoboticArmControlSystem::on_init(const hardware_interface::HardwareInfo& info) {
+        if (SystemInterface::on_init(info) != hardware_interface::CallbackReturn::SUCCESS) {
             return hardware_interface::CallbackReturn::ERROR;
         }
 
@@ -59,53 +54,11 @@ namespace umrt_arm_ros_firmware {
         cfg.device = info_.hardware_parameters["device"];
         cfg.baud_rate = std::stoi(info_.hardware_parameters["baud_rate"]);
         cfg.controller_type = Config::controller_type_from_string(info_.hardware_parameters["controller_type"]);
+        cfg.position_commandable = info_.hardware_parameters["position_commandable"] == "true";
+        // TODO: Make position_commandable a "command mode" enum, would be much more user friendly/clear
 
         for (const hardware_interface::ComponentInfo& joint : info_.joints) {
-            // DiffBotSystem has exactly two states and one command interface on each joint
-            if (joint.command_interfaces.size() != 1) {
-                RCLCPP_FATAL(
-                        this->logger,
-                        "Joint '%s' has %zu command interfaces found. 1 expected.", joint.name.c_str(),
-                        joint.command_interfaces.size()
-                );
-                return hardware_interface::CallbackReturn::ERROR;
-            }
-
-            if (joint.command_interfaces[0].name != hardware_interface::HW_IF_VELOCITY) {
-                RCLCPP_FATAL(
-                        this->logger,
-                        "Joint '%s' have %s command interfaces found. '%s' expected.", joint.name.c_str(),
-                        joint.command_interfaces[0].name.c_str(), hardware_interface::HW_IF_VELOCITY
-                );
-                return hardware_interface::CallbackReturn::ERROR;
-            }
-
-            if (joint.state_interfaces.size() != 2) {
-                RCLCPP_FATAL(
-                        this->logger,
-                        "Joint '%s' has %zu state interface. 2 expected.", joint.name.c_str(),
-                        joint.state_interfaces.size()
-                );
-                return hardware_interface::CallbackReturn::ERROR;
-            }
-
-            if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
-                RCLCPP_FATAL(
-                        this->logger,
-                        "Joint '%s' have '%s' as first state interface. '%s' expected.", joint.name.c_str(),
-                        joint.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION
-                );
-                return hardware_interface::CallbackReturn::ERROR;
-            }
-
-            if (joint.state_interfaces[1].name != hardware_interface::HW_IF_VELOCITY) {
-                RCLCPP_FATAL(
-                        this->logger,
-                        "Joint '%s' have '%s' as second state interface. '%s' expected.", joint.name.c_str(),
-                        joint.state_interfaces[1].name.c_str(), hardware_interface::HW_IF_VELOCITY
-                );
-                return hardware_interface::CallbackReturn::ERROR;
-            }
+            validate_joint(joint, this->logger, cfg.position_commandable);
 
             uint16_t motor_id;
             if (const auto x = joint.parameters.find("motor_id"); x == joint.parameters.end()) {
@@ -129,61 +82,17 @@ namespace umrt_arm_ros_firmware {
         }
 
         for (const hardware_interface::ComponentInfo& gpio : info_.gpios) {
-            // Gripper has exactly two states and one command interface
-            if (gpio.command_interfaces.size() != 1) {
-                RCLCPP_FATAL(
-                        this->logger,
-                        "GPIO '%s' has %zu command interfaces found. 1 expected.", gpio.name.c_str(),
-                        gpio.command_interfaces.size()
-                );
-                return hardware_interface::CallbackReturn::ERROR;
-            }
-
-            if (gpio.command_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
-                RCLCPP_FATAL(
-                        this->logger,
-                        "GPIO '%s' have %s command interfaces found. '%s' expected.", gpio.name.c_str(),
-                        gpio.command_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION
-                );
-                return hardware_interface::CallbackReturn::ERROR;
-            }
-
-            if (gpio.state_interfaces.size() != 2) {
-                RCLCPP_FATAL(
-                        this->logger,
-                        "GPIO '%s' has %zu state interface. 2 expected.", gpio.name.c_str(),
-                        gpio.state_interfaces.size()
-                );
-                return hardware_interface::CallbackReturn::ERROR;
-            }
-
-            if (gpio.state_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
-                RCLCPP_FATAL(
-                        this->logger,
-                        "GPIO '%s' have '%s' as first state interface. '%s' expected.", gpio.name.c_str(),
-                        gpio.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION
-                );
-                return hardware_interface::CallbackReturn::ERROR;
-            }
-
-            if (gpio.state_interfaces[1].name != hardware_interface::HW_IF_VELOCITY) {
-                RCLCPP_FATAL(
-                        this->logger,
-                        "GPIO '%s' have '%s' as second state interface. '%s' expected.", gpio.name.c_str(),
-                        gpio.state_interfaces[1].name.c_str(), hardware_interface::HW_IF_VELOCITY
-                );
-                return hardware_interface::CallbackReturn::ERROR;
-            }
+            validate_gpio(gpio, this->logger);
         }
 
         // Select the StepperAdapter implementation we want to use
-        RCLCPP_INFO(this->logger, "Creating %s adapter with %zu joints", info_.hardware_parameters["controller_type"].c_str(), cfg.joint_infos.size());
         switch (cfg.controller_type) {
             case Config::ControllerType::ARDUINO:
+                if (cfg.position_commandable) { throw std::invalid_argument("ArduinoStepperAdapter cannot be used with position_commandable"); }
                 steppers = std::make_unique<ArduinoStepperAdapter>(info_.joints.size(), std::chrono::milliseconds(100));
                 break;
             case Config::ControllerType::MKS:
-                steppers = std::make_unique<MksStepperAdapter>(cfg.device, cfg.joint_infos, std::chrono::milliseconds(100));
+                steppers = std::make_unique<MksStepperAdapter>(cfg.device, cfg.joint_infos, cfg.position_commandable, std::chrono::milliseconds(100));
                 break;
             default: throw std::invalid_argument("Unknown controller type");
         }
@@ -194,12 +103,11 @@ namespace umrt_arm_ros_firmware {
     std::vector<hardware_interface::StateInterface> RoboticArmControlSystem::export_state_interfaces() {
         std::vector<hardware_interface::StateInterface> state_interfaces;
         for (auto i = 0u; i < info_.joints.size(); i++) {
-            state_interfaces.emplace_back(info_.joints[i].name, hardware_interface::HW_IF_POSITION, &steppers->getPositionRef(i));
-            state_interfaces.emplace_back(info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getVelocityRef(i));
+            state_interfaces.emplace_back(info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getStateVelocityRef(i));
+            state_interfaces.emplace_back(info_.joints[i].name, hardware_interface::HW_IF_POSITION, &steppers->getStatePositionRef(i));
         }
 
         state_interfaces.emplace_back(info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionRef());
-        state_interfaces.emplace_back(info_.gpios[0].name, hardware_interface::HW_IF_VELOCITY, &steppers->getGripperVelocityRef());
 
         return state_interfaces;
     }
@@ -207,7 +115,8 @@ namespace umrt_arm_ros_firmware {
     std::vector<hardware_interface::CommandInterface> RoboticArmControlSystem::export_command_interfaces() {
         std::vector<hardware_interface::CommandInterface> command_interfaces;
         for (auto i = 0u; i < info_.joints.size(); i++) {
-            command_interfaces.emplace_back(info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getCommandRef(i));
+            command_interfaces.emplace_back(info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getCommandVelocityRef(i));
+            if (cfg.position_commandable) { command_interfaces.emplace_back(info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getCommandPositionRef(i)); }
         }
 
         command_interfaces.emplace_back(info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionCommandRef());
@@ -320,4 +229,144 @@ boost::log::trivial::severity_level ros_log_level_to_boost(const rclcpp::Logger:
         case rclcpp::Logger::Level::Unset:
         default: throw std::runtime_error("Invalid log level");
     }
+}
+
+/**
+ * Helper function which validates that the joint information provided in the xacro is as expected.
+ * @param joint the hardware_interface::ComponentInfo representing the joint to validate
+ * @return hardware_interface::CallbackReturn::SUCCESS if requirements met, hardware_interface::CallbackReturn::ERROR if not
+ */
+hardware_interface::CallbackReturn validate_joint(const hardware_interface::ComponentInfo& joint, rclcpp::Logger& logger, const bool position_commandable) {
+    // Two cases here: All RoboticArmControlSystem joints must have a velocity command interface, but if position_commandable
+    //      is true then they must all also have a position command interface.
+
+    size_t expected_command_interfaces = 1;
+    if (position_commandable) {
+        expected_command_interfaces = 2;
+    }
+
+    if (joint.command_interfaces.size() != expected_command_interfaces) {
+        RCLCPP_FATAL(
+                logger,
+                "Expected joint '%s' to have %zu *COMMAND* interface(s), found %zu",
+                joint.name.c_str(),
+                expected_command_interfaces,
+                joint.command_interfaces.size()
+        );
+        return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    // We don't know which appears first; could be velocity, could be position
+    if (joint.command_interfaces[0].name == hardware_interface::HW_IF_VELOCITY) {
+        ; // Acceptable
+    } else if (joint.command_interfaces[1].name == hardware_interface::HW_IF_VELOCITY) {
+        ; // Acceptable
+    } else {
+        RCLCPP_FATAL(
+                logger,
+                "Expected joint '%s' to have a velocity *COMMAND* interface, did not find one",
+                joint.name.c_str()
+        );
+        return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    if (position_commandable) {
+        if (joint.command_interfaces[0].name == hardware_interface::HW_IF_POSITION) {
+            ; // Acceptable
+        } else if (joint.command_interfaces[1].name == hardware_interface::HW_IF_POSITION) {
+            ; // Acceptable
+        } else {
+            RCLCPP_FATAL(
+                    logger,
+                    "Expected joint '%s' to have a position *COMMAND* interface since position_commandable set to true, but did not find one",
+                    joint.name.c_str()
+            );
+            return hardware_interface::CallbackReturn::ERROR;
+        }
+    }
+
+    if (joint.state_interfaces.size() != 2) {
+        RCLCPP_FATAL(
+                logger,
+                "Expected joint '%s' to have 2 *STATE* interfaces, found  %zu",
+                joint.name.c_str(),
+                joint.state_interfaces.size()
+        );
+        return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    // We don't know which appears first; could be velocity, could be position
+    if (joint.state_interfaces[0].name == hardware_interface::HW_IF_VELOCITY) {
+        ; // Acceptable
+    } else if (joint.state_interfaces[1].name == hardware_interface::HW_IF_VELOCITY) {
+        ; // Acceptable
+    } else {
+        RCLCPP_FATAL(
+                logger,
+                "Expected joint '%s' to have a velocity *STATE* interface, did not find one",
+                joint.name.c_str()
+        );
+        return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    if (joint.state_interfaces[0].name == hardware_interface::HW_IF_POSITION) {
+        ; // Acceptable
+    } else if (joint.state_interfaces[1].name == hardware_interface::HW_IF_POSITION) {
+        ; // Acceptable
+    } else {
+        RCLCPP_FATAL(
+                logger,
+                "Expected joint '%s' to have a position *STATE* interface, but did not find one",
+                joint.name.c_str()
+        );
+        return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    return hardware_interface::CallbackReturn::SUCCESS;
+}
+
+/**
+ * Helper function which validates that the gpio information provided in the xacro is as expected.
+ * @param gpio the hardware_interface::ComponentInfo representing the gpio to validate
+ * @return hardware_interface::CallbackReturn::SUCCESS if requirements met, hardware_interface::CallbackReturn::ERROR if not
+ */
+hardware_interface::CallbackReturn validate_gpio(const hardware_interface::ComponentInfo& gpio, rclcpp::Logger& logger) {
+    // Gripper has exactly one states and one command interface
+    if (gpio.command_interfaces.size() != 1) {
+        RCLCPP_FATAL(
+                logger,
+                "GPIO '%s' has %zu command interfaces found. 1 expected.", gpio.name.c_str(),
+                gpio.command_interfaces.size()
+        );
+        return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    if (gpio.command_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
+        RCLCPP_FATAL(
+                logger,
+                "GPIO '%s' have %s command interfaces found. '%s' expected.", gpio.name.c_str(),
+                gpio.command_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION
+        );
+        return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    if (gpio.state_interfaces.size() != 1) {
+        RCLCPP_FATAL(
+                logger,
+                "GPIO '%s' has %zu state interface. 2 expected.", gpio.name.c_str(),
+                gpio.state_interfaces.size()
+        );
+        return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    if (gpio.state_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
+        RCLCPP_FATAL(
+                logger,
+                "GPIO '%s' have '%s' as first state interface. '%s' expected.", gpio.name.c_str(),
+                gpio.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION
+        );
+        return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    return hardware_interface::CallbackReturn::SUCCESS;
 }

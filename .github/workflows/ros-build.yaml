@@ -13,7 +13,7 @@ jobs:
 
     uses: UMRoboticsTeam/umrt-ci-cd/.github/workflows/ros-build.yaml@main
     with:
-      build_image: ghcr.io/umroboticsteam/umrt-build:v0.0.17
+      build_image: ghcr.io/umroboticsteam/umrt-build:v0.0.24
       publish_image: ghcr.io/umroboticsteam/umrt-apt-image:latest
       publish_repo: UMRoboticsTeam/umrt-apt-repo
     secrets:

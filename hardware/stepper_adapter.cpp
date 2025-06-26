@@ -1,11 +1,12 @@
 #include "umrt-arm-ros-firmware/stepper_adapter.hpp"
 
-StepperAdapter::StepperAdapter(const std::size_t NUM_JOINTS) {
+StepperAdapter::StepperAdapter(const std::size_t NUM_JOINTS) : NUM_JOINTS(NUM_JOINTS) {
     // Set the size of the vectors
     // See note in header about how important it is for these to not change
     this->positions.resize(NUM_JOINTS);
     this->velocities.resize(NUM_JOINTS);
-    this->commands.resize(NUM_JOINTS);
+    this->velocity_commands.resize(NUM_JOINTS);
+    this->position_commands.resize(NUM_JOINTS);
     this->positions_buffer.resize(NUM_JOINTS);
     this->velocities_buffer.resize(NUM_JOINTS);
     this->cmd_gripper_pos = 0;
@@ -21,7 +22,7 @@ void StepperAdapter::readValues() {
         std::scoped_lock lock(this->positions_buffer_mx, this->velocities_buffer_mx);
 
         // Remember that we can't invalidate references, so we need to manually copy values
-        for (auto i = 0u; i < commands.size(); ++i) {
+        for (auto i = 0u; i < NUM_JOINTS; ++i) {
             this->positions[i] = this->positions_buffer[i];
             this->velocities[i] = this->velocities_buffer[i];
         }
@@ -31,24 +32,28 @@ void StepperAdapter::readValues() {
     this->gripper_position = this->cmd_gripper_pos;
 }
 
-double& StepperAdapter::getPositionRef(const size_t index) {
-    return this->positions[index];
-}
-
-double& StepperAdapter::getVelocityRef(const std::size_t index) {
+double& StepperAdapter::getStateVelocityRef(const std::size_t index) {
     return this->velocities[index];
 }
 
-double& StepperAdapter::getGripperPositionRef() {
-    return this->gripper_position;
+double& StepperAdapter::getStatePositionRef(const size_t index) {
+    return this->positions[index];
 }
 
 double& StepperAdapter::getGripperVelocityRef() {
     return this->gripper_velocity;
 }
 
-double& StepperAdapter::getCommandRef(const std::size_t index) {
-    return this->commands[index];
+double& StepperAdapter::getGripperPositionRef() {
+    return this->gripper_position;
+}
+
+double& StepperAdapter::getCommandVelocityRef(const std::size_t index) {
+    return this->velocity_commands[index];
+}
+
+double& StepperAdapter::getCommandPositionRef(const std::size_t index) {
+    return this->position_commands[index];
 }
 
 double& StepperAdapter::getGripperPositionCommandRef() {
@@ -59,7 +64,6 @@ double& StepperAdapter::getGripperPositionCommandRef() {
 void StepperAdapter::updatePosition(const uint8_t joint, const double position) {
     // Acquire the lock for positions_buffer and write the new value
     {
-        RCLCPP_DEBUG(rclcpp::get_logger("MEEEEE"), "updatePosition: %ud, %f", joint, position);
         std::scoped_lock lock(this->positions_buffer_mx);
         this->positions_buffer[joint] = position;
     }

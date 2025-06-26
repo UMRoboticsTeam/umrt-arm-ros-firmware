@@ -29,9 +29,9 @@ void ArduinoStepperAdapter::disconnect() {
 
 
 void ArduinoStepperAdapter::setValues() {
-    for (auto i = 0u; i < commands.size(); ++i) {
+    for (auto i = 0u; i < NUM_JOINTS; ++i) {
         // Note that the StepperController speed is specified in units of in 1/10 RPM
-        this->controller.setSpeed(i, static_cast<int16_t>(std::round(10 * this->commands[i])));
+        this->controller.setSpeed(i, static_cast<int16_t>(std::round(10 * this->velocity_commands[i])));
     }
 
     this->controller.setGripper(static_cast<uint8_t>(std::round(this->cmd_gripper_pos)));
@@ -47,7 +47,7 @@ void ArduinoStepperAdapter::poll() {
 }
 
 void ArduinoStepperAdapter::queryController() {
-    for (auto i = 0u; i < commands.size(); ++i) {
+    for (auto i = 0u; i < NUM_JOINTS; ++i) {
         this->controller.getPosition(i);
         this->controller.getSpeed(i);
     }

@@ -33,6 +33,25 @@
 #include "stepper_adapter.hpp"
 
 namespace umrt_arm_ros_firmware {
+    /**
+     * ros2_control hardware_interface for the robotic arm.
+     * Allows for one of several different controller backends to be selected.
+     *
+     * Each joint must specify a velocity interface; and if `position_commandable` is enabled, then all must also specify a
+     * position command interface. Each joint must also specify a position and velocity state interface, regardless of
+     * `position_commandable` value.
+     *
+     * Requires the following parameters in the xacro:
+     *
+     * Hardware parameters
+     * - `device`: The serial, network, etc. device to communicate to the controller through
+     * - `baud_rate`: The baud rate to open the connection with
+     * - `controller_type`: The selected controller backend, one of RoboticArmControlSystem::Config::ControllerType
+     * - `position_commandable`: Whether to expose, and require, position command interfaces for every joint; defaults to false
+     * Joint parameters:
+     * - `motor_id`: The ID associated with the motor driver attached to the joint
+     * - `reduction_factor`: The mechanical reduction factor between the motor and the joint; defaults to 1
+     */
     class RoboticArmControlSystem : public hardware_interface::SystemInterface {
         struct Config {
             enum class ControllerType {
@@ -43,6 +62,7 @@ namespace umrt_arm_ros_firmware {
 
             std::string device;
             int baud_rate = 0;
+            bool position_commandable = false;
             ControllerType controller_type = ControllerType::INVALID;
             std::vector<StepperAdapter::JointInfo> joint_infos{};
 
