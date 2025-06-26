@@ -86,6 +86,8 @@ namespace umrt_arm_ros_firmware {
         }
 
         // Select the StepperAdapter implementation we want to use
+        // TODO: Make log message better
+        RCLCPP_INFO(this->logger, "Creating controller type %d, with position_commandable set to %d", cfg.controller_type, cfg.position_commandable);
         switch (cfg.controller_type) {
             case Config::ControllerType::ARDUINO:
                 if (cfg.position_commandable) { throw std::invalid_argument("ArduinoStepperAdapter cannot be used with position_commandable"); }
@@ -117,7 +119,7 @@ namespace umrt_arm_ros_firmware {
         std::vector<hardware_interface::CommandInterface> command_interfaces;
         for (auto i = 0u; i < info_.joints.size(); i++) {
             command_interfaces.emplace_back(info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getCommandVelocityRef(i));
-            if (cfg.position_commandable) { command_interfaces.emplace_back(info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &steppers->getCommandPositionRef(i)); }
+            if (cfg.position_commandable) { command_interfaces.emplace_back(info_.joints[i].name, hardware_interface::HW_IF_POSITION, &steppers->getCommandPositionRef(i)); }
         }
 
         command_interfaces.emplace_back(info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionCommandRef());
