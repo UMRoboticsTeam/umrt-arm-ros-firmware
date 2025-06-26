@@ -26,11 +26,13 @@ public:
     *
     * @param can_interface SocketCAN network interface corresponding to the CAN bus
     * @param joint_infos info needed to process joint feedback, requires motor_id and reduction_factor
+    * @param position_commandable whether position commands can be accepted
     * @param query_period the time to wait between controller queries for position, velocity, etc.
     */
     MksStepperAdapter(
             const std::string& can_interface,
             const std::vector<JointInfo>& joint_infos,
+            const bool position_commandable,
             const std::chrono::duration<int64_t, std::milli>& query_period
     );
 
@@ -47,6 +49,9 @@ public:
      * through @ref getCommandRef, to the Stepper Controller program.
      */
     void setValues() override;
+
+    /** Whether position commands can be accepted. */
+    const bool position_commandable;
 
 protected:
     /**

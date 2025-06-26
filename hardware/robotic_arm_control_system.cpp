@@ -55,6 +55,7 @@ namespace umrt_arm_ros_firmware {
         cfg.baud_rate = std::stoi(info_.hardware_parameters["baud_rate"]);
         cfg.controller_type = Config::controller_type_from_string(info_.hardware_parameters["controller_type"]);
         cfg.position_commandable = info_.hardware_parameters["position_commandable"] == "true";
+        // TODO: Make position_commandable a "command mode" enum, would be much more user friendly/clear
 
         for (const hardware_interface::ComponentInfo& joint : info_.joints) {
             validate_joint(joint, this->logger, cfg.position_commandable);
@@ -87,10 +88,11 @@ namespace umrt_arm_ros_firmware {
         // Select the StepperAdapter implementation we want to use
         switch (cfg.controller_type) {
             case Config::ControllerType::ARDUINO:
+                if (cfg.position_commandable) { throw std::invalid_argument("ArduinoStepperAdapter cannot be used with position_commandable"); }
                 steppers = std::make_unique<ArduinoStepperAdapter>(info_.joints.size(), std::chrono::milliseconds(100));
                 break;
             case Config::ControllerType::MKS:
-                steppers = std::make_unique<MksStepperAdapter>(cfg.device, cfg.joint_infos, std::chrono::milliseconds(100));
+                steppers = std::make_unique<MksStepperAdapter>(cfg.device, cfg.joint_infos, cfg.position_commandable, std::chrono::milliseconds(100));
                 break;
             default: throw std::invalid_argument("Unknown controller type");
         }
