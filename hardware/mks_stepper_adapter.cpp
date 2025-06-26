@@ -20,6 +20,7 @@ MksStepperAdapter::MksStepperAdapter(const std::string& can_interface,
         const JointInfo& j = joint_infos.at(i);
         motor_ids_for_controller->insert(j.motor_id);
         this->motor_ids->insert(boost::bimap<uint16_t, uint16_t>::value_type(i, j.motor_id));
+        this->reductions->emplace(j.motor_id, j.reduction_factor);
     }
     controller = std::make_unique<MksStepperController>(can_interface, std::move(motor_ids_for_controller), NORM_FACTOR);
 

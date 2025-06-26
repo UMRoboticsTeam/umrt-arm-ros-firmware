@@ -108,6 +108,7 @@ namespace umrt_arm_ros_firmware {
         }
 
         state_interfaces.emplace_back(info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionRef());
+        state_interfaces.emplace_back(info_.gpios[0].name, hardware_interface::HW_IF_VELOCITY, &steppers->getGripperVelocityRef());
 
         return state_interfaces;
     }
@@ -350,7 +351,7 @@ hardware_interface::CallbackReturn validate_gpio(const hardware_interface::Compo
         return hardware_interface::CallbackReturn::ERROR;
     }
 
-    if (gpio.state_interfaces.size() != 1) {
+    if (gpio.state_interfaces.size() != 2) {
         RCLCPP_FATAL(
                 logger,
                 "GPIO '%s' has %zu state interface. 2 expected.", gpio.name.c_str(),
@@ -364,6 +365,15 @@ hardware_interface::CallbackReturn validate_gpio(const hardware_interface::Compo
                 logger,
                 "GPIO '%s' have '%s' as first state interface. '%s' expected.", gpio.name.c_str(),
                 gpio.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION
+        );
+        return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    if (gpio.state_interfaces[1].name != hardware_interface::HW_IF_VELOCITY) {
+        RCLCPP_FATAL(
+                logger,
+                "GPIO '%s' have '%s' as second state interface. '%s' expected.", gpio.name.c_str(),
+                gpio.state_interfaces[1].name.c_str(), hardware_interface::HW_IF_VELOCITY
         );
         return hardware_interface::CallbackReturn::ERROR;
     }
