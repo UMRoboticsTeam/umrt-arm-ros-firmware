@@ -21,9 +21,8 @@ arm_base_controller:
     action_monitor_rate: 20.0
     allow_integration_in_goal_trajectories: true
     allow_nonzero_velocity_at_trajectory_end: true
-    allow_partial_joints_goal: false
+    allow_partial_joints_goal: true
     cmd_timeout: 0.0
-    open_loop_control: true
 
     constraints:
       base_yaw_joint:
@@ -39,9 +38,9 @@ arm_base_controller:
       stopped_velocity_tolerance: 0.01
     gains:
       base_yaw_joint:
-        p: 10000.0
-        i: 1.0
-        d: 1000.0
+        p: 0.8
+        i: 0.2
+        d: 0.0
       base_pitch_joint:
         p: 10000.0
         i: 1.0

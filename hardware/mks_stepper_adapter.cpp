@@ -21,6 +21,9 @@ MksStepperAdapter::MksStepperAdapter(const std::string& can_interface,
         motor_ids_for_controller->insert(j.motor_id);
         this->motor_ids->insert(boost::bimap<uint16_t, uint16_t>::value_type(i, j.motor_id));
         this->reductions->emplace(j.motor_id, j.reduction_factor);
+
+        // TODO: Remove, only for testing with 1 motor
+        this->updatePosition(i, 0);
     }
     controller = std::make_unique<MksStepperController>(can_interface, std::move(motor_ids_for_controller), NORM_FACTOR);
 
@@ -54,11 +57,17 @@ void MksStepperAdapter::setValues() {
     if (this->position_commandable) {
         for (auto i = 0u; i < NUM_JOINTS; ++i) {
             // Note that the MksStepperController speed is in units of RPM (since we're using interpolated normalisation)
+            auto x = static_cast<int32_t>(std::round(this->position_commands.at(i) * this->reductions->at(this->motor_ids->left.at(i)) * STEPS_PER_REV / 2 / M_PI));
+            RCLCPP_INFO(rclcpp::get_logger("MEEEE"), "Seeking to %d", x);
             this->controller->seekPosition(motor_ids->left.at(i),
-                                            static_cast<int32_t>(std::round(this->position_commands.at(i))),
+                                            x,
                                             static_cast<int16_t>(std::round(this->velocity_commands.at(i)))
                 );
+
+            // TODO: For now just copy speeds into velocity
+            this->updateVelocity(i, this->velocity_commands.at(i));
         }
+
     }
     else {
         for (auto i = 0u; i < NUM_JOINTS; ++i) {
