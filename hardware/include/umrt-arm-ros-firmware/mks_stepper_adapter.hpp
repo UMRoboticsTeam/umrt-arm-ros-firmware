@@ -27,12 +27,14 @@ public:
     * @param can_interface SocketCAN network interface corresponding to the CAN bus
     * @param joint_infos info needed to process joint feedback, requires motor_id and reduction_factor
     * @param position_commandable whether position commands can be accepted
+    * @param default_speed speed to use when a position command is sent without specifying a velocity
     * @param query_period the time to wait between controller queries for position, velocity, etc.
     */
     MksStepperAdapter(
             const std::string& can_interface,
             const std::vector<JointInfo>& joint_infos,
             const bool position_commandable,
+            const double default_speed,
             const std::chrono::duration<int64_t, std::milli>& query_period
     );
 
@@ -54,40 +56,28 @@ public:
     const bool position_commandable;
 
 protected:
-    /**
-     * The MksStepperController which implements the functionality exposed by this
-     * MksStepperAdapter.
-     */
+    /** Speed used when a position command is sent without specifying a velocity. */
+    const double default_speed;
+
+    /** The MksStepperController which implements the functionality exposed by this MksStepperAdapter. */
     std::unique_ptr<MksStepperController> controller;
 
-    /**
-     * Thread used to run @ref poll indefinitely.
-     */
+    /** Thread used to run @ref poll indefinitely. */
     std::thread polling_thread;
 
-    /**
-     * Thread used to periodically query motor speed/position.
-     */
+    /** Thread used to periodically query motor speed/position. */
     std::thread querying_thread;
 
-    /**
-     * Signal used to shutdown the polling threads.
-     */
+    /** Signal used to shutdown the polling threads. */
     std::atomic<bool> continue_polling = false;
 
-    /**
-     * Maps joint index to motor CAN IDs.
-     */
+    /** Maps joint index to motor CAN IDs. */
     std::unique_ptr<boost::bimap<uint16_t, uint16_t>> motor_ids;
 
-    /**
-    * Maps joint index to reduction ratio factor.
-    */
+    /** Maps joint index to reduction ratio factor. */
     std::unique_ptr<std::unordered_map<uint16_t, double>> reductions;
 
-    /**
-     * Method to indefinitely poll @ref controller for responses
-     */
+    /** Method to indefinitely poll @ref controller for responses */
     void poll();
 
     /**

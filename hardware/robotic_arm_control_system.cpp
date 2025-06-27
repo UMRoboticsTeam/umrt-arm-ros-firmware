@@ -55,6 +55,7 @@ namespace umrt_arm_ros_firmware {
         cfg.baud_rate = std::stoi(info_.hardware_parameters["baud_rate"]);
         cfg.controller_type = Config::controller_type_from_string(info_.hardware_parameters["controller_type"]);
         cfg.position_commandable = info_.hardware_parameters["position_commandable"] == "true";
+        cfg.default_speed = std::stod(info_.hardware_parameters["default_speed"]);
         // TODO: Make position_commandable a "command mode" enum, would be much more user friendly/clear
 
         for (const hardware_interface::ComponentInfo& joint : info_.joints) {
@@ -94,7 +95,7 @@ namespace umrt_arm_ros_firmware {
                 steppers = std::make_unique<ArduinoStepperAdapter>(info_.joints.size(), std::chrono::milliseconds(100));
                 break;
             case Config::ControllerType::MKS:
-                steppers = std::make_unique<MksStepperAdapter>(cfg.device, cfg.joint_infos, cfg.position_commandable, std::chrono::milliseconds(100));
+                steppers = std::make_unique<MksStepperAdapter>(cfg.device, cfg.joint_infos, cfg.position_commandable, cfg.default_speed, std::chrono::milliseconds(100));
                 break;
             default: throw std::invalid_argument("Unknown controller type");
         }

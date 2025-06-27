@@ -64,6 +64,7 @@ namespace umrt_arm_ros_firmware {
             int baud_rate = 0;
             bool position_commandable = false;
             ControllerType controller_type = ControllerType::INVALID;
+            double default_speed = 0.0;
             std::vector<StepperAdapter::JointInfo> joint_infos{};
 
             static ControllerType controller_type_from_string(const std::string& controller_type) {

@@ -8,10 +8,11 @@
         <hardware>
           <plugin>umrt-arm-ros-firmware/RoboticArmControlSystem</plugin>
           <param name="device">can0</param>
-          <param name="log_level">info</param>
+          <param name="log_level">debug</param>
           <param name="baud_rate">500000</param>
           <param name="controller_type">MKS</param>
           <param name="position_commandable">true</param>
+          <param name="default_speed">1.0</param>
         </hardware>
       </xacro:unless>
       <xacro:if value="${use_mock_hardware}">
