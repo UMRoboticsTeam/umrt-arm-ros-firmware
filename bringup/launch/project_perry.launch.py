@@ -50,7 +50,7 @@ def generate_launch_description():
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare("umrt-arm-ros-firmware"), "urdf", "project_perry.urdf.xacro"]
+                [FindPackageShare("umrt-project-perry-description"), "urdf", "project_perry.urdf.xacro"]
             ),
             " ",
             "use_mock_hardware:=",
@@ -67,7 +67,7 @@ def generate_launch_description():
         ]
     )
     rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare("umrt-arm-ros-firmware"), "ros2_control_demo_description", "project_perry/rviz", "project_perry_view.rviz"]
+        [FindPackageShare("umrt-project-perry-description"), "rviz", "project_perry_view.rviz"]
     )
 
     control_node = Node(

@@ -77,7 +77,7 @@ install(
         DESTINATION include/umrt-arm-ros-firmware
 )
 install(
-        DIRECTORY description/launch description/ros2_control description/urdf
+        DIRECTORY config/launch config/ros2_control config/urdf
         DESTINATION share/umrt-arm-ros-firmware
 )
 install(
