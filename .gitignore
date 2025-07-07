@@ -4,3 +4,4 @@ output-doxygen/
 log/
 install/
 build/
+package.xml
