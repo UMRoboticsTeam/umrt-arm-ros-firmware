@@ -29,10 +29,6 @@ install(
         DIRECTORY hardware/include/ros2_control_demo_description/prairie_pioneer/urdf hardware/include/ros2_control_demo_description/prairie_pioneer/rviz
         DESTINATION share/${PROJECT_NAME}/ros2_control_demo_description/prairie_pioneer
 )
-install(
-        DIRECTORY hardware/include/ros2_control_demo_description/project_perry/urdf hardware/include/ros2_control_demo_description/project_perry/rviz
-        DESTINATION share/${PROJECT_NAME}/ros2_control_demo_description/project_perry
-)
 
 add_library(
         umrt-arm-ros-firmware
@@ -75,10 +71,6 @@ configure_file(
 install(
         DIRECTORY hardware/include/
         DESTINATION include/umrt-arm-ros-firmware
-)
-install(
-        DIRECTORY config/launch config/ros2_control config/urdf
-        DESTINATION share/umrt-arm-ros-firmware
 )
 install(
         DIRECTORY bringup/launch bringup/config

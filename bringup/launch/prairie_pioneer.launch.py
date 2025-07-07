@@ -50,7 +50,7 @@ def generate_launch_description():
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare("umrt-arm-ros-firmware"), "urdf", "prairie_pioneer.urdf.xacro"]
+                [FindPackageShare("umrt-arm-ros-firmware"), "ros2_control_demo_description", "prairie_pioneer", "urdf", "prairie_pioneer.urdf.xacro"]
             ),
             " ",
             "use_mock_hardware:=",

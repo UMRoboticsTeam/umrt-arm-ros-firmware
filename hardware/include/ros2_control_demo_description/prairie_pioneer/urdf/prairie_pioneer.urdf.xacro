@@ -10,7 +10,7 @@
   <xacro:include filename="$(find umrt-arm-ros-firmware)/ros2_control_demo_description/prairie_pioneer/urdf/prairie_pioneer.materials.xacro" />
 
   <!-- Import prairie_pioneer ros2_control description -->
-  <xacro:include filename="$(find umrt-arm-ros-firmware)/ros2_control/prairie_pioneer.ros2_control.xacro" />
+  <xacro:include filename="$(find umrt-arm-ros-firmware)/config/prairie_pioneer.ros2_control.xacro" />
 
   <xacro:prairie_pioneer prefix="$(arg prefix)" />
 
