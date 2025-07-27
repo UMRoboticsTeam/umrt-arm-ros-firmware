@@ -11,6 +11,7 @@
           <param name="log_level">info</param>
           <param name="baud_rate">57600</param>
           <param name="controller_type">ARDUINO</param>
+          <param name="default_speed">1.0</param>
         </hardware>
       </xacro:unless>
       <xacro:if value="${use_mock_hardware}">

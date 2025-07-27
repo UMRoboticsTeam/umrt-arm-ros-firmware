@@ -21,7 +21,7 @@
           <param name="calculate_dynamics">true</param>
         </hardware>
       </xacro:if>
-      <joint name="${prefix}base_yaw_joint">
+      <joint name="base_yaw">
         <command_interface name="velocity"/>
         <command_interface name="position"/>
         <state_interface name="position"/>
@@ -29,7 +29,7 @@
         <param name="motor_id">1</param>
         <param name="reduction_factor">13</param>
       </joint>
-      <joint name="${prefix}base_pitch_joint">
+      <joint name="base_pitch">
         <command_interface name="velocity"/>
         <command_interface name="position"/>
         <state_interface name="position"/>
@@ -37,7 +37,7 @@
         <param name="motor_id">2</param>
         <param name="reduction_factor">252</param>
       </joint>
-      <joint name="${prefix}elbow_0_joint">
+      <joint name="elbow_pitch">
         <command_interface name="velocity"/>
         <command_interface name="position"/>
         <state_interface name="position"/>
@@ -45,11 +45,27 @@
         <param name="motor_id">3</param>
         <param name="reduction_factor">252</param>
       </joint>
-      <gpio name="${prefix}gripper">
+      <joint name="wrist_pitch">
+        <command_interface name="velocity"/>
         <command_interface name="position"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
-      </gpio>
+        <param name="motor_id">4</param>
+        <param name="reduction_factor">12</param>
+      </joint>
+      <joint name="wrist_roll">
+        <command_interface name="velocity"/>
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+        <param name="motor_id">5</param>
+        <param name="reduction_factor">12</param>
+      </joint>
+<!--      <gpio name="${prefix}gripper">-->
+<!--        <command_interface name="position"/>-->
+<!--        <state_interface name="position"/>-->
+<!--        <state_interface name="velocity"/>-->
+<!--      </gpio>-->
     </ros2_control>
 
   </xacro:macro>
