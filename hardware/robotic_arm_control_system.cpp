@@ -83,7 +83,7 @@ namespace umrt_arm_ros_firmware {
         }
 
         for (const hardware_interface::ComponentInfo& gpio : info_.gpios) {
-            validate_gpio(gpio, this->logger);
+            //validate_gpio(gpio, this->logger);
         }
 
         // Select the StepperAdapter implementation we want to use
@@ -110,8 +110,8 @@ namespace umrt_arm_ros_firmware {
             state_interfaces.emplace_back(info_.joints[i].name, hardware_interface::HW_IF_POSITION, &steppers->getStatePositionRef(i));
         }
 
-        state_interfaces.emplace_back(info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionRef());
-        state_interfaces.emplace_back(info_.gpios[0].name, hardware_interface::HW_IF_VELOCITY, &steppers->getGripperVelocityRef());
+        // state_interfaces.emplace_back(info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionRef());
+        // state_interfaces.emplace_back(info_.gpios[0].name, hardware_interface::HW_IF_VELOCITY, &steppers->getGripperVelocityRef());
 
         return state_interfaces;
     }
@@ -123,7 +123,7 @@ namespace umrt_arm_ros_firmware {
             if (cfg.position_commandable) { command_interfaces.emplace_back(info_.joints[i].name, hardware_interface::HW_IF_POSITION, &steppers->getCommandPositionRef(i)); }
         }
 
-        command_interfaces.emplace_back(info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionCommandRef());
+        //command_interfaces.emplace_back(info_.gpios[0].name, hardware_interface::HW_IF_POSITION, &steppers->getGripperPositionCommandRef());
 
         return command_interfaces;
     }
