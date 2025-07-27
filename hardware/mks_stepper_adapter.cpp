@@ -5,12 +5,11 @@
 constexpr uint8_t NORM_FACTOR = 16;
 constexpr double STEPS_PER_REV = 200.0;
 
-MksStepperAdapter::MksStepperAdapter(const std::string& can_interface,
-                                     const std::vector<JointInfo>& joint_infos,
-                                     const bool position_commandable,
-                                     const double default_speed,
-                                     const std::chrono::duration<int64_t, std::milli>& query_period
-    ) : StepperAdapter(joint_infos.size()), position_commandable(position_commandable), default_speed(default_speed) {
+MksStepperAdapter::MksStepperAdapter(
+        const std::string& can_interface, const std::vector<JointInfo>& joint_infos, const bool position_commandable,
+        const double default_speed, const std::chrono::duration<int64_t, std::milli>& query_period
+)
+    : StepperAdapter(joint_infos.size()), position_commandable(position_commandable), default_speed(default_speed) {
     // Preprocess motor IDs into bimap we can use to convert between joint index and motor, and an unordered_set
     //     that MksController can use for its packet address lookups
 
@@ -57,25 +56,27 @@ void MksStepperAdapter::disconnect() {}
 void MksStepperAdapter::setValues() {
     if (this->position_commandable) {
         for (auto i = 0u; i < NUM_JOINTS; ++i) {
-            // Note that the MksStepperController speed is in units of RPM (since we're using interpolated normalisation)
-            auto x = static_cast<int32_t>(std::round(this->position_commands.at(i) * this->reductions->at(this->motor_ids->left.at(i)) * STEPS_PER_REV / 2 / M_PI));
-            auto speed = static_cast<int16_t>(std::round(this->velocity_commands.at(i) * this->reductions->at(this->motor_ids->left.at(i))));
-            if (speed == 0) { speed = static_cast<int16_t>(std::round(this->default_speed * this->reductions->at(this->motor_ids->left.at(i)))); }
-            RCLCPP_INFO(rclcpp::get_logger("MEEEE"), "Seeking to %d at %d", x, speed);
-            this->controller->seekPosition(motor_ids->left.at(i),
-                                            x,
-                                            speed
-                );
+            auto const motor_id = this->motor_ids->left.at(i); // Convert joint ID to motor ID
+            const auto reduction = this->reductions->at(motor_id);
 
-            // TODO: For now just copy speeds into velocity
+            // Note that the MksStepperController speed is in units of RPM (since we're using interpolated normalisation)
+            const auto position =
+                    static_cast<int32_t>(std::round(this->position_commands.at(i) * reduction * STEPS_PER_REV / 2 / M_PI));
+            auto speed = static_cast<int16_t>(std::round(this->velocity_commands.at(i) * reduction));
+            if (speed == 0) { speed = static_cast<int16_t>(std::round(this->default_speed * reduction)); }
+
+            RCLCPP_DEBUG(rclcpp::get_logger("MksStepperAdapter"), "Joint %d: Seeking to %d at %d", i, position, speed);
+            this->controller->seekPosition(motor_id, position, speed);
+
+            // TODO: For now just copy commanded velocity into velocity feedback
             this->updateVelocity(i, this->velocity_commands.at(i));
         }
-
-    }
-    else {
+    } else {
         for (auto i = 0u; i < NUM_JOINTS; ++i) {
             // Note that the MksStepperController speed is in units of RPM (since we're using interpolated normalisation)
-            this->controller->setSpeed(motor_ids->left.at(i), static_cast<int16_t>(std::round(this->velocity_commands.at(i))));
+            this->controller->setSpeed(
+                    motor_ids->left.at(i), static_cast<int16_t>(std::round(this->velocity_commands.at(i)))
+            );
         }
     }
 
@@ -92,9 +93,7 @@ void MksStepperAdapter::poll() {
 }
 
 void MksStepperAdapter::queryController() {
-    for (auto i = 0u; i < NUM_JOINTS; ++i) {
-        this->controller->getPosition(this->motor_ids->left.at(i));
-    }
+    for (auto i = 0u; i < NUM_JOINTS; ++i) { this->controller->getPosition(this->motor_ids->left.at(i)); }
 }
 
 void MksStepperAdapter::queryPoll(const std::chrono::milliseconds& period) {
