@@ -11,6 +11,7 @@
 #include <boost/bimap.hpp>
 
 #include <umrt-arm-firmware-lib/mks_stepper_controller.hpp>
+#include <encoder_interface.hpp> // TODO: Figure out what went wrong with umrt-arm-encoder-driver packaging that doesn't namespace this properly
 
 /**
  * Adapter class to interface an @ref MksStepperController with a ros2_control hardware_interface, with joints handled as
@@ -65,6 +66,9 @@ protected:
     /** The MksStepperController which is used to command motors. */
     std::unique_ptr<MksStepperController> controller;
 
+   /** EncoderInterface used to communicate with rotary encoders for position feedback **/
+   std::unique_ptr<EncoderInterface> encoders;
+
     /** Thread used to run @ref poll indefinitely. */
     std::thread polling_thread;
 
@@ -76,6 +80,9 @@ protected:
 
     /** Maps joint index to motor CAN IDs. */
     std::unique_ptr<boost::bimap<uint16_t, uint16_t>> motor_ids;
+
+    /** Maps joint index to encoder CAN IDs. */
+    std::unique_ptr<boost::bimap<uint16_t, uint16_t>> encoder_ids;
 
     /** Maps joint index to reduction ratio factor. */
     std::unique_ptr<std::unordered_map<uint16_t, double>> reductions;

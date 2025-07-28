@@ -19,6 +19,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
         rclcpp_lifecycle
         ament_cmake
         umrt-arm-firmware-lib
+        umrt-arm-encoder-driver
         )
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
     find_package(${Dependency} CONFIG REQUIRED)
@@ -47,7 +48,10 @@ ament_target_dependencies(
         ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 # ament_target_dependencies doesn't use namespaces when linking, so we need to link umrt-arm-firmware-lib ourself
-target_link_libraries(umrt-arm-ros-firmware PRIVATE umrt-arm-firmware-lib::umrt-arm-firmware-lib)
+target_link_libraries(umrt-arm-ros-firmware PRIVATE
+        umrt-arm-firmware-lib::umrt-arm-firmware-lib
+        umrt-arm-encoder-driver::umrt-arm-encoder-driver
+)
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.

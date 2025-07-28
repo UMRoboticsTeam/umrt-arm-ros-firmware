@@ -26,6 +26,11 @@ public:
         uint16_t motor_id{};
 
         /**
+        * ID of the encoder for this joint, or 0 if it has none.
+        */
+        uint32_t encoder_id{};
+
+        /**
         * Mechanical reduction factor between motor feedback position and joint position, defaults to 1.
         * E.g. for a motor driving a joint through a 16:1 gearbox, the reduction factor should be 16.
         */
@@ -36,7 +41,7 @@ public:
         */
         bool differential = false;
 
-        JointInfo(const uint16_t motor_id, const uint16_t reduction_factor, const bool differential)
+        JointInfo(const uint16_t motor_id, const uint32_t encoder_id, const uint16_t reduction_factor, const bool differential)
             : motor_id(motor_id), reduction_factor(reduction_factor), differential(differential) {}
     };
 

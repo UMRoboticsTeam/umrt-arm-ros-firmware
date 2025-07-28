@@ -23,9 +23,12 @@ ProjectPerryController::ProjectPerryController(
 
     // Preprocess motor IDs into bimap we can use to convert between joint index and motor, and an unordered_set
     //     that MksController can use for its packet address lookups
+    // As well, do that for encoder IDs for applicable joints
 
     auto motor_ids_for_controller = std::make_unique<std::unordered_set<uint16_t>>(joint_infos.size());
+    auto encoder_ids_for_interface = std::make_unique<std::unordered_set<uint32_t>>(joint_infos.size());
     this->motor_ids = std::make_unique<boost::bimap<uint16_t, uint16_t>>();
+    this->encoder_ids = std::make_unique<boost::bimap<uint16_t, uint16_t>>();
     this->reductions = std::make_unique<std::unordered_map<uint16_t, double>>();
     this->last_motor_commands = std::make_unique<std::unordered_map<uint16_t, int32_t>>();
     for (size_t i = 0; i < joint_infos.size(); ++i) {
@@ -34,18 +37,37 @@ ProjectPerryController::ProjectPerryController(
         this->motor_ids->insert(boost::bimap<uint16_t, uint16_t>::value_type(i, j.motor_id));
         this->reductions->emplace(j.motor_id, j.reduction_factor);
         this->last_motor_commands->emplace(j.motor_id, 0);
+        if (j.encoder_id != 0) {
+            encoder_ids_for_interface->insert(j.encoder_id);
+            this->motor_ids->insert(boost::bimap<uint16_t, uint16_t>::value_type(i, j.encoder_id));
+        }
 
         // TODO: Remove, only for testing with 1 motor
         this->updatePosition(i, 0);
     }
-    controller = std::make_unique<MksStepperController>(can_interface, std::move(motor_ids_for_controller), NORM_FACTOR);
+    this->controller = std::make_unique<MksStepperController>(can_interface, std::move(motor_ids_for_controller), NORM_FACTOR);
+    this->encoders = std::make_unique<EncoderInterface>(can_interface, std::move(encoder_ids_for_interface));
 
     // Register to receive callbacks for responses to getPosition and getSpeed
     // Note: These callbacks will occur in another thread, so they need to be processed carefully
     this->controller->EGetPosition.connect([this](const uint16_t motor, const int32_t pos) -> void {
+        const auto joint = this->motor_ids->right.at(motor);
+        // If we have an encoder for this motor, skip motor feedback
+        if (this->encoder_ids->left.find(joint) != this->encoder_ids->left.end()) { return; }
+
         // [rad] = [steps] / [steps / rev] * [2 pi rad / rev]
         // Also reduction factor
         this->updatePosition(this->motor_ids->right.at(motor), pos / this->reductions->at(motor) / STEPS_PER_REV * 2 * M_PI);
+    });
+
+    // Register for encoder callbacks
+    this->encoders->angle_signal.connect([this](uint32_t encoder, uint16_t angle, uint16_t angular_vel, uint16_t n_rotations) -> void {
+        // TODO: Workaround for bug in umrt-arm-encoder-driver - n_rotations is supposed to be signed
+        n_rotations = static_cast<int16_t>(n_rotations);
+
+        // [rad] = [15-bit position] / [2^15] * [2 pi rad / rev]
+        // Also number of rotations, and reduction factor
+        this->updatePosition(this->encoder_ids->right.at(encoder), (angle / 32768.0 + n_rotations) * 2 * M_PI);
     });
 
     // Start the polling loops for message handling and joint state querying
@@ -143,7 +165,12 @@ void ProjectPerryController::poll() {
 }
 
 void ProjectPerryController::queryController() {
-    for (auto i = 0u; i < NUM_JOINTS; ++i) { this->controller->getPosition(this->motor_ids->left.at(i)); }
+    for (auto j = 0u; j < NUM_JOINTS; ++j) {
+        // Only query controllers which we don't have encoders for
+        if (this->encoder_ids->left.find(j) == this->encoder_ids->left.end()) {
+            this->controller->getPosition(this->motor_ids->left.at(j));
+        }
+    }
 }
 
 void ProjectPerryController::queryPoll(const std::chrono::milliseconds& period) {
