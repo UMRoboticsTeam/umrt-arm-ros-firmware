@@ -79,7 +79,14 @@ namespace umrt_arm_ros_firmware {
                 reduction_factor = std::stoi(x->second);
             }
 
-            cfg.joint_infos.emplace_back(motor_id, reduction_factor);
+            bool differential;
+            if (const auto x = joint.parameters.find("differential"); x == joint.parameters.end()) {
+                differential = false;
+            } else {
+                differential = x->second == "true";
+            }
+
+            cfg.joint_infos.emplace_back(motor_id, reduction_factor, differential);
         }
 
         for (const hardware_interface::ComponentInfo& gpio : info_.gpios) {

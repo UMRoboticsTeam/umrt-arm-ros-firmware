@@ -5,12 +5,21 @@
 constexpr uint8_t NORM_FACTOR = 16;
 constexpr double STEPS_PER_REV = 200.0;
 
+constexpr size_t EXPECTED_JOINTS = 5;
+constexpr size_t WRIST_PITCH_INDEX = 3;
+constexpr size_t WRIST_ROLL_INDEX = 4;
+constexpr std::vector<size_t> NON_DIFFERENTIAL_JOINTS{ 0, 1, 2 };
+
+static void validate_joints(const std::vector<StepperAdapter::JointInfo>& joint_infos, rclcpp::Logger& logger);
+
 ProjectPerryController::ProjectPerryController(
         const std::string& can_interface, const std::vector<JointInfo>& joint_infos, const bool position_commandable,
         const double default_speed, const std::chrono::duration<int64_t, std::milli>& query_period, rclcpp::Logger& logger
 )
     : StepperAdapter(joint_infos.size()), position_commandable(position_commandable), default_speed(default_speed),
       logger(logger) {
+    validate_joints(joint_infos, logger);
+
     // Preprocess motor IDs into bimap we can use to convert between joint index and motor, and an unordered_set
     //     that MksController can use for its packet address lookups
 
@@ -112,4 +121,69 @@ void ProjectPerryController::queryPoll(const std::chrono::milliseconds& period) 
         std::this_thread::sleep_for(period);
         this->queryController();
     }
+}
+
+/**
+ * Asserts that the provided joint configuration is valid for a Project Perry system.
+ * @param joint_infos joint information
+ * @param logger ROS logger to use
+ */
+static void validate_joints(const std::vector<StepperAdapter::JointInfo>& joint_infos, rclcpp::Logger& logger) {
+    bool valid = true;
+
+    // Check we have right number of joints
+    if (joint_infos.size() != EXPECTED_JOINTS) {
+        RCLCPP_FATAL(
+                logger,
+                "Xacro configuration not valid for ProjectPerryController: Wrong number of joints (%lu instead of %lu)",
+                joint_infos.size(), EXPECTED_JOINTS
+        );
+        // We're going to do some index-based checks after, so we need to throw here if this isn't correct instead of
+        // accumulating errors
+        throw std::runtime_error("Xacro configuration not valid for ProjectPerryController; see ROS log");
+    }
+
+    // Check differential wrist joints are labeled (so that we know indices are correct since xacro doesn't enforce joint order)
+    if (!joint_infos.at(WRIST_PITCH_INDEX).differential) {
+        RCLCPP_FATAL(
+                logger,
+                "Xacro configuration not valid for ProjectPerryController: Joint at index %lu not labeled as differential "
+                "(are your joints in the correct order in the xacro?)",
+                WRIST_PITCH_INDEX
+        );
+        valid = false;
+    }
+    if (!joint_infos.at(WRIST_ROLL_INDEX).differential) {
+        RCLCPP_FATAL(
+                logger,
+                "Xacro configuration not valid for ProjectPerryController: Joint at index %lu not labeled as differential "
+                "(are your joints in the correct order in the xacro?)",
+                WRIST_PITCH_INDEX
+        );
+        valid = false;
+    }
+
+    // Check that all other joints are not labeled differential
+    for (const auto i : NON_DIFFERENTIAL_JOINTS) {
+        if (joint_infos.at(i).differential) {
+            RCLCPP_FATAL(
+                    logger,
+                    "Xacro configuration not valid for ProjectPerryController: Joint at index %lu was unexpectedly labeled "
+                    "as differential (are your joints in the correct order in the xacro?)",
+                    i
+            );
+            valid = false;
+        }
+    }
+
+    // Check differential wrist joints have same reduction ratios
+    if (joint_infos.at(WRIST_PITCH_INDEX).reduction_factor != joint_infos.at(WRIST_ROLL_INDEX).reduction_factor) {
+        RCLCPP_FATAL(
+                logger,
+                "Xacro configuration not valid for ProjectPerryController: Different reduction ratio for differential wrist"
+        );
+        valid = false;
+    }
+
+    if (!valid) { throw std::runtime_error("Xacro configuration not valid for ProjectPerryController; see ROS log"); }
 }

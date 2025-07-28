@@ -31,7 +31,13 @@ public:
         */
         uint16_t reduction_factor = 1;
 
-        JointInfo(const uint16_t motor_id, const uint16_t reduction_factor) : motor_id(motor_id), reduction_factor(reduction_factor) {}
+        /**
+        * Whether this joint is part of a differential pair.
+        */
+        bool differential = false;
+
+        JointInfo(const uint16_t motor_id, const uint16_t reduction_factor, const bool differential)
+            : motor_id(motor_id), reduction_factor(reduction_factor), differential(differential) {}
     };
 
     /**

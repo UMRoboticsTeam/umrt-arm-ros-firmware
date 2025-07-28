@@ -45,6 +45,10 @@
         <param name="motor_id">3</param>
         <param name="reduction_factor">252</param>
       </joint>
+      <!--
+      Convention: Last two joints are the differential wrist. They must be marked differential=true. The motor IDS
+      for the joints must be different, and both will be used to execute movement.
+      -->
       <joint name="wrist_pitch">
         <command_interface name="velocity"/>
         <command_interface name="position"/>
@@ -52,6 +56,7 @@
         <state_interface name="velocity"/>
         <param name="motor_id">4</param>
         <param name="reduction_factor">12</param>
+        <param name="differential">true</param>
       </joint>
       <joint name="wrist_roll">
         <command_interface name="velocity"/>
@@ -60,6 +65,7 @@
         <state_interface name="velocity"/>
         <param name="motor_id">5</param>
         <param name="reduction_factor">12</param>
+        <param name="differential">true</param>
       </joint>
       <gpio name="gripper">
         <command_interface name="position"/>
