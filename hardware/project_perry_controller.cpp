@@ -10,7 +10,9 @@ constexpr size_t WRIST_PITCH_INDEX = 3;
 constexpr size_t WRIST_ROLL_INDEX = 4;
 constexpr std::vector<size_t> NON_DIFFERENTIAL_JOINTS{ 0, 1, 2 };
 
-static void validate_joints(const std::vector<StepperAdapter::JointInfo>& joint_infos, rclcpp::Logger& logger);
+namespace {
+    void validate_joints(const std::vector<StepperAdapter::JointInfo>& joint_infos, rclcpp::Logger& logger);
+}
 
 ProjectPerryController::ProjectPerryController(
         const std::string& can_interface, const std::vector<JointInfo>& joint_infos, const double default_speed,
@@ -65,30 +67,68 @@ void ProjectPerryController::connect(const std::string device, const int baud_ra
 void ProjectPerryController::disconnect() {}
 
 void ProjectPerryController::setValues() {
-    for (auto i = 0u; i < NUM_JOINTS; ++i) {
-        auto const motor_id = this->motor_ids->left.at(i); // Convert joint ID to motor ID
+    for (const auto j : NON_DIFFERENTIAL_JOINTS) {
+        const auto motor_id = this->motor_ids->left.at(j); // Convert joint ID to motor ID
         const auto reduction = this->reductions->at(motor_id);
 
         // Note that the MksStepperController speed is in units of RPM (since we're using interpolated normalisation)
         const auto position =
-                static_cast<int32_t>(std::round(this->position_commands.at(i) * reduction * STEPS_PER_REV / 2 / M_PI));
-        auto speed = static_cast<int16_t>(std::round(this->velocity_commands.at(i) * reduction));
+                static_cast<int32_t>(std::round(this->position_commands.at(j) * reduction * STEPS_PER_REV / 2 / M_PI));
+        auto speed = static_cast<int16_t>(std::round(this->velocity_commands.at(j) * reduction));
         if (speed == 0) { speed = static_cast<int16_t>(std::round(this->default_speed * reduction)); }
 
         // If this is a new command, log it (if in debug mode)
         if (this->last_motor_commands->at(motor_id) != position) {
             this->last_motor_commands->at(motor_id) = position;
-            RCLCPP_DEBUG(this->logger, "Joint %d: Seeking to %d at %d", i, position, speed);
+            RCLCPP_DEBUG(this->logger, "Joint %lu: Seeking to %d at %d", j, position, speed);
         }
-
         this->controller->seekPosition(motor_id, position, speed);
 
         // TODO: For now just copy commanded velocity into velocity feedback
-        this->updateVelocity(i, this->velocity_commands.at(i));
+        this->updateVelocity(j, this->velocity_commands.at(j));
 
         // TODO: Idea for closed loop control: We should monitor SEEK_POS responses, and once we get a "COMPLETED" if
         //       there is error from target position we send some more steps
     }
+
+    // Handle differential wrist
+    // We define the wrist_pitch motor as the left motor, i.e. the one which moving forward produces negative pitch
+    const auto left_motor_id = this->motor_ids->left.at(WRIST_PITCH_INDEX);
+    const auto right_motor_id = this->motor_ids->left.at(WRIST_ROLL_INDEX);
+    const auto reduction = this->reductions->at(left_motor_id); // Recall we assert reductions are the same
+
+    // Kind of hacky, but we will use the average of the specified speeds
+    auto speed = static_cast<int16_t>(std::round(
+            (this->velocity_commands.at(WRIST_PITCH_INDEX) + this->velocity_commands.at(WRIST_ROLL_INDEX)) / 2 * reduction
+    ));
+    if (speed == 0) { speed = static_cast<int16_t>(std::round(this->default_speed * reduction)); }
+
+    // Calculate the pseudo-joint targets in units of steps from the zero position
+    const auto wrist_pitch_target = static_cast<int32_t>(
+            std::round(this->position_commands.at(WRIST_PITCH_INDEX) * reduction * STEPS_PER_REV / 2 / M_PI)
+    );
+    const auto wrist_roll_target = static_cast<int32_t>(
+            std::round(this->position_commands.at(WRIST_ROLL_INDEX) * reduction * STEPS_PER_REV / 2 / M_PI)
+    );
+
+    // Kinematics of a differential wrist:
+    // Pitch is the average of the motor positions, and roll is the difference in motor positions
+    // Our motor convention means that positive (CW when looking down arm) roll means that both motors are moving forwards
+    //      (i.e. left motor producing negative pitch, right motor positive pitch)
+    const auto left_motor_position = wrist_pitch_target + wrist_roll_target / 2;
+    const auto right_motor_position = wrist_pitch_target - wrist_roll_target / 2;
+
+    // If this is a new command, log it (if in debug mode)
+    if (this->last_motor_commands->at(WRIST_PITCH_INDEX) != left_motor_position) {
+        this->last_motor_commands->at(WRIST_PITCH_INDEX) = left_motor_position;
+        RCLCPP_DEBUG(this->logger, "Joint %lu: Seeking to %d at %d", WRIST_PITCH_INDEX, left_motor_position, speed);
+    }
+    if (this->last_motor_commands->at(WRIST_ROLL_INDEX) != right_motor_position) {
+        this->last_motor_commands->at(WRIST_ROLL_INDEX) = right_motor_position;
+        RCLCPP_DEBUG(this->logger, "Joint %lu: Seeking to %d at %d", WRIST_ROLL_INDEX, right_motor_position, speed);
+    }
+    this->controller->seekPosition(left_motor_id, left_motor_position, speed);
+    this->controller->seekPosition(right_motor_id, right_motor_position, speed);
 
     // TODO: Add gripper support
 }
@@ -113,67 +153,69 @@ void ProjectPerryController::queryPoll(const std::chrono::milliseconds& period) 
     }
 }
 
-/**
- * Asserts that the provided joint configuration is valid for a Project Perry system.
- * @param joint_infos joint information
- * @param logger ROS logger to use
- */
-static void validate_joints(const std::vector<StepperAdapter::JointInfo>& joint_infos, rclcpp::Logger& logger) {
-    bool valid = true;
+namespace {
+    /**
+     * Asserts that the provided joint configuration is valid for a Project Perry system.
+     * @param joint_infos joint information
+     * @param logger ROS logger to use
+     */
+    void ::validate_joints(const std::vector<StepperAdapter::JointInfo>& joint_infos, rclcpp::Logger& logger) {
+        bool valid = true;
 
-    // Check we have right number of joints
-    if (joint_infos.size() != EXPECTED_JOINTS) {
-        RCLCPP_FATAL(
-                logger,
-                "Xacro configuration not valid for ProjectPerryController: Wrong number of joints (%lu instead of %lu)",
-                joint_infos.size(), EXPECTED_JOINTS
-        );
-        // We're going to do some index-based checks after, so we need to throw here if this isn't correct instead of
-        // accumulating errors
-        throw std::runtime_error("Xacro configuration not valid for ProjectPerryController; see ROS log");
-    }
-
-    // Check differential wrist joints are labeled (so that we know indices are correct since xacro doesn't enforce joint order)
-    if (!joint_infos.at(WRIST_PITCH_INDEX).differential) {
-        RCLCPP_FATAL(
-                logger,
-                "Xacro configuration not valid for ProjectPerryController: Joint at index %lu not labeled as differential "
-                "(are your joints in the correct order in the xacro?)",
-                WRIST_PITCH_INDEX
-        );
-        valid = false;
-    }
-    if (!joint_infos.at(WRIST_ROLL_INDEX).differential) {
-        RCLCPP_FATAL(
-                logger,
-                "Xacro configuration not valid for ProjectPerryController: Joint at index %lu not labeled as differential "
-                "(are your joints in the correct order in the xacro?)",
-                WRIST_PITCH_INDEX
-        );
-        valid = false;
-    }
-
-    // Check that all other joints are not labeled differential
-    for (const auto i : NON_DIFFERENTIAL_JOINTS) {
-        if (joint_infos.at(i).differential) {
+        // Check we have right number of joints
+        if (joint_infos.size() != EXPECTED_JOINTS) {
             RCLCPP_FATAL(
                     logger,
-                    "Xacro configuration not valid for ProjectPerryController: Joint at index %lu was unexpectedly labeled "
-                    "as differential (are your joints in the correct order in the xacro?)",
-                    i
+                    "Xacro configuration not valid for ProjectPerryController: Wrong number of joints (%lu instead of %lu)",
+                    joint_infos.size(), EXPECTED_JOINTS
+            );
+            // We're going to do some index-based checks after, so we need to throw here if this isn't correct instead of
+            // accumulating errors
+            throw std::runtime_error("Xacro configuration not valid for ProjectPerryController; see ROS log");
+        }
+
+        // Check differential wrist joints are labeled (so that we know indices are correct since xacro doesn't enforce joint order)
+        if (!joint_infos.at(WRIST_PITCH_INDEX).differential) {
+            RCLCPP_FATAL(
+                    logger,
+                    "Xacro configuration not valid for ProjectPerryController: Joint at index %lu not labeled as "
+                    "differential (are your joints in the correct order in the xacro?)",
+                    WRIST_PITCH_INDEX
             );
             valid = false;
         }
-    }
+        if (!joint_infos.at(WRIST_ROLL_INDEX).differential) {
+            RCLCPP_FATAL(
+                    logger,
+                    "Xacro configuration not valid for ProjectPerryController: Joint at index %lu not labeled as "
+                    "differential (are your joints in the correct order in the xacro?)",
+                    WRIST_PITCH_INDEX
+            );
+            valid = false;
+        }
 
-    // Check differential wrist joints have same reduction ratios
-    if (joint_infos.at(WRIST_PITCH_INDEX).reduction_factor != joint_infos.at(WRIST_ROLL_INDEX).reduction_factor) {
-        RCLCPP_FATAL(
-                logger,
-                "Xacro configuration not valid for ProjectPerryController: Different reduction ratio for differential wrist"
-        );
-        valid = false;
-    }
+        // Check that all other joints are not labeled differential
+        for (const auto i : NON_DIFFERENTIAL_JOINTS) {
+            if (joint_infos.at(i).differential) {
+                RCLCPP_FATAL(
+                        logger,
+                        "Xacro configuration not valid for ProjectPerryController: Joint at index %lu was unexpectedly "
+                        "labeled as differential (are your joints in the correct order in the xacro?)",
+                        i
+                );
+                valid = false;
+            }
+        }
 
-    if (!valid) { throw std::runtime_error("Xacro configuration not valid for ProjectPerryController; see ROS log"); }
-}
+        // Check differential wrist joints have same reduction ratios
+        if (joint_infos.at(WRIST_PITCH_INDEX).reduction_factor != joint_infos.at(WRIST_ROLL_INDEX).reduction_factor) {
+            RCLCPP_FATAL(
+                    logger, "Xacro configuration not valid for ProjectPerryController: Different reduction ratio for "
+                            "differential wrist"
+            );
+            valid = false;
+        }
+
+        if (!valid) { throw std::runtime_error("Xacro configuration not valid for ProjectPerryController; see ROS log"); }
+    }
+} // namespace

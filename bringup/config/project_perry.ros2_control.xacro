@@ -46,8 +46,9 @@
         <param name="reduction_factor">252</param>
       </joint>
       <!--
-      Convention: Last two joints are the differential wrist. They must be marked differential=true. The motor IDS
-      for the joints must be different, and both will be used to execute movement.
+      Convention: Last two joints are the differential wrist. They must be marked differential=true. The motor ID
+      for the wrist_pitch joint must be the motor in which forward motion produces negative pitch when the wrist_roll
+      is run in reverse motion; i.e. wrist_pitch is the left motor, and wrist_roll is the right motor.
       -->
       <joint name="wrist_pitch">
         <command_interface name="velocity"/>
