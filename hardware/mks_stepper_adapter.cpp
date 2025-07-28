@@ -7,20 +7,23 @@ constexpr double STEPS_PER_REV = 200.0;
 
 MksStepperAdapter::MksStepperAdapter(
         const std::string& can_interface, const std::vector<JointInfo>& joint_infos, const bool position_commandable,
-        const double default_speed, const std::chrono::duration<int64_t, std::milli>& query_period
+        const double default_speed, const std::chrono::duration<int64_t, std::milli>& query_period, rclcpp::Logger& logger
 )
-    : StepperAdapter(joint_infos.size()), position_commandable(position_commandable), default_speed(default_speed) {
+    : StepperAdapter(joint_infos.size()), position_commandable(position_commandable), default_speed(default_speed),
+      logger(logger) {
     // Preprocess motor IDs into bimap we can use to convert between joint index and motor, and an unordered_set
     //     that MksController can use for its packet address lookups
 
     auto motor_ids_for_controller = std::make_unique<std::unordered_set<uint16_t>>(joint_infos.size());
     this->motor_ids = std::make_unique<boost::bimap<uint16_t, uint16_t>>();
     this->reductions = std::make_unique<std::unordered_map<uint16_t, double>>();
+    this->last_motor_commands = std::make_unique<std::unordered_map<uint16_t, int32_t>>();
     for (size_t i = 0; i < joint_infos.size(); ++i) {
         const JointInfo& j = joint_infos.at(i);
         motor_ids_for_controller->insert(j.motor_id);
         this->motor_ids->insert(boost::bimap<uint16_t, uint16_t>::value_type(i, j.motor_id));
         this->reductions->emplace(j.motor_id, j.reduction_factor);
+        this->last_motor_commands->emplace(j.motor_id, 0);
 
         // TODO: Remove, only for testing with 1 motor
         this->updatePosition(i, 0);
@@ -65,7 +68,12 @@ void MksStepperAdapter::setValues() {
             auto speed = static_cast<int16_t>(std::round(this->velocity_commands.at(i) * reduction));
             if (speed == 0) { speed = static_cast<int16_t>(std::round(this->default_speed * reduction)); }
 
-            RCLCPP_DEBUG(rclcpp::get_logger("MksStepperAdapter"), "Joint %d: Seeking to %d at %d", i, position, speed);
+            // If this is a new command, log it (if in debug mode)
+            if (this->last_motor_commands->at(motor_id) != position) {
+                this->last_motor_commands->at(motor_id) = position;
+                RCLCPP_DEBUG(this->logger, "Joint %d: Seeking to %d at %d", i, position, speed);
+            }
+
             this->controller->seekPosition(motor_id, position, speed);
 
             // TODO: For now just copy commanded velocity into velocity feedback

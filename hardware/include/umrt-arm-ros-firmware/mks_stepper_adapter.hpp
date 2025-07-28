@@ -28,14 +28,16 @@ public:
     * @param joint_infos info needed to process joint feedback, requires motor_id and reduction_factor
     * @param position_commandable whether position commands can be accepted
     * @param default_speed speed to use when a position command is sent without specifying a velocity
-    * @param query_period the time to wait between controller queries for position, velocity, etc.
+    * @param query_period time to wait between controller queries for position, velocity, etc.
+    * @param logger rclcpp::Logger to use for ROS log messages
     */
     MksStepperAdapter(
             const std::string& can_interface,
             const std::vector<JointInfo>& joint_infos,
             const bool position_commandable,
             const double default_speed,
-            const std::chrono::duration<int64_t, std::milli>& query_period
+            const std::chrono::duration<int64_t, std::milli>& query_period,
+            rclcpp::Logger& logger
     );
 
     ~MksStepperAdapter() override;
@@ -59,6 +61,9 @@ protected:
     /** Speed used when a position command is sent without specifying a velocity. */
     const double default_speed;
 
+    /** Logger used for sending ROS log messages. */
+    rclcpp::Logger& logger;
+
     /** The MksStepperController which implements the functionality exposed by this MksStepperAdapter. */
     std::unique_ptr<MksStepperController> controller;
 
@@ -76,6 +81,9 @@ protected:
 
     /** Maps joint index to reduction ratio factor. */
     std::unique_ptr<std::unordered_map<uint16_t, double>> reductions;
+
+    /** Maps motor CAN IDs to last commanded position, used for debug logging. */
+    std::unique_ptr<std::unordered_map<uint16_t, int32_t>> last_motor_commands;
 
     /** Method to indefinitely poll @ref controller for responses */
     void poll();
