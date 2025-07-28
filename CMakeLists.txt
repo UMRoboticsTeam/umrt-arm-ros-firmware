@@ -36,7 +36,7 @@ add_library(
         hardware/robotic_arm_control_system.cpp
         hardware/stepper_adapter.cpp
         hardware/arduino_stepper_adapter.cpp
-        hardware/mks_stepper_adapter.cpp)
+        hardware/project_perry_controller.cpp)
 target_compile_features(umrt-arm-ros-firmware PUBLIC cxx_std_17)
 target_include_directories(umrt-arm-ros-firmware PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>

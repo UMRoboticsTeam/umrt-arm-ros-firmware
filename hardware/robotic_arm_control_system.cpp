@@ -14,7 +14,7 @@
 
 #include "umrt-arm-ros-firmware/robotic_arm_control_system.hpp"
 #include "umrt-arm-ros-firmware/arduino_stepper_adapter.hpp"
-#include "umrt-arm-ros-firmware/mks_stepper_adapter.hpp"
+#include "umrt-arm-ros-firmware/project_perry_controller.hpp"
 
 #include <hardware_interface/lexical_casts.hpp>
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
@@ -95,7 +95,7 @@ namespace umrt_arm_ros_firmware {
                 steppers = std::make_unique<ArduinoStepperAdapter>(info_.joints.size(), std::chrono::milliseconds(100));
                 break;
             case Config::ControllerType::MKS:
-                steppers = std::make_unique<MksStepperAdapter>(cfg.device, cfg.joint_infos, cfg.position_commandable, cfg.default_speed, std::chrono::milliseconds(100), this->logger);
+                steppers = std::make_unique<ProjectPerryController>(cfg.device, cfg.joint_infos, cfg.position_commandable, cfg.default_speed, std::chrono::milliseconds(100), this->logger);
                 break;
             default: throw std::invalid_argument("Unknown controller type");
         }

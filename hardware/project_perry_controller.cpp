@@ -1,11 +1,11 @@
 #include <cmath>
 
-#include "umrt-arm-ros-firmware/mks_stepper_adapter.hpp"
+#include "umrt-arm-ros-firmware/project_perry_controller.hpp"
 
 constexpr uint8_t NORM_FACTOR = 16;
 constexpr double STEPS_PER_REV = 200.0;
 
-MksStepperAdapter::MksStepperAdapter(
+ProjectPerryController::ProjectPerryController(
         const std::string& can_interface, const std::vector<JointInfo>& joint_infos, const bool position_commandable,
         const double default_speed, const std::chrono::duration<int64_t, std::milli>& query_period, rclcpp::Logger& logger
 )
@@ -44,7 +44,7 @@ MksStepperAdapter::MksStepperAdapter(
     this->querying_thread = std::thread([this, query_period]() -> void { this->queryPoll(query_period); });
 }
 
-MksStepperAdapter::~MksStepperAdapter() {
+ProjectPerryController::~ProjectPerryController() {
     if (this->continue_polling) {
         this->continue_polling = false;
         this->polling_thread.join();
@@ -52,11 +52,11 @@ MksStepperAdapter::~MksStepperAdapter() {
     }
 }
 
-void MksStepperAdapter::connect(const std::string device, const int baud_rate) {}
+void ProjectPerryController::connect(const std::string device, const int baud_rate) {}
 
-void MksStepperAdapter::disconnect() {}
+void ProjectPerryController::disconnect() {}
 
-void MksStepperAdapter::setValues() {
+void ProjectPerryController::setValues() {
     if (this->position_commandable) {
         for (auto i = 0u; i < NUM_JOINTS; ++i) {
             auto const motor_id = this->motor_ids->left.at(i); // Convert joint ID to motor ID
@@ -78,6 +78,9 @@ void MksStepperAdapter::setValues() {
 
             // TODO: For now just copy commanded velocity into velocity feedback
             this->updateVelocity(i, this->velocity_commands.at(i));
+
+            // TODO: Idea for closed loop control: We should monitor SEEK_POS responses, and once we get a "COMPLETED" if
+            //       there is error from target position we send some more steps
         }
     } else {
         for (auto i = 0u; i < NUM_JOINTS; ++i) {
@@ -91,7 +94,7 @@ void MksStepperAdapter::setValues() {
     // TODO: Add gripper support
 }
 
-void MksStepperAdapter::poll() {
+void ProjectPerryController::poll() {
     // Run update loop approximately forever
     // TODO: Look into a better way of doing the polling loop which isn't so intensive
     while (continue_polling) {
@@ -100,11 +103,11 @@ void MksStepperAdapter::poll() {
     }
 }
 
-void MksStepperAdapter::queryController() {
+void ProjectPerryController::queryController() {
     for (auto i = 0u; i < NUM_JOINTS; ++i) { this->controller->getPosition(this->motor_ids->left.at(i)); }
 }
 
-void MksStepperAdapter::queryPoll(const std::chrono::milliseconds& period) {
+void ProjectPerryController::queryPoll(const std::chrono::milliseconds& period) {
     while (this->continue_polling) {
         std::this_thread::sleep_for(period);
         this->queryController();

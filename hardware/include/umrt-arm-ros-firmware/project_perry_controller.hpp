@@ -13,15 +13,18 @@
 #include <umrt-arm-firmware-lib/mks_stepper_controller.hpp>
 
 /**
- * Adapter class to interface an @ref MksStepperController with a ros2_control
- * hardware_interface.
+ * Adapter class to interface an @ref MksStepperController with a ros2_control hardware_interface, with joints handled as
+ * per the Project Perry mechanical implementation.
+ *
+ * The reason this class is not arm-agnostic is that Project Perry has a differential wrist, which requires special handling
+ * when executing motor commands.
  *
  * Unlike @ref ArduinoStepperController, this class follows the RAII paradigm.
  */
-class MksStepperAdapter : public StepperAdapter {
+class ProjectPerryController : public StepperAdapter {
 public:
     /**
-    * Initializes an MksStepperAdapter.
+    * Initializes a ProjectPerryController.
     * The number of joints is inferred from the number of motor IDs provided.
     *
     * @param can_interface SocketCAN network interface corresponding to the CAN bus
@@ -31,7 +34,7 @@ public:
     * @param query_period time to wait between controller queries for position, velocity, etc.
     * @param logger rclcpp::Logger to use for ROS log messages
     */
-    MksStepperAdapter(
+    ProjectPerryController(
             const std::string& can_interface,
             const std::vector<JointInfo>& joint_infos,
             const bool position_commandable,
@@ -40,7 +43,7 @@ public:
             rclcpp::Logger& logger
     );
 
-    ~MksStepperAdapter() override;
+    ~ProjectPerryController() override;
 
     /** Does nothing. */
     void connect(const std::string device, const int baud_rate) override;
@@ -64,7 +67,7 @@ protected:
     /** Logger used for sending ROS log messages. */
     rclcpp::Logger& logger;
 
-    /** The MksStepperController which implements the functionality exposed by this MksStepperAdapter. */
+    /** The MksStepperController which is used to command motors. */
     std::unique_ptr<MksStepperController> controller;
 
     /** Thread used to run @ref poll indefinitely. */
