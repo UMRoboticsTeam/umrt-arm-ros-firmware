@@ -61,11 +61,11 @@
         <param name="motor_id">5</param>
         <param name="reduction_factor">12</param>
       </joint>
-<!--      <gpio name="${prefix}gripper">-->
-<!--        <command_interface name="position"/>-->
-<!--        <state_interface name="position"/>-->
-<!--        <state_interface name="velocity"/>-->
-<!--      </gpio>-->
+      <gpio name="gripper">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </gpio>
     </ros2_control>
 
   </xacro:macro>
