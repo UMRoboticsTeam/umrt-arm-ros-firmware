@@ -102,7 +102,8 @@ namespace umrt_arm_ros_firmware {
                 steppers = std::make_unique<ArduinoStepperAdapter>(info_.joints.size(), std::chrono::milliseconds(100));
                 break;
             case Config::ControllerType::MKS:
-                steppers = std::make_unique<ProjectPerryController>(cfg.device, cfg.joint_infos, cfg.position_commandable, cfg.default_speed, std::chrono::milliseconds(100), this->logger);
+                if (!cfg.position_commandable) { throw std::invalid_argument("ProjectPerryController must be used with position_commandable"); }
+                steppers = std::make_unique<ProjectPerryController>(cfg.device, cfg.joint_infos, cfg.default_speed, std::chrono::milliseconds(100), this->logger);
                 break;
             default: throw std::invalid_argument("Unknown controller type");
         }

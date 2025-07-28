@@ -13,11 +13,10 @@ constexpr std::vector<size_t> NON_DIFFERENTIAL_JOINTS{ 0, 1, 2 };
 static void validate_joints(const std::vector<StepperAdapter::JointInfo>& joint_infos, rclcpp::Logger& logger);
 
 ProjectPerryController::ProjectPerryController(
-        const std::string& can_interface, const std::vector<JointInfo>& joint_infos, const bool position_commandable,
-        const double default_speed, const std::chrono::duration<int64_t, std::milli>& query_period, rclcpp::Logger& logger
+        const std::string& can_interface, const std::vector<JointInfo>& joint_infos, const double default_speed,
+        const std::chrono::duration<int64_t, std::milli>& query_period, rclcpp::Logger& logger
 )
-    : StepperAdapter(joint_infos.size()), position_commandable(position_commandable), default_speed(default_speed),
-      logger(logger) {
+    : StepperAdapter(joint_infos.size()), default_speed(default_speed), logger(logger) {
     validate_joints(joint_infos, logger);
 
     // Preprocess motor IDs into bimap we can use to convert between joint index and motor, and an unordered_set
@@ -66,38 +65,29 @@ void ProjectPerryController::connect(const std::string device, const int baud_ra
 void ProjectPerryController::disconnect() {}
 
 void ProjectPerryController::setValues() {
-    if (this->position_commandable) {
-        for (auto i = 0u; i < NUM_JOINTS; ++i) {
-            auto const motor_id = this->motor_ids->left.at(i); // Convert joint ID to motor ID
-            const auto reduction = this->reductions->at(motor_id);
+    for (auto i = 0u; i < NUM_JOINTS; ++i) {
+        auto const motor_id = this->motor_ids->left.at(i); // Convert joint ID to motor ID
+        const auto reduction = this->reductions->at(motor_id);
 
-            // Note that the MksStepperController speed is in units of RPM (since we're using interpolated normalisation)
-            const auto position =
-                    static_cast<int32_t>(std::round(this->position_commands.at(i) * reduction * STEPS_PER_REV / 2 / M_PI));
-            auto speed = static_cast<int16_t>(std::round(this->velocity_commands.at(i) * reduction));
-            if (speed == 0) { speed = static_cast<int16_t>(std::round(this->default_speed * reduction)); }
+        // Note that the MksStepperController speed is in units of RPM (since we're using interpolated normalisation)
+        const auto position =
+                static_cast<int32_t>(std::round(this->position_commands.at(i) * reduction * STEPS_PER_REV / 2 / M_PI));
+        auto speed = static_cast<int16_t>(std::round(this->velocity_commands.at(i) * reduction));
+        if (speed == 0) { speed = static_cast<int16_t>(std::round(this->default_speed * reduction)); }
 
-            // If this is a new command, log it (if in debug mode)
-            if (this->last_motor_commands->at(motor_id) != position) {
-                this->last_motor_commands->at(motor_id) = position;
-                RCLCPP_DEBUG(this->logger, "Joint %d: Seeking to %d at %d", i, position, speed);
-            }
-
-            this->controller->seekPosition(motor_id, position, speed);
-
-            // TODO: For now just copy commanded velocity into velocity feedback
-            this->updateVelocity(i, this->velocity_commands.at(i));
-
-            // TODO: Idea for closed loop control: We should monitor SEEK_POS responses, and once we get a "COMPLETED" if
-            //       there is error from target position we send some more steps
+        // If this is a new command, log it (if in debug mode)
+        if (this->last_motor_commands->at(motor_id) != position) {
+            this->last_motor_commands->at(motor_id) = position;
+            RCLCPP_DEBUG(this->logger, "Joint %d: Seeking to %d at %d", i, position, speed);
         }
-    } else {
-        for (auto i = 0u; i < NUM_JOINTS; ++i) {
-            // Note that the MksStepperController speed is in units of RPM (since we're using interpolated normalisation)
-            this->controller->setSpeed(
-                    motor_ids->left.at(i), static_cast<int16_t>(std::round(this->velocity_commands.at(i)))
-            );
-        }
+
+        this->controller->seekPosition(motor_id, position, speed);
+
+        // TODO: For now just copy commanded velocity into velocity feedback
+        this->updateVelocity(i, this->velocity_commands.at(i));
+
+        // TODO: Idea for closed loop control: We should monitor SEEK_POS responses, and once we get a "COMPLETED" if
+        //       there is error from target position we send some more steps
     }
 
     // TODO: Add gripper support

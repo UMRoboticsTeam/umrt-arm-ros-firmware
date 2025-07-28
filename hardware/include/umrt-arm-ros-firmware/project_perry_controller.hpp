@@ -29,7 +29,6 @@ public:
     *
     * @param can_interface SocketCAN network interface corresponding to the CAN bus
     * @param joint_infos info needed to process joint feedback, requires motor_id and reduction_factor
-    * @param position_commandable whether position commands can be accepted
     * @param default_speed speed to use when a position command is sent without specifying a velocity
     * @param query_period time to wait between controller queries for position, velocity, etc.
     * @param logger rclcpp::Logger to use for ROS log messages
@@ -37,7 +36,6 @@ public:
     ProjectPerryController(
             const std::string& can_interface,
             const std::vector<JointInfo>& joint_infos,
-            const bool position_commandable,
             const double default_speed,
             const std::chrono::duration<int64_t, std::milli>& query_period,
             rclcpp::Logger& logger
@@ -56,9 +54,6 @@ public:
      * through @ref getCommandRef, to the Stepper Controller program.
      */
     void setValues() override;
-
-    /** Whether position commands can be accepted. */
-    const bool position_commandable;
 
 protected:
     /** Speed used when a position command is sent without specifying a velocity. */
