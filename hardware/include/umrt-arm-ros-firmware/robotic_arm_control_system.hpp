@@ -49,6 +49,7 @@ namespace umrt_arm_ros_firmware {
      * - `controller_type`: The selected controller backend, one of RoboticArmControlSystem::Config::ControllerType
      * - `default_speed`: The speed to move at if a position is commanded without a speed or if speed is 0
      * - `position_commandable`: Whether to expose, and require, position command interfaces for every joint; defaults to false
+     * - `gripper_id`: The ID associated with the command interface of the gripper CAN controller; defaults to 0
      * Joint parameters:
      * - `motor_id`: The ID associated with the motor driver attached to the joint
      * - `reduction_factor`: The mechanical reduction factor between the motor and the joint; defaults to 1
@@ -68,6 +69,7 @@ namespace umrt_arm_ros_firmware {
             ControllerType controller_type = ControllerType::INVALID;
             double default_speed = 0.0;
             std::vector<StepperAdapter::JointInfo> joint_infos{};
+            uint16_t gripper_id = 0;
 
             static ControllerType controller_type_from_string(const std::string& controller_type) {
                 if (controller_type == "ARDUINO") { return ControllerType::ARDUINO; }

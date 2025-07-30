@@ -11,6 +11,7 @@
 #include <boost/bimap.hpp>
 
 #include <umrt-arm-firmware-lib/mks_stepper_controller.hpp>
+#include <umrt-arm-firmware-lib/servo_controller.hpp>
 #include <encoder_interface.hpp> // TODO: Figure out what went wrong with umrt-arm-encoder-driver packaging that doesn't namespace this properly
 
 /**
@@ -30,6 +31,7 @@ public:
     *
     * @param can_interface SocketCAN network interface corresponding to the CAN bus
     * @param joint_infos info needed to process joint feedback, requires motor_id and reduction_factor
+    * @param gripper_id CAN ID to send gripper commands to
     * @param default_speed speed to use when a position command is sent without specifying a velocity
     * @param query_period time to wait between controller queries for position, velocity, etc.
     * @param logger rclcpp::Logger to use for ROS log messages
@@ -37,6 +39,7 @@ public:
     ProjectPerryController(
             const std::string& can_interface,
             const std::vector<JointInfo>& joint_infos,
+            const uint16_t gripper_id,
             const double default_speed,
             const std::chrono::duration<int64_t, std::milli>& query_period,
             rclcpp::Logger& logger
@@ -66,8 +69,11 @@ protected:
     /** The MksStepperController which is used to command motors. */
     std::unique_ptr<MksStepperController> controller;
 
-   /** EncoderInterface used to communicate with rotary encoders for position feedback **/
-   std::unique_ptr<EncoderInterface> encoders;
+    /** EncoderInterface used to communicate with rotary encoders for position feedback **/
+    std::unique_ptr<EncoderInterface> encoders;
+
+    /** ServoController used to actuate the gripper. */
+    std::unique_ptr<ServoController> gripper;
 
     /** Thread used to run @ref poll indefinitely. */
     std::thread polling_thread;

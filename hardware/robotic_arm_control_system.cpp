@@ -56,6 +56,7 @@ namespace umrt_arm_ros_firmware {
         cfg.controller_type = Config::controller_type_from_string(info_.hardware_parameters["controller_type"]);
         cfg.position_commandable = info_.hardware_parameters["position_commandable"] == "true";
         cfg.default_speed = std::stod(info_.hardware_parameters["default_speed"]);
+        cfg.gripper_id = std::stoi(info_.hardware_parameters["gripper_id"].empty() ? "0" : info_.hardware_parameters["gripper_id"]);
         // TODO: Make position_commandable a "command mode" enum, would be much more user friendly/clear
 
         for (const hardware_interface::ComponentInfo& joint : info_.joints) {
@@ -110,7 +111,7 @@ namespace umrt_arm_ros_firmware {
                 break;
             case Config::ControllerType::MKS:
                 if (!cfg.position_commandable) { throw std::invalid_argument("ProjectPerryController must be used with position_commandable"); }
-                steppers = std::make_unique<ProjectPerryController>(cfg.device, cfg.joint_infos, cfg.default_speed, std::chrono::milliseconds(100), this->logger);
+                steppers = std::make_unique<ProjectPerryController>(cfg.device, cfg.joint_infos, cfg.gripper_id, cfg.default_speed, std::chrono::milliseconds(100), this->logger);
                 break;
             default: throw std::invalid_argument("Unknown controller type");
         }

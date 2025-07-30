@@ -15,8 +15,8 @@ namespace {
 }
 
 ProjectPerryController::ProjectPerryController(
-        const std::string& can_interface, const std::vector<JointInfo>& joint_infos, const double default_speed,
-        const std::chrono::duration<int64_t, std::milli>& query_period, rclcpp::Logger& logger
+        const std::string& can_interface, const std::vector<JointInfo>& joint_infos, const uint16_t gripper_id,
+        const double default_speed, const std::chrono::duration<int64_t, std::milli>& query_period, rclcpp::Logger& logger
 )
     : StepperAdapter(joint_infos.size()), default_speed(default_speed), logger(logger) {
     validate_joints(joint_infos, logger);
@@ -45,8 +45,10 @@ ProjectPerryController::ProjectPerryController(
         // TODO: Remove, only for testing with 1 motor
         this->updatePosition(i, 0);
     }
-    this->controller = std::make_unique<MksStepperController>(can_interface, std::move(motor_ids_for_controller), NORM_FACTOR);
+    this->controller =
+            std::make_unique<MksStepperController>(can_interface, std::move(motor_ids_for_controller), NORM_FACTOR);
     this->encoders = std::make_unique<EncoderInterface>(can_interface, std::move(encoder_ids_for_interface));
+    this->gripper = std::make_unique<ServoController>(can_interface, gripper_id);
 
     // Register to receive callbacks for responses to getPosition and getSpeed
     // Note: These callbacks will occur in another thread, so they need to be processed carefully
@@ -61,14 +63,16 @@ ProjectPerryController::ProjectPerryController(
     });
 
     // Register for encoder callbacks
-    this->encoders->angle_signal.connect([this](uint32_t encoder, uint16_t angle, uint16_t angular_vel, uint16_t n_rotations) -> void {
-        // TODO: Workaround for bug in umrt-arm-encoder-driver - n_rotations is supposed to be signed
-        n_rotations = static_cast<int16_t>(n_rotations);
+    this->encoders->angle_signal.connect(
+            [this](uint32_t encoder, uint16_t angle, uint16_t angular_vel, uint16_t n_rotations) -> void {
+                // TODO: Workaround for bug in umrt-arm-encoder-driver - n_rotations is supposed to be signed
+                n_rotations = static_cast<int16_t>(n_rotations);
 
-        // [rad] = [15-bit position] / [2^15] * [2 pi rad / rev]
-        // Also number of rotations, and reduction factor
-        this->updatePosition(this->encoder_ids->right.at(encoder), (angle / 32768.0 + n_rotations) * 2 * M_PI);
-    });
+                // [rad] = [15-bit position] / [2^15] * [2 pi rad / rev]
+                // Also number of rotations, and reduction factor
+                this->updatePosition(this->encoder_ids->right.at(encoder), (angle / 32768.0 + n_rotations) * 2 * M_PI);
+            }
+    );
 
     // Start the polling loops for message handling and joint state querying
     this->continue_polling = true;
@@ -152,7 +156,8 @@ void ProjectPerryController::setValues() {
     this->controller->seekPosition(left_motor_id, left_motor_position, speed);
     this->controller->seekPosition(right_motor_id, right_motor_position, speed);
 
-    // TODO: Add gripper support
+    // Note that 255 is exactly representable in IEEE754 double
+    this->gripper->send(static_cast<uint8_t>(std::round(std::clamp(gripper_position, 0.0, 255.0))));
 }
 
 void ProjectPerryController::poll() {
