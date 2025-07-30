@@ -47,10 +47,12 @@ namespace umrt_arm_ros_firmware {
      * - `device`: The serial, network, etc. device to communicate to the controller through
      * - `baud_rate`: The baud rate to open the connection with
      * - `controller_type`: The selected controller backend, one of RoboticArmControlSystem::Config::ControllerType
+     * - `default_speed`: The speed to move at if a position is commanded without a speed or if speed is 0
      * - `position_commandable`: Whether to expose, and require, position command interfaces for every joint; defaults to false
      * Joint parameters:
      * - `motor_id`: The ID associated with the motor driver attached to the joint
      * - `reduction_factor`: The mechanical reduction factor between the motor and the joint; defaults to 1
+     * - `encoder_id`: (Optional) The ID associated with the rotary encoder attached to the joint
      */
     class RoboticArmControlSystem : public hardware_interface::SystemInterface {
         struct Config {

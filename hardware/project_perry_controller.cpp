@@ -8,7 +8,7 @@ constexpr double STEPS_PER_REV = 200.0;
 constexpr size_t EXPECTED_JOINTS = 5;
 constexpr size_t WRIST_PITCH_INDEX = 3;
 constexpr size_t WRIST_ROLL_INDEX = 4;
-constexpr std::vector<size_t> NON_DIFFERENTIAL_JOINTS{ 0, 1, 2 };
+const std::vector<size_t> NON_DIFFERENTIAL_JOINTS{ 0, 1, 2 };
 
 namespace {
     void validate_joints(const std::vector<StepperAdapter::JointInfo>& joint_infos, rclcpp::Logger& logger);
@@ -186,7 +186,7 @@ namespace {
      * @param joint_infos joint information
      * @param logger ROS logger to use
      */
-    void ::validate_joints(const std::vector<StepperAdapter::JointInfo>& joint_infos, rclcpp::Logger& logger) {
+    void validate_joints(const std::vector<StepperAdapter::JointInfo>& joint_infos, rclcpp::Logger& logger) {
         bool valid = true;
 
         // Check we have right number of joints
