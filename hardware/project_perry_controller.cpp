@@ -248,6 +248,9 @@ namespace {
             valid = false;
         }
 
-        if (!valid) { throw std::runtime_error("Xacro configuration not valid for ProjectPerryController; see ROS log"); }
+        if (!valid) {
+            RCLCPP_FATAL()
+            throw std::runtime_error("Xacro configuration not valid for ProjectPerryController; see ROS log");
+        }
     }
 } // namespace

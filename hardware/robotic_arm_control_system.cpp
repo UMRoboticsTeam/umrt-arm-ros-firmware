@@ -104,18 +104,22 @@ namespace umrt_arm_ros_firmware {
         // Select the StepperAdapter implementation we want to use
         // TODO: Make log message better
         RCLCPP_INFO(this->logger, "Creating controller type %d, with position_commandable set to %d", cfg.controller_type, cfg.position_commandable);
-        switch (cfg.controller_type) {
-            case Config::ControllerType::ARDUINO:
-                if (cfg.position_commandable) { throw std::invalid_argument("ArduinoStepperAdapter cannot be used with position_commandable"); }
+        try {
+            switch (cfg.controller_type) {
+                case Config::ControllerType::ARDUINO:
+                    if (cfg.position_commandable) { throw std::invalid_argument("ArduinoStepperAdapter cannot be used with position_commandable"); }
                 steppers = std::make_unique<ArduinoStepperAdapter>(info_.joints.size(), std::chrono::milliseconds(100));
                 break;
-            case Config::ControllerType::MKS:
-                if (!cfg.position_commandable) { throw std::invalid_argument("ProjectPerryController must be used with position_commandable"); }
+                case Config::ControllerType::MKS:
+                    if (!cfg.position_commandable) { throw std::invalid_argument("ProjectPerryController must be used with position_commandable"); }
                 steppers = std::make_unique<ProjectPerryController>(cfg.device, cfg.joint_infos, cfg.gripper_id, cfg.default_speed, std::chrono::milliseconds(100), this->logger);
                 break;
-            default: throw std::invalid_argument("Unknown controller type");
+                default: throw std::invalid_argument("Unknown controller type");
+            }
+        } catch (std::exception& e) { // If this fails for any reason, intercept to dump our XML and then continue
+            RCLCPP_FATAL(this->logger, "Failed to create controller; XML parameters:\n%s", info_.original_xml.c_str());
+            throw e;
         }
-
         return hardware_interface::CallbackReturn::SUCCESS;
     }
 
