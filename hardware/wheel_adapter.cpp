@@ -40,8 +40,6 @@ void WheelAdapter::setValues() {
         // Note that the WheelController speed is in units of RPM (since we're using interpolated normalisation)
         this->controller->setSpeed(motor_ids->left.at(i), static_cast<int16_t>(std::round(this->commands.at(i))));
     }
-
-    // TODO: Add gripper support
 }
 
 void WheelAdapter::poll() {
