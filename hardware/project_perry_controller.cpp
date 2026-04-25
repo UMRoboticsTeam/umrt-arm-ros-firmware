@@ -61,10 +61,7 @@ ProjectPerryController::ProjectPerryController(
 
     // Register for encoder callbacks
     this->encoders->angle_signal.connect(
-            [this](uint32_t encoder, uint16_t angle, uint16_t angular_vel, uint16_t n_rotations) -> void {
-                // TODO: Workaround for bug in umrt-arm-encoder-driver - n_rotations is supposed to be signed
-                n_rotations = static_cast<int16_t>(n_rotations);
-
+            [this](uint32_t encoder, uint16_t angle, uint16_t angular_vel, int16_t n_rotations) -> void {
                 // [rad] = [15-bit position] / [2^15] * [2 pi rad / rev]
                 // Also number of rotations, and reduction factor
                 this->updatePosition(this->encoder_ids->right.at(encoder), (angle / 32768.0 + n_rotations) * 2 * M_PI);
