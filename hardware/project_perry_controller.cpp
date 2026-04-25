@@ -91,6 +91,10 @@ void ProjectPerryController::setValues() {
         const auto motor_id = this->motor_ids->left.at(j); // Convert joint ID to motor ID
         const auto reduction = this->reductions->at(motor_id);
 
+        // TODO: We are currently not using the encoders for anything here. This means that we assume the zero position on the
+        //       motor is the zero position of the encoder. This is certainly not the case. The motor zero point is reset upon
+        //       power loss. This is still somewhat useful for testing, but will need to be resolved before IK can be used.
+
         // Note that the MksStepperController speed is in units of RPM (since we're using interpolated normalisation)
         const auto position =
                 static_cast<int32_t>(std::round(this->position_commands.at(j) * reduction * STEPS_PER_REV / 2 / M_PI));
