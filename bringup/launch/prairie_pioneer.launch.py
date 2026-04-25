@@ -45,12 +45,13 @@ def generate_launch_description():
     use_mock_hardware = LaunchConfiguration("use_mock_hardware")
 
     # Get URDF via xacro
+    # Note in Git tree they are located at "hardware/include/ros2_control_demo_description/prairie_pioneer/...", install tree is different
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare("umrt-arm-ros-firmware"), "urdf", "prairie_pioneer.urdf.xacro"]
+                [FindPackageShare("umrt-arm-ros-firmware"), "ros2_control_demo_description", "prairie_pioneer", "urdf", "prairie_pioneer.urdf.xacro"]
             ),
             " ",
             "use_mock_hardware:=",

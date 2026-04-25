@@ -12,10 +12,38 @@
 /**
  * Adapter class to interface a @ref StepperController with a ros2_control
  * hardware_interface.
- * TODO: Make docs more generic
  */
 class StepperAdapter {
 public:
+    /**
+    * Collection of information about a joint necessary for interacting with the associated motor.
+    */
+    struct JointInfo {
+        /**
+        * ID of the motor controller for this joint.
+        */
+        uint16_t motor_id{};
+
+        /**
+        * ID of the encoder for this joint, or 0 if it has none.
+        */
+        uint32_t encoder_id{};
+
+        /**
+        * Mechanical reduction factor between motor feedback position and joint position, defaults to 1.
+        * E.g. for a motor driving a joint through a 16:1 gearbox, the reduction factor should be 16.
+        */
+        uint16_t reduction_factor = 1;
+
+        /**
+        * Whether this joint is part of a differential pair.
+        */
+        bool differential = false;
+
+        JointInfo(const uint16_t motor_id, const uint32_t encoder_id, const uint16_t reduction_factor, const bool differential)
+            : motor_id{motor_id}, encoder_id{encoder_id}, reduction_factor{reduction_factor}, differential{differential} {}
+    };
+
     /**
     * Creates a StepperAdapter.
     *
@@ -29,15 +57,15 @@ public:
     virtual ~StepperAdapter();
 
     /**
-    * Connect to an Arduino running the Stepper Controller program.
+    * Performs any necessary connection establishment.
     *
-    * @param device the path to the serial device connected to the Arduino
-    * @param baud_rate baud rate to use for the Firmata connection
+    * @param device a string representing the device to connect to, see your concrete class for details
+    * @param baud_rate baud rate to use for the connection, see your concrete class for details
     */
     virtual void connect(const std::string device, const int baud_rate) = 0;
 
     /**
-     * Disconnect from the Arduino and close polling loops.
+     * Disconnect any established connections and shutdown associated threads.
      */
     virtual void disconnect() = 0;
 
@@ -54,22 +82,22 @@ public:
     virtual void readValues();
 
     /**
-     * Exposes the position register for the specified joint. Refreshed by
-     * @ref readValues.
-     *
-     * @param index index of the joint to access
-     * @return a reference to the joint's current position
-     */
-    double& getPositionRef(std::size_t index);
+    * Exposes the position register for the specified joint. Refreshed by
+    * @ref readValues.
+    *
+    * @param index index of the joint to access
+    * @return a reference to the joint's current velocity
+    */
+    double& getStateVelocityRef(std::size_t index);
 
     /**
      * Exposes the position register for the specified joint. Refreshed by
      * @ref readValues.
      *
      * @param index index of the joint to access
-     * @return a reference to the joint's current velocity
+     * @return a reference to the joint's current position
      */
-    double& getVelocityRef(std::size_t index);
+    double& getStatePositionRef(std::size_t index);
 
     /**
      * Exposes the position register for the gripper. Refreshed by
@@ -80,13 +108,30 @@ public:
     double& getGripperPositionRef();
 
     /**
+    * Exposes the velocity register for the gripper. Refreshed by
+    * @ref readValues.
+    *
+    * @return a reference to the gripper's current velocity
+    */
+    double& getGripperVelocityRef();
+
+    /**
      * Exposes the velocity command register for the specified joint. Pushed by
      * @ref setValues.
      *
      * @param index index of the joint to access
      * @return a reference to the joint's requested velocity
      */
-    double& getCommandRef(std::size_t index);
+    double& getCommandVelocityRef(std::size_t index);
+
+    /**
+     * Exposes the position command register for the specified joint. Pushed by
+     * @ref setValues.
+     *
+     * @param index index of the joint to access
+     * @return a reference to the joint's requested position
+     */
+    double& getCommandPositionRef(std::size_t index);
 
     /**
      * Exposes the position command register for the gripper. Pushed by
@@ -96,6 +141,11 @@ public:
      */
     double& getGripperPositionCommandRef();
 
+    /**
+     * The number of joints belonging to this StepperAdapter.
+     */
+    const std::size_t NUM_JOINTS;
+
 protected:
     // It is very important that the size of these vectors is not changed after init has been called, since we need
     // element pointer stability. Unfortunately, we also need element mutability so const vectors can't be used. As
@@ -103,10 +153,12 @@ protected:
     // required, so std::lists are not a good option either.
     // Note that while it may seem a little silly to expose references to the vector elements, but hide the vectors
     // themselves, this is an important way to prevent the invalidation of references by changing the vectors' sizes
-    std::vector<double> commands;
+    std::vector<double> velocity_commands;
+    std::vector<double> position_commands;
     std::vector<double> positions;
     std::vector<double> velocities;
     double gripper_position;
+    double gripper_velocity;
     double cmd_gripper_pos;
 
     /**
@@ -134,12 +186,12 @@ protected:
     /**
      * Updates the provided joint's value in @ref positions_buffer in a thread-safe manner.
      */
-    void updatePosition(const uint8_t joint, const int32_t position);
+    void updatePosition(const uint8_t joint, const double position);
 
     /**
      * Updates the provided joint's value in @ref velocities_buffer in a thread-safe manner.
      */
-    void updateVelocity(const uint8_t joint, const int16_t speed);
+    void updateVelocity(const uint8_t joint, const double speed);
 };
 
 #endif // UMRT_ARM_ROS_FIRMWARE_STEPPER_ADAPTER_HPP

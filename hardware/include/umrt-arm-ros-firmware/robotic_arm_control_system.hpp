@@ -33,7 +33,30 @@
 #include "stepper_adapter.hpp"
 
 namespace umrt_arm_ros_firmware {
+    /**
+     * ros2_control hardware_interface for the robotic arm.
+     * Allows for one of several different controller backends to be selected.
+     *
+     * Each joint must specify a velocity interface; and if `position_commandable` is enabled, then all must also specify a
+     * position command interface. Each joint must also specify a position and velocity state interface, regardless of
+     * `position_commandable` value.
+     *
+     * Requires the following parameters in the xacro:
+     *
+     * Hardware parameters
+     * - `device`: The serial, network, etc. device to communicate to the controller through
+     * - `baud_rate`: The baud rate to open the connection with
+     * - `controller_type`: The selected controller backend, one of RoboticArmControlSystem::Config::ControllerType
+     * - `default_speed`: The speed to move at if a position is commanded without a speed or if speed is 0
+     * - `position_commandable`: Whether to expose, and require, position command interfaces for every joint; defaults to false
+     * - `gripper_id`: The ID associated with the command interface of the gripper CAN controller; defaults to 0
+     * Joint parameters:
+     * - `motor_id`: The ID associated with the motor driver attached to the joint
+     * - `reduction_factor`: The mechanical reduction factor between the motor and the joint; defaults to 1
+     * - `encoder_id`: (Optional) The ID associated with the rotary encoder attached to the joint
+     */
     class RoboticArmControlSystem : public hardware_interface::SystemInterface {
+    public:
         struct Config {
             enum class ControllerType {
                 INVALID,
@@ -42,18 +65,17 @@ namespace umrt_arm_ros_firmware {
             };
 
             std::string device;
-            int baud_rate = 0;
-            ControllerType controller_type = ControllerType::INVALID;
-            std::vector<uint16_t> motor_ids{};
+            int baud_rate;
+            bool position_commandable;
+            ControllerType controller_type;
+            double default_speed;
+            std::vector<StepperAdapter::JointInfo> joint_infos{};
+            uint16_t gripper_id;
 
-            static ControllerType controller_type_from_string(const std::string& controller_type) {
-                if (controller_type == "ARDUINO") { return ControllerType::ARDUINO; }
-                if (controller_type == "MKS") { return ControllerType::MKS; }
-                throw std::invalid_argument((std::stringstream() << "Invalid controller type: " << controller_type).str());
-            }
+            Config(std::string  device, int baudRate, bool positionCommandable, ControllerType controllerType,
+                   double defaultSpeed, uint16_t gripperId);
         };
 
-    public:
         RCLCPP_SHARED_PTR_DEFINITIONS(RoboticArmControlSystem);
 
         UMRT_ARM_ROS_FIRMWARE_PUBLIC
@@ -99,7 +121,8 @@ namespace umrt_arm_ros_firmware {
 
     private:
         std::unique_ptr<StepperAdapter> steppers;
-        Config cfg;
+        std::unique_ptr<Config> cfg;
+        rclcpp::Logger logger = rclcpp::get_logger("RoboticArmControlSystem");
     };
 
 } // namespace umrt_arm_ros_firmware
