@@ -2,13 +2,13 @@
 
 #include "umrt-arm-ros-firmware/project_perry_controller.hpp"
 
-constexpr uint8_t NORM_FACTOR = 16;
-constexpr double STEPS_PER_REV = 200.0;
+inline constexpr uint8_t NORM_FACTOR = 16;
+inline constexpr double STEPS_PER_REV = 200.0;
 
-constexpr size_t EXPECTED_JOINTS = 5;
-constexpr size_t WRIST_PITCH_INDEX = 3;
-constexpr size_t WRIST_ROLL_INDEX = 4;
-const std::vector<size_t> NON_DIFFERENTIAL_JOINTS{ 0, 1, 2 };
+inline constexpr size_t EXPECTED_JOINTS = 5;
+inline constexpr size_t WRIST_PITCH_INDEX = 3;
+inline constexpr size_t WRIST_ROLL_INDEX = 4;
+inline constexpr size_t NON_DIFFERENTIAL_JOINTS[] = { 0, 1, 2 };
 
 namespace {
     void validate_joints(const std::vector<StepperAdapter::JointInfo>& joint_infos, rclcpp::Logger& logger);
