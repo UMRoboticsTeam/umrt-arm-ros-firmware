@@ -12,12 +12,11 @@
 /**
  * Adapter class to interface a @ref StepperController with a ros2_control
  * hardware_interface.
- * TODO: Make docs more generic
  */
 class StepperAdapter {
 public:
     /**
-    * Collection of information about a joint necessary for decoding motor feedback.
+    * Collection of information about a joint necessary for interacting with the associated motor.
     */
     struct JointInfo {
         /**
@@ -58,15 +57,15 @@ public:
     virtual ~StepperAdapter();
 
     /**
-    * Connect to an Arduino running the Stepper Controller program.
+    * Performs any necessary connection establishment.
     *
-    * @param device the path to the serial device connected to the Arduino
-    * @param baud_rate baud rate to use for the Firmata connection
+    * @param device a string representing the device to connect to, see your concrete class for details
+    * @param baud_rate baud rate to use for the connection, see your concrete class for details
     */
     virtual void connect(const std::string device, const int baud_rate) = 0;
 
     /**
-     * Disconnect from the Arduino and close polling loops.
+     * Disconnect any established connections and shutdown associated threads.
      */
     virtual void disconnect() = 0;
 

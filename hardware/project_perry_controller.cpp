@@ -103,6 +103,8 @@ void ProjectPerryController::setValues() {
             RCLCPP_DEBUG(this->logger, "Joint %lu: Seeking to %d at %d", j, position, speed);
         }
         this->controller->seekPosition(motor_id, position, speed);
+        // TODO: Consider only sending commands to the controller if they are new, and sending a stop beforehand so the
+        //       previous target is overridden. Might make more sense to do on MksController side.
 
         // TODO: For now just copy commanded velocity into velocity feedback
         this->updateVelocity(j, this->velocity_commands.at(j));
@@ -184,6 +186,7 @@ namespace {
      * Asserts that the provided joint configuration is valid for a Project Perry system.
      * @param joint_infos joint information
      * @param logger ROS logger to use
+     * @throws std::runtime_error if something wrong is found with the configuration
      */
     void validate_joints(const std::vector<StepperAdapter::JointInfo>& joint_infos, rclcpp::Logger& logger) {
         bool valid = true;
@@ -242,9 +245,6 @@ namespace {
             valid = false;
         }
 
-        if (!valid) {
-            RCLCPP_FATAL()
-            throw std::runtime_error("Xacro configuration not valid for ProjectPerryController; see ROS log");
-        }
+        if (!valid) { throw std::runtime_error("Xacro configuration not valid for ProjectPerryController; see ROS log"); }
     }
 } // namespace
