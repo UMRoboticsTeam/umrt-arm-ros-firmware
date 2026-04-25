@@ -41,9 +41,6 @@ ProjectPerryController::ProjectPerryController(
             encoder_ids_for_interface->insert(j.encoder_id);
             this->motor_ids->insert(boost::bimap<uint16_t, uint16_t>::value_type(i, j.encoder_id));
         }
-
-        // TODO: Remove, only for testing with 1 motor
-        this->updatePosition(i, 0);
     }
     this->controller =
             std::make_unique<MksStepperController>(can_interface, std::move(motor_ids_for_controller), NORM_FACTOR);
