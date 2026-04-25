@@ -42,7 +42,7 @@ public:
         bool differential = false;
 
         JointInfo(const uint16_t motor_id, const uint32_t encoder_id, const uint16_t reduction_factor, const bool differential)
-            : motor_id(motor_id), reduction_factor(reduction_factor), differential(differential) {}
+            : motor_id{motor_id}, encoder_id{encoder_id}, reduction_factor{reduction_factor}, differential{differential} {}
     };
 
     /**
