@@ -56,6 +56,7 @@ namespace umrt_arm_ros_firmware {
      * - `encoder_id`: (Optional) The ID associated with the rotary encoder attached to the joint
      */
     class RoboticArmControlSystem : public hardware_interface::SystemInterface {
+    public:
         struct Config {
             enum class ControllerType {
                 INVALID,
@@ -64,21 +65,17 @@ namespace umrt_arm_ros_firmware {
             };
 
             std::string device;
-            int baud_rate = 0;
-            bool position_commandable = false;
-            ControllerType controller_type = ControllerType::INVALID;
-            double default_speed = 0.0;
+            int baud_rate;
+            bool position_commandable;
+            ControllerType controller_type;
+            double default_speed;
             std::vector<StepperAdapter::JointInfo> joint_infos{};
-            uint16_t gripper_id = 0;
+            uint16_t gripper_id;
 
-            static ControllerType controller_type_from_string(const std::string& controller_type) {
-                if (controller_type == "ARDUINO") { return ControllerType::ARDUINO; }
-                if (controller_type == "MKS") { return ControllerType::MKS; }
-                throw std::invalid_argument((std::stringstream() << "Invalid controller type: " << controller_type).str());
-            }
+            Config(std::string  device, int baudRate, bool positionCommandable, ControllerType controllerType,
+                   double defaultSpeed, uint16_t gripperId);
         };
 
-    public:
         RCLCPP_SHARED_PTR_DEFINITIONS(RoboticArmControlSystem);
 
         UMRT_ARM_ROS_FIRMWARE_PUBLIC
@@ -124,8 +121,8 @@ namespace umrt_arm_ros_firmware {
 
     private:
         std::unique_ptr<StepperAdapter> steppers;
+        std::unique_ptr<Config> cfg;
         rclcpp::Logger logger = rclcpp::get_logger("RoboticArmControlSystem");
-        Config cfg;
     };
 
 } // namespace umrt_arm_ros_firmware
