@@ -18,13 +18,12 @@
 #include "umrt-arm-ros-firmware/wheel_adapter.hpp"
 
 namespace umrt_arm_ros_firmware {
-    class RoverControlSystem : public hardware_interface::SystemInterface {
+    class DrivetrainControlSystem : public hardware_interface::SystemInterface {
         struct Config {
         };
 
-
     public:
-        RCLCPP_SHARED_PTR_DEFINITIONS(RoverControlSystem);
+        RCLCPP_SHARED_PTR_DEFINITIONS(DrivetrainControlSystem);
 
         UMRT_ARM_ROS_FIRMWARE_PUBLIC
         hardware_interface::CallbackReturn on_init(
@@ -68,7 +67,7 @@ namespace umrt_arm_ros_firmware {
         ) override;
 
     private:
-        std::unique_ptr<WheelController> wheels;
+        std::unique_ptr<WheelAdapter> wheels;
         //Config cfg;
     };
 
