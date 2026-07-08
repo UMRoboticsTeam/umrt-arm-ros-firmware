@@ -27,6 +27,7 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <param name="motor_id">1</param>
+        <param name="encoder_id">81</param>
         <param name="reduction_factor">13</param>
       </joint>
       <joint name="base_pitch">
@@ -35,6 +36,7 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <param name="motor_id">2</param>
+        <param name="encoder_id">82</param>
         <param name="reduction_factor">252</param>
       </joint>
       <joint name="elbow_pitch">
@@ -43,6 +45,7 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <param name="motor_id">3</param>
+        <param name="encoder_id">83</param>
         <param name="reduction_factor">252</param>
       </joint>
       <!--
@@ -56,6 +59,7 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <param name="motor_id">4</param>
+        <param name="encoder_id">84</param>
         <param name="reduction_factor">12</param>
         <param name="differential">true</param>
       </joint>
@@ -65,6 +69,7 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <param name="motor_id">5</param>
+        <param name="encoder_id">85</param>
         <param name="reduction_factor">12</param>
         <param name="differential">true</param>
       </joint>
