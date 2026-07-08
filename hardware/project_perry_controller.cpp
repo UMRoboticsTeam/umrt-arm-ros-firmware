@@ -39,7 +39,7 @@ ProjectPerryController::ProjectPerryController(
         this->last_motor_commands->emplace(j.motor_id, 0);
         if (j.encoder_id != 0) {
             encoder_ids_for_interface->insert(j.encoder_id);
-            this->motor_ids->insert(boost::bimap<uint16_t, uint16_t>::value_type(i, j.encoder_id));
+            this->encoder_ids->insert(boost::bimap<uint16_t, uint16_t>::value_type(i, j.encoder_id));
         }
     }
     this->controller =
@@ -56,7 +56,9 @@ ProjectPerryController::ProjectPerryController(
 
         // [rad] = [steps] / [steps / rev] * [2 pi rad / rev]
         // Also reduction factor
-        this->updatePosition(this->motor_ids->right.at(motor), pos / this->reductions->at(motor) / STEPS_PER_REV * 2 * M_PI);
+        auto position = pos / this->reductions->at(motor) / STEPS_PER_REV * 2 * M_PI;
+        RCLCPP_DEBUG(this->logger, "Updating position: joint=%u (motor=%u), position=%f (rad)", joint, motor, position);
+        this->updatePosition(joint, position);
     });
 
     // Register for encoder callbacks
@@ -64,7 +66,11 @@ ProjectPerryController::ProjectPerryController(
             [this](uint32_t encoder, uint16_t angle, uint16_t angular_vel, int16_t n_rotations) -> void {
                 // [rad] = [15-bit position] / [2^15] * [2 pi rad / rev]
                 // Also number of rotations, and reduction factor
-                this->updatePosition(this->encoder_ids->right.at(encoder), (angle / 32768.0 + n_rotations) * 2 * M_PI);
+                
+                auto joint = this->encoder_ids->right.at(encoder);
+                auto position = (angle / 32768.0 + n_rotations) * 2 * M_PI;
+                RCLCPP_DEBUG(this->logger, "Updating position: joint=%u (encoder=%u), position=%f (rad)", joint, encoder, position);
+                this->updatePosition(joint, position);
             }
     );
 
@@ -72,6 +78,7 @@ ProjectPerryController::ProjectPerryController(
     this->continue_polling = true;
     this->polling_thread = std::thread([this]() -> void { this->poll(); });
     this->querying_thread = std::thread([this, query_period]() -> void { this->queryPoll(query_period); });
+    this->encoders_thread = std::thread([this]() -> void { this->encoders.get()->begin_read_loop(); });  
 }
 
 ProjectPerryController::~ProjectPerryController() {

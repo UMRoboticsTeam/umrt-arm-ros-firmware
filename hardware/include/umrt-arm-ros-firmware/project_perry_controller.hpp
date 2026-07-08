@@ -81,6 +81,9 @@ protected:
     /** Thread used to periodically query motor speed/position. */
     std::thread querying_thread;
 
+    /** Thread used to read the encoder values. */
+    std::thread encoders_thread;
+
     /** Signal used to shutdown the polling threads. */
     std::atomic<bool> continue_polling = false;
 
