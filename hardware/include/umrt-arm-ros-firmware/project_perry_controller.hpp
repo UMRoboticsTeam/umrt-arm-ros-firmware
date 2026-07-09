@@ -96,8 +96,11 @@ protected:
     /** Maps joint index to reduction ratio factor. */
     std::unique_ptr<std::unordered_map<uint16_t, double>> reductions;
 
-    /** Maps motor CAN IDs to last commanded position, used for debug logging. */
+    /** Maps joint index to last commanded position, used for debug logging. */
     std::unique_ptr<std::unordered_map<uint16_t, int32_t>> last_motor_commands;
+
+    /** Maps joint index to the position (rad) of the encoder on powerup. */
+    std::unique_ptr<std::unordered_map<uint16_t, double>> encoder_initial_positions;
 
     /** Method to indefinitely poll @ref controller for responses */
     void poll();

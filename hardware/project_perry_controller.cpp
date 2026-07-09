@@ -31,14 +31,16 @@ ProjectPerryController::ProjectPerryController(
     this->encoder_ids = std::make_unique<boost::bimap<uint16_t, uint16_t>>();
     this->reductions = std::make_unique<std::unordered_map<uint16_t, double>>();
     this->last_motor_commands = std::make_unique<std::unordered_map<uint16_t, int32_t>>();
+    this->encoder_initial_positions = std::make_unique<std::unordered_map<uint16_t, double>>();
     for (size_t i = 0; i < joint_infos.size(); ++i) {
         const JointInfo& j = joint_infos.at(i);
         motor_ids_for_controller->insert(j.motor_id);
         this->motor_ids->insert(boost::bimap<uint16_t, uint16_t>::value_type(i, j.motor_id));
-        this->reductions->emplace(j.motor_id, j.reduction_factor);
-        this->last_motor_commands->emplace(j.motor_id, 0);
+        this->reductions->emplace(i, j.reduction_factor);
+        this->last_motor_commands->emplace(i, 0);
         if (j.encoder_id != 0) {
             encoder_ids_for_interface->insert(j.encoder_id);
+            this->encoder_initial_positions->emplace(i, NAN);
             this->encoder_ids->insert(boost::bimap<uint16_t, uint16_t>::value_type(i, j.encoder_id));
         }
     }
@@ -56,20 +58,30 @@ ProjectPerryController::ProjectPerryController(
 
         // [rad] = [steps] / [steps / rev] * [2 pi rad / rev]
         // Also reduction factor
-        auto position = pos / this->reductions->at(motor) / STEPS_PER_REV * 2 * M_PI;
-        RCLCPP_DEBUG(this->logger, "Updating position: joint=%u (motor=%u), position=%f (rad)", joint, motor, position);
+        auto position = pos / this->reductions->at(joint) / STEPS_PER_REV * 2 * M_PI;
+        RCLCPP_DEBUG(this->logger, "Joint %u: MTR(id=%u) mtr position=%f (rad)", joint, motor, position);
         this->updatePosition(joint, position);
     });
 
     // Register for encoder callbacks
-    this->encoders->angle_signal.connect(
+    this->encoders->angle_signal_raw.connect(
             [this](uint32_t encoder, uint16_t angle, uint16_t angular_vel, int16_t n_rotations) -> void {
                 // [rad] = [15-bit position] / [2^15] * [2 pi rad / rev]
                 // Also number of rotations, and reduction factor
-                
+
                 auto joint = this->encoder_ids->right.at(encoder);
                 auto position = (angle / 32768.0 + n_rotations) * 2 * M_PI;
-                RCLCPP_DEBUG(this->logger, "Updating position: joint=%u (encoder=%u), position=%f (rad)", joint, encoder, position);
+                if (std::isnan(this->encoder_initial_positions.get()->at(joint))) {
+                    this->encoder_initial_positions.get()->at(joint) = position;
+                    RCLCPP_INFO(
+                            this->logger, "Joint %u: ENC(id=%u) initial encoder position = %f (rad), %f (deg)", joint,
+                            encoder, position, position * 180.0 / M_PI
+                    );
+                }
+                RCLCPP_DEBUG(
+                        this->logger, "Joint %u: ENC(id=%u) mtr position=%f (rad), %f (deg)", joint, encoder, position,
+                        position * 180.0 / M_PI
+                );
                 this->updatePosition(joint, position);
             }
     );
@@ -78,7 +90,7 @@ ProjectPerryController::ProjectPerryController(
     this->continue_polling = true;
     this->polling_thread = std::thread([this]() -> void { this->poll(); });
     this->querying_thread = std::thread([this, query_period]() -> void { this->queryPoll(query_period); });
-    this->encoders_thread = std::thread([this]() -> void { this->encoders.get()->begin_read_loop(); });  
+    this->encoders_thread = std::thread([this]() -> void { this->encoders.get()->begin_read_loop(); });
 }
 
 ProjectPerryController::~ProjectPerryController() {
@@ -96,24 +108,44 @@ void ProjectPerryController::disconnect() {}
 void ProjectPerryController::setValues() {
     for (const auto j : NON_DIFFERENTIAL_JOINTS) {
         const auto motor_id = this->motor_ids->left.at(j); // Convert joint ID to motor ID
-        const auto reduction = this->reductions->at(motor_id);
+        const auto encoder_id = this->encoder_ids.get()->left.at(j);
+        const auto reduction = this->reductions->at(j);
 
-        // TODO: We are currently not using the encoders for anything here. This means that we assume the zero position on the
-        //       motor is the zero position of the encoder. This is certainly not the case. The motor zero point is reset upon
-        //       power loss. This is still somewhat useful for testing, but will need to be resolved before IK can be used.
+        double target_position_rad = this->position_commands.at(j);
+
+        // Correct for encoders, if present.
+        if (encoder_id != 0) {
+            auto offset = this->encoder_initial_positions.get()->at(j);
+            if (std::isnan(offset)) {
+                auto clk = rclcpp::Clock();
+                RCLCPP_WARN_THROTTLE(
+                        this->logger, clk, 10000,
+                        "Joint %u: Tried to send a position to a motor(id=%u) with a configured encoder(id=%u) before the "
+                        "encoder's first position response.\nCannot determine the encoder offset. No action will be taken. "
+                        "If multiple motors have this issue, only one will show in the logs.",
+                        j, motor_id, encoder_id
+                );
+                continue;
+            }
+            RCLCPP_DEBUG(this->logger, "Joint %u: target_position_rad=%f", j, target_position_rad);
+            target_position_rad -= offset;
+            RCLCPP_DEBUG(this->logger, "Joint %u: offset target_position_rad=%f", j, target_position_rad);
+        }
 
         // Note that the MksStepperController speed is in units of RPM (since we're using interpolated normalisation)
-        const auto position =
-                static_cast<int32_t>(std::round(this->position_commands.at(j) * reduction * STEPS_PER_REV / 2 / M_PI));
+        auto target_position_steps =
+                static_cast<int32_t>(std::round(target_position_rad * reduction * STEPS_PER_REV / 2 / M_PI));
         auto speed = static_cast<int16_t>(std::round(this->velocity_commands.at(j) * reduction));
         if (speed == 0) { speed = static_cast<int16_t>(std::round(this->default_speed * reduction)); }
 
+        RCLCPP_DEBUG(this->logger, "Joint %u: target_position_steps=%i", j, target_position_steps);
+
         // If this is a new command, log it (if in debug mode)
-        if (this->last_motor_commands->at(motor_id) != position) {
-            this->last_motor_commands->at(motor_id) = position;
-            RCLCPP_DEBUG(this->logger, "Joint %lu: Seeking to %d at %d", j, position, speed);
+        if (this->last_motor_commands->at(j) != target_position_steps) {
+            this->last_motor_commands->at(j) = target_position_steps;
+            RCLCPP_DEBUG(this->logger, "Joint %lu: Seeking to %d at %d", j, target_position_steps, speed);
+            this->controller->seekPosition(motor_id, target_position_steps, speed);
         }
-        this->controller->seekPosition(motor_id, position, speed);
         // TODO: Consider only sending commands to the controller if they are new, and sending a stop beforehand so the
         //       previous target is overridden. Might make more sense to do on MksController side.
 
@@ -124,11 +156,15 @@ void ProjectPerryController::setValues() {
         //       there is error from target position we send some more steps
     }
 
+    // TODO: Handle the differential wrist calculations before the main loop,
+    // and then let the loop do all the work. It does seem important to keep the motors commands being sent at the same time,
+    // however.
+
     // Handle differential wrist
     // We define the wrist_pitch motor as the left motor, i.e. the one which moving forward produces negative pitch
     const auto left_motor_id = this->motor_ids->left.at(WRIST_PITCH_INDEX);
     const auto right_motor_id = this->motor_ids->left.at(WRIST_ROLL_INDEX);
-    const auto reduction = this->reductions->at(left_motor_id); // Recall we assert reductions are the same
+    const auto reduction = this->reductions->at(WRIST_PITCH_INDEX); // Recall we assert reductions are the same
 
     // Kind of hacky, but we will use the average of the specified speeds
     auto speed = static_cast<int16_t>(std::round(
