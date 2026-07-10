@@ -10,87 +10,51 @@
 
 #include <boost/bimap.hpp>
 
-#include <umrt-arm-firmware-lib/wheel_controller.hpp>
+// #include <umrt-arm-firmware-lib/wheel_controller.hpp>
 
 /**
- * Adapter class to interface an @ref WheelController with a ros2_control
- * hardware_interface.
- *
- * Unlike @ref ArduinoStepperController, this class follows the RAII paradigm.
+ * Adapter class utilized for ros2_control hardware interface for 
+ * command interface and state interfaces.
  */
-class WheelAdapter : public StepperAdapter {
+class WheelAdapter {
 public:
     /**
     * Initializes an WheelAdapter.
     * The number of joints is inferred from the number of motor IDs provided.
-    *
-    * @param can_interface SocketCAN network interface corresponding to the CAN bus
-    * @param motor_ids CAN IDs for the motor controller
-    * @param query_period the time to wait between controller queries for position, velocity, etc.
     */
     WheelAdapter(
-            const std::string& can_interface,
-            const std::vector<uint16_t>& motor_ids,
-            const std::chrono::duration<int64_t, std::milli>& query_period
+        const std::size_t num_joints
     );
 
-    ~WheelAdapter() override;
+    ~WheelAdapter();
 
     /** Does nothing. */
-    void connect(const std::string device, const int baud_rate) override;
+    void connect(const std::string device, const int baud_rate);
 
     /** Does nothing. */
-    void disconnect() override;
+    void disconnect();
 
-    /**
-     * Write the current contents of the command registers, which are accessible
-     * through @ref getCommandRef, to the Stepper Controller program.
-     */
-    void setValues() override;
+    /** Does nothing. */
+    void writeValues();
+
+    /** Does nothing. */
+    void readValues();
+
+    double& getVelocityRef(std::size_t index);
+    double& getCommandRef(std::size_t index);
+    double& getPositionRef(std::size_t index);
 
 protected:
-    /**
-     * The WheelController which implements the functionality exposed by this
-     * WheelAdapter.
-     */
-    std::unique_ptr<WheelController> controller;
+    
+    //  Vector for velocity joint commands.
+    std::vector<double> commands;
 
-    /**
-     * Thread used to run @ref poll indefinitely.
-     */
-    std::thread polling_thread;
+    //  Vector for joint positions.
+    std::vector<double> positions;
 
-    /**
-     * Thread used to periodically query motor speed/position.
-     */
-    std::thread querying_thread;
+    //  Vector for joint velocities.
+    std::vector<double> velocities;
 
-    /**
-     * Signal used to shutdown the polling threads.
-     */
-    std::atomic<bool> continue_polling = false;
-
-    /**
-     * Maps joint index to motor CAN IDs.
-     */
-    std::unique_ptr<boost::bimap<uint16_t, uint16_t>> motor_ids;
-
-    /**
-     * Method to indefinitely poll @ref controller for responses
-     */
-    void poll();
-
-    /**
-     * Queries the position and speed from @ref controller. Used as a callback to the wall querying_thread setup in @ref init.
-     */
-    void queryController();
-
-    /**
-     * Poll loop used to trigger motor queries.
-     *
-     * @param period Amount of time to wait in milliseconds between queries
-     */
-    void queryPoll(const std::chrono::milliseconds& period);
 };
 
 #endif //UMRT_ARM_ROS_FIRMWARE_WHEELCONTROLLER_HPP

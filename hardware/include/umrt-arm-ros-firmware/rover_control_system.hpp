@@ -13,7 +13,9 @@
 #include "rclcpp/duration.hpp"
 #include "rclcpp/time.hpp"
 #include "rclcpp_lifecycle/state.hpp"
+#include "realtime_tools/realtime_publisher.h"
 
+#include "ros2_j1939_babbler_msgs/msg/rover_speed_control.hpp"
 #include "umrt-arm-ros-firmware/visibility_control.h"
 #include "umrt-arm-ros-firmware/wheel_adapter.hpp"
 
@@ -68,7 +70,9 @@ namespace umrt_arm_ros_firmware {
 
     private:
         std::unique_ptr<WheelAdapter> wheels;
-        //Config cfg;
+        uint8_t msg_counter;
+        rclcpp::Node::SharedPtr hw_node_;
+        std::shared_ptr<realtime_tools::RealtimePublisher<ros2_j1939_babbler_msgs::msg::RoverSpeedControl>> realtime_pub_;
     };
 
 } // namespace umrt_arm_ros_firmware
