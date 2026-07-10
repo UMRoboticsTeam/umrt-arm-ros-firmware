@@ -45,16 +45,15 @@ namespace umrt_arm_ros_firmware {
             return hardware_interface::CallbackReturn::ERROR;
         }
 
-        //  Initialize parameters
-        this->declare_parameter<std::string>("rover_speed_topic", "/umrt_ros_controller/RoverSpeedControl/tx");
-        std::string rover_speed_topic = this->get_parameter("my_parameter").as_string();
-
         //  Initialize message counter 
         msg_counter = 0;
 
         //  Initialize WheelAdapter, and hardware interface node 
         wheels = std::make_unique<WheelAdapter>(info_.joints.size());
         hw_node_ = std::make_shared<rclcpp::Node>("rover_hw_interface_node");
+
+        //  Initialize parameters
+        std::string rover_speed_topic = info.hardware_parameters.at("rover_speed_topic");
 
         //  Should get topic name 
         auto standard_pub = hw_node_->create_publisher<ros2_j1939_babbler_msgs::msg::RoverSpeedControl>(
