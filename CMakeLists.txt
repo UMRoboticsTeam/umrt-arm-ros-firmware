@@ -18,6 +18,8 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
         rclcpp
         rclcpp_lifecycle
         ament_cmake
+        realtime_tools
+        ros2_j1939_babbler_msgs
         umrt-arm-firmware-lib
         )
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
@@ -38,6 +40,7 @@ add_library(
         umrt-arm-ros-firmware
         SHARED
         hardware/robotic_arm_control_system.cpp
+        hardware/rover_control_system.cpp
         hardware/stepper_adapter.cpp
         hardware/arduino_stepper_adapter.cpp
         hardware/mks_stepper_adapter.cpp
