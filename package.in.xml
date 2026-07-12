@@ -30,6 +30,7 @@
   <exec_depend>ros2launch</exec_depend>
   <exec_depend>rviz2</exec_depend>
   <exec_depend>xacro</exec_depend>
+  <exec_depend>umrt-project-perry-description</exec_depend>
 
   <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_cmake_pytest</test_depend>

@@ -1,7 +1,7 @@
 #include "umrt-arm-ros-firmware/wheel_adapter.hpp"
 #include <boost/bimap.hpp>
 
-constexpr uint8_t NORM_FACTOR = 16;
+inline constexpr uint8_t NORM_FACTOR = 16;
 
 WheelAdapter::WheelAdapter(const std::string& can_interface, const std::vector<uint16_t>& motor_ids, const std::chrono::duration<int64_t, std::milli>& query_period) : StepperAdapter(motor_ids.size()) {
     // Preprocess motor IDs into bimap we can use to convert between joint index and motor, and an unordered_set
@@ -40,8 +40,6 @@ void WheelAdapter::setValues() {
         // Note that the WheelController speed is in units of RPM (since we're using interpolated normalisation)
         this->controller->setSpeed(motor_ids->left.at(i), static_cast<int16_t>(std::round(this->commands.at(i))));
     }
-
-    // TODO: Add gripper support
 }
 
 void WheelAdapter::poll() {

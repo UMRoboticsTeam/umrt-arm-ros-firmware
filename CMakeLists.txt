@@ -19,6 +19,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
         rclcpp_lifecycle
         ament_cmake
         umrt-arm-firmware-lib
+        umrt-arm-encoder-driver
         )
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
     find_package(${Dependency} CONFIG REQUIRED)
@@ -29,10 +30,6 @@ install(
         DIRECTORY hardware/include/ros2_control_demo_description/prairie_pioneer/urdf hardware/include/ros2_control_demo_description/prairie_pioneer/rviz
         DESTINATION share/${PROJECT_NAME}/ros2_control_demo_description/prairie_pioneer
 )
-install(
-        DIRECTORY hardware/include/ros2_control_demo_description/project_perry/urdf hardware/include/ros2_control_demo_description/project_perry/rviz
-        DESTINATION share/${PROJECT_NAME}/ros2_control_demo_description/project_perry
-)
 
 add_library(
         umrt-arm-ros-firmware
@@ -40,8 +37,8 @@ add_library(
         hardware/robotic_arm_control_system.cpp
         hardware/stepper_adapter.cpp
         hardware/arduino_stepper_adapter.cpp
-        hardware/mks_stepper_adapter.cpp
-        hardware/wheel_adapter.cpp)
+        #hardware/wheel_adapter.cpp TODO: Add this back in when required stuff is merged into umrt-arm-firmware-lib
+        hardware/project_perry_controller.cpp)
 target_compile_features(umrt-arm-ros-firmware PUBLIC cxx_std_17)
 target_include_directories(umrt-arm-ros-firmware PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
@@ -52,7 +49,10 @@ ament_target_dependencies(
         ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 # ament_target_dependencies doesn't use namespaces when linking, so we need to link umrt-arm-firmware-lib ourself
-target_link_libraries(umrt-arm-ros-firmware PRIVATE umrt-arm-firmware-lib::umrt-arm-firmware-lib)
+target_link_libraries(umrt-arm-ros-firmware PRIVATE
+        umrt-arm-firmware-lib::umrt-arm-firmware-lib
+        umrt-arm-encoder-driver::umrt-arm-encoder-driver
+)
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
@@ -78,10 +78,6 @@ install(
         DESTINATION include/umrt-arm-ros-firmware
 )
 install(
-        DIRECTORY description/launch description/ros2_control description/urdf
-        DESTINATION share/umrt-arm-ros-firmware
-)
-install(
         DIRECTORY bringup/launch bringup/config
         DESTINATION share/umrt-arm-ros-firmware
 )
@@ -94,9 +90,6 @@ install(TARGETS umrt-arm-ros-firmware
 
 if(BUILD_TESTING)
     find_package(ament_cmake_pytest REQUIRED)
-
-    ament_add_pytest_test(example_2_urdf_xacro test/test_urdf_xacro.py)
-    ament_add_pytest_test(view_example_2_launch test/test_view_robot_launch.py)
 endif()
 
 ## EXPORTS
