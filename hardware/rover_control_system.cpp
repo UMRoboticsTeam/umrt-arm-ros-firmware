@@ -160,16 +160,18 @@ namespace umrt_arm_ros_firmware {
             const rclcpp::Time& time, const rclcpp::Duration& period
     ) {
 
+        const double rads_to_rpm = 30.0 / M_PI;
+
         //  
         if (realtime_pub_ && realtime_pub_->trylock()) {
             auto &msg = realtime_pub_->msg_;
 
             //  The indexes could be changed such that instead of hardcoding the index, a variable 
             //  can be changed dynamically based on the names of the joints. 
-            double front_left = wheels->getCommandRef(0);
-            double rear_left = wheels->getCommandRef(1);
-            double front_right = wheels->getCommandRef(2);
-            double rear_right = wheels->getCommandRef(3);
+            double front_left = wheels->getCommandRef(0) * rads_to_rpm;
+            double rear_left = wheels->getCommandRef(1) * rads_to_rpm;
+            double front_right = wheels->getCommandRef(2) * rads_to_rpm;
+            double rear_right = wheels->getCommandRef(3) * rads_to_rpm;
 
             //  Average of the left and right velocities
             //  Will automatically convert it to float32
