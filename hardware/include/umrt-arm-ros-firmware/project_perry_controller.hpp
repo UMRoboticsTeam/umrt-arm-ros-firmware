@@ -96,6 +96,9 @@ protected:
     /** Maps joint index to reduction ratio factor. */
     std::unique_ptr<std::unordered_map<uint16_t, double>> reductions;
 
+    /** Maps joint index to if the motor is fake or not. */
+    std::unique_ptr<std::unordered_map<uint16_t, bool>> isfake;
+
     /** Maps joint index to last commanded position, used for debug logging. */
     std::unique_ptr<std::unordered_map<uint16_t, int32_t>> last_motor_commands;
 

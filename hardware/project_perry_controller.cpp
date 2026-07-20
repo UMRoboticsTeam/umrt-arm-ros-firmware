@@ -34,26 +34,36 @@ ProjectPerryController::ProjectPerryController(
     this->motor_ids = std::make_unique<boost::bimap<uint16_t, uint16_t>>();
     this->encoder_ids = std::make_unique<boost::bimap<uint16_t, uint16_t>>();
     this->reductions = std::make_unique<std::unordered_map<uint16_t, double>>();
+    this->isfake = std::make_unique<std::unordered_map<uint16_t, bool>>();
     this->last_motor_commands = std::make_unique<std::unordered_map<uint16_t, int32_t>>();
     this->encoder_initial_positions = std::make_unique<std::unordered_map<uint16_t, double>>();
     this->motor_initial_positions = std::make_unique<std::unordered_map<uint16_t, int64_t>>();
     for (size_t i = 0; i < joint_infos.size(); ++i) {
         const JointInfo& j = joint_infos.at(i);
-        RCLCPP_INFO(this->logger, "Joint %ld: Registering motor id %d", i, j.motor_id);
-        motor_ids_for_controller->insert(j.motor_id);
         this->motor_ids->insert(boost::bimap<uint16_t, uint16_t>::value_type(i, j.motor_id));
         this->reductions->emplace(i, j.reduction_factor);
+        this->isfake->emplace(i, j.fake);
         this->last_motor_commands->emplace(i, 0);
+        if (!j.fake) {
+            RCLCPP_INFO(this->logger, "Joint %ld: Registering motor id %d", i, j.motor_id);
+            motor_ids_for_controller->insert(j.motor_id);
+        }
         if (j.encoder_id == 0) {
             // Since there is no encoder to ensure absolute positions in the first place, these offsets are not useful.
             this->motor_initial_positions->emplace(i, 0);
             this->encoder_initial_positions->emplace(i, 0.0);
         } else {
-            RCLCPP_INFO(this->logger, "Joint %ld: Registering encoder id %d", i, j.encoder_id);
-            encoder_ids_for_interface->insert(j.encoder_id);
-            this->motor_initial_positions->emplace(i, MOTOR_POSITION_UNSET);
-            this->encoder_initial_positions->emplace(i, NAN);
             this->encoder_ids->insert(boost::bimap<uint16_t, uint16_t>::value_type(i, j.encoder_id));
+            if (j.fake) {
+                // Same as when there is no encoder
+                this->motor_initial_positions->emplace(i, 0);
+                this->encoder_initial_positions->emplace(i, 0.0);
+            } else {
+                RCLCPP_INFO(this->logger, "Joint %ld: Registering encoder id %d", i, j.encoder_id);
+                encoder_ids_for_interface->insert(j.encoder_id);
+                this->motor_initial_positions->emplace(i, MOTOR_POSITION_UNSET);
+                this->encoder_initial_positions->emplace(i, NAN);
+            }
         }
     }
     this->controller =
@@ -212,6 +222,11 @@ void ProjectPerryController::setValues() {
             this->last_motor_commands->at(j) = target_position_steps;
             RCLCPP_DEBUG(this->logger, "Joint %u: target_position=%d (steps), %f (rad); speed=%d", j, target_position_steps, position_commands_remapped[j], speed);
             this->controller->seekPosition(motor_id, target_position_steps, speed);
+            if (this->isfake.get()->at(j)) {
+                // Set the current position to the target position
+                // fake it
+                this->updatePosition(j, this->position_commands.at(j));
+            }
         }
         // TODO: Consider only sending commands to the controller if they are new, and sending a stop beforehand so the
         //       previous target is overridden. Might make more sense to do on MksController side.
