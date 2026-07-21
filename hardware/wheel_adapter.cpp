@@ -9,6 +9,10 @@ namespace {
         //  60 s / (2 * pi) = 30 / pi
         return speed_rads * (30.0 / M_PI);
     }
+
+    inline double rpm_to_rads(double rpm) {
+        return rpm * (M_PI / 30.0);
+    }
 }
 
 WheelAdapter::WheelAdapter(const std::size_t num_joints, const std::string& topic_name) {
@@ -29,17 +33,17 @@ WheelAdapter::WheelAdapter(const std::size_t num_joints, const std::string& topi
 
     realtime_pub_ = std::make_unique<realtime_tools::RealtimePublisher<ros2_j1939_babbler_msgs::msg::RoverSpeedControl>>(standard_pub);
 
+    speedfeedback_sub_ = hw_node_->create_subscription<ros2_j1939_babbler_msgs::msg::RoverSpeedFeedback>(
+        "/umrt_ros_controller/RoverSpeedFeedback", // feedback topic, probably get another topic name
+        rclcpp::SystemDefaultsQoS(),
+        [this](const ros2_j1939_babbler_msgs::msg::RoverSpeedFeedback::SharedPtr msg) {
+            // Write to the lock-free buffer
+            speedfeedback_buffer_.writeFromNonRT(*msg);
+        }
+    );
 }
 
 WheelAdapter::~WheelAdapter() {
-}
-
-void WheelAdapter::connect(const std::string device, const int baud_rate) {
-    return;
-}
-
-void WheelAdapter::disconnect() {
-    return;
 }
 
 void WheelAdapter::writeValues() {
@@ -69,6 +73,24 @@ void WheelAdapter::writeValues() {
 }
 
 void WheelAdapter::readValues() {
+
+    auto feedback_ptr = speedfeedback_buffer_.readFromRT();
+
+    // Check null
+    if (feedback_ptr) {
+
+        // Convert incoming RPM back to rad/s
+        double left_rads  = rpm_to_rads(feedback_ptr->left_angular_velocity);
+        double right_rads = rpm_to_rads(feedback_ptr->right_angular_velocity);
+
+        // Update velocity vectors
+        this->velocities[0] = left_rads;
+        this->velocities[1] = left_rads;
+        this->velocities[2] = right_rads;
+        this->velocities[3] = right_rads;
+        
+    }
+
     return;
 }
 

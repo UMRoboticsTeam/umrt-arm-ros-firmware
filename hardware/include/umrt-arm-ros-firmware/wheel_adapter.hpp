@@ -14,6 +14,8 @@
 #include <boost/bimap.hpp>
 #include <realtime_tools/realtime_publisher.hpp>
 #include <ros2_j1939_babbler_msgs/msg/rover_speed_control.hpp>
+#include <realtime_tools/realtime_buffer.hpp>
+#include <ros2_j1939_babbler_msgs/msg/rover_speed_feedback.hpp>
 
 /**
  * Adapter class utilized for ros2_control hardware interface for 
@@ -70,8 +72,14 @@ protected:
     //  Hardware Interface ROS 2 Node 
     rclcpp::Node::SharedPtr hw_node_;
 
-    //  J1939 ROS 2 Publisher
+    //  J1939 Rover Speed Control Publisher
     std::unique_ptr<realtime_tools::RealtimePublisher<ros2_j1939_babbler_msgs::msg::RoverSpeedControl>> realtime_pub_;
+
+    //  Buffer 
+    realtime_tools::RealtimeBuffer<ros2_j1939_babbler_msgs::msg::RoverSpeedFeedback> speedfeedback_buffer_;
+
+    //  J1939 Rover Speed Feedback Subscriber
+    rclcpp::Subscription<ros2_j1939_babbler_msgs::msg::RoverSpeedFeedback>::SharedPtr speedfeedback_sub_;
 
 };
 
