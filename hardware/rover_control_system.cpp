@@ -14,7 +14,6 @@
 
 #include "umrt-arm-ros-firmware/rover_control_system.hpp"
 #include "umrt-arm-ros-firmware/wheel_adapter.hpp"
-#include "ros2_j1939_babbler_msgs/msg/rover_speed_control.hpp"
 
 #include <hardware_interface/lexical_casts.hpp>
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
@@ -45,23 +44,11 @@ namespace umrt_arm_ros_firmware {
             return hardware_interface::CallbackReturn::ERROR;
         }
 
-        //  Initialize message counter 
-        msg_counter = 0;
-
-        //  Initialize WheelAdapter, and hardware interface node 
-        wheels = std::make_unique<WheelAdapter>(info_.joints.size());
-        hw_node_ = std::make_shared<rclcpp::Node>("rover_hw_interface_node");
-
-        //  Initialize parameters
+        //  Initialize parameters, have a default
         std::string rover_speed_topic = info.hardware_parameters.at("rover_speed_topic");
 
-        //  Should get topic name 
-        auto standard_pub = hw_node_->create_publisher<ros2_j1939_babbler_msgs::msg::RoverSpeedControl>(
-            rover_speed_topic,
-            rclcpp::SystemDefaultsQoS()
-        );
-
-        realtime_pub_ = std::make_shared<realtime_tools::RealtimePublisher<ros2_j1939_babbler_msgs::msg::RoverSpeedControl>>(standard_pub);
+        //  Initialize WheelAdapter, and hardware interface node 
+        wheels = std::make_unique<WheelAdapter>(info_.joints.size(), rover_speed_topic);
 
         return hardware_interface::CallbackReturn::SUCCESS;
 
@@ -92,7 +79,7 @@ namespace umrt_arm_ros_firmware {
             //  joint orders. 
             RCLCPP_INFO(
                 rclcpp::get_logger("DrivetrainControlSystem"), 
-                "ros2_control Joint Index [%zu] map to URDF Joint %s",
+                "ros2_control Joint Index [%u] map to URDF Joint %s",
                 i, 
                 info_.joints[i].name.c_str()
             );
@@ -159,32 +146,7 @@ namespace umrt_arm_ros_firmware {
     hardware_interface::return_type DrivetrainControlSystem::write(
             const rclcpp::Time& time, const rclcpp::Duration& period
     ) {
-
-        const double rads_to_rpm = 30.0 / M_PI;
-
-        //  
-        if (realtime_pub_ && realtime_pub_->trylock()) {
-            auto &msg = realtime_pub_->msg_;
-
-            //  The indexes could be changed such that instead of hardcoding the index, a variable 
-            //  can be changed dynamically based on the names of the joints. 
-            double front_left = wheels->getCommandRef(0) * rads_to_rpm;
-            double rear_left = wheels->getCommandRef(1) * rads_to_rpm;
-            double front_right = wheels->getCommandRef(2) * rads_to_rpm;
-            double rear_right = wheels->getCommandRef(3) * rads_to_rpm;
-
-            //  Average of the left and right velocities
-            //  Will automatically convert it to float32
-            msg.left_angular_velocity = (front_left + rear_left) / 2.0;
-            msg.right_angular_velocity = (front_right + rear_right) / 2.0;
-            
-            //  Increment and rollback at 250 (0xFA)
-            msg.message_counter = msg_counter; 
-            msg_counter = static_cast<uint8_t>((msg_counter + 1) % 251); 
-
-            realtime_pub_->unlockAndPublish();
-        }
-
+        wheels->writeValues();
         return hardware_interface::return_type::OK;
     }   //  write()
 
