@@ -35,9 +35,11 @@ add_library(
         umrt-arm-ros-firmware
         SHARED
         hardware/robotic_arm_control_system.cpp
+        hardware/servo_control_system.cpp
         hardware/stepper_adapter.cpp
         hardware/arduino_stepper_adapter.cpp
         #hardware/wheel_adapter.cpp TODO: Add this back in when required stuff is merged into umrt-arm-firmware-lib
+        hardware/servo_adapter.cpp
         hardware/project_perry_controller.cpp)
 target_compile_features(umrt-arm-ros-firmware PUBLIC cxx_std_17)
 target_include_directories(umrt-arm-ros-firmware PUBLIC
