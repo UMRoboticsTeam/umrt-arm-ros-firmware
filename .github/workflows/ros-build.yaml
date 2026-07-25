@@ -2,8 +2,6 @@ name: Build library
 
 on:
   push:
-    branches:
-      - main
 
 jobs:
   build:
@@ -11,11 +9,12 @@ jobs:
       contents: write
       packages: read
 
-    uses: UMRoboticsTeam/umrt-ci-cd/.github/workflows/ros-build.yaml@main
+    uses: UMRoboticsTeam/umrt-ci-cd/.github/workflows/ros-build.yaml@build-every-push
     with:
-      build_image: ghcr.io/umroboticsteam/umrt-build:v0.0.39
+      build_image: ghcr.io/umroboticsteam/umrt-build:babbler
       publish_image: ghcr.io/umroboticsteam/umrt-apt-image:latest
       publish_repo: UMRoboticsTeam/umrt-apt-repo
+      push_artifacts: ${{ github.ref_name == github.event.repository.default_branch }}
     secrets:
       APT_SIGNING_PUBKEY: ${{ secrets.APT_SIGNING_PUBKEY }}
       APT_SIGNING_KEY: ${{ secrets.APT_SIGNING_KEY }}
