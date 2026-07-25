@@ -9,12 +9,12 @@ ServoAdapter::ServoAdapter(const std::size_t num_joints, const std::string& topi
 
     msg_counter_ = 0;
 
-    auto standard_pub = hw_node_->create_publisher<ros2_j1939_babbler_msgs::msg::RoverSpeedControl>(
+    auto standard_pub = hw_node_->create_publisher<ros2_j1939_babbler_msgs::msg::ServoControl0>(
             topic_name,
             rclcpp::SystemDefaultsQoS()
     );
 
-    realtime_pub_ = std::make_unique<realtime_tools::RealtimePublisher<ros2_j1939_babbler_msgs::msg::RoverSpeedControl>>(standard_pub);
+    realtime_pub_ = std::make_unique<realtime_tools::RealtimePublisher<ros2_j1939_babbler_msgs::msg::ServoControl0>>(std::move(standard_pub));
 }
 
 StepperAdapter::~StepperAdapter() = default;

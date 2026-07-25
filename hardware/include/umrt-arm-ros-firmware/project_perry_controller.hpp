@@ -12,7 +12,7 @@
 
 #include <umrt-arm-firmware-lib/mks_stepper_controller.hpp>
 #include <umrt-arm-firmware-lib/servo_controller.hpp>
-#include <encoder_interface.hpp> // TODO: Figure out what went wrong with umrt-arm-encoder-driver packaging that doesn't namespace this properly
+#include <umrt-arm-encoder-driver/encoder_interface.hpp> // TODO: Figure out what went wrong with umrt-arm-encoder-driver packaging that doesn't namespace this properly
 
 /**
  * Adapter class to interface an @ref MksStepperController with a ros2_control hardware_interface, with joints handled as

@@ -13,9 +13,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include <boost/bimap.hpp>
 #include <realtime_tools/realtime_publisher.hpp>
-#include <ros2_j1939_babbler_msgs/msg/rover_speed_control.hpp>
+#include <ros2_j1939_babbler_msgs/msg/servo_control0.hpp>
 #include <realtime_tools/realtime_buffer.hpp>
-#include <ros2_j1939_babbler_msgs/msg/rover_speed_feedback.hpp>
 
 /**
  * Adapter class utilized for ros2_control hardware interface for
@@ -49,7 +48,7 @@ protected:
     uint8_t msg_counter_;
 
     //  J1939 Servo Control Control Publisher
-    std::unique_ptr<realtime_tools::RealtimePublisher<ros2_j1939_babbler_msgs::msg::RoverSpeedControl>> realtime_pub_;
+    std::unique_ptr<realtime_tools::RealtimePublisher<ros2_j1939_babbler_msgs::msg::ServoControl0>> realtime_pub_;
 
 };
 
