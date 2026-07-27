@@ -9,6 +9,7 @@
 #include <thread>
 #include <vector>
 #include <string>
+#include <span>
 
 #include <rclcpp/rclcpp.hpp>
 #include <boost/bimap.hpp>
@@ -24,7 +25,7 @@ class ServoAdapter {
 public:
     /** Initializes an ServoAdapter. */
     ServoAdapter(
-            const std::size_t num_joints,
+            const std::vector<std::uint8_t>& servo_ids,
             const std::string& topic_name,
             rclcpp::NodeOptions node_options = rclcpp::NodeOptions()
     );
@@ -38,17 +39,23 @@ public:
     double& getCommandRef(std::size_t index);
 
 protected:
-    std::shared_ptr<rclcpp::Node> node_;
+    /**
+     * Container of fixed size where size is determined at runtime.
+     * @tparam T type to contain
+     */
+    template<typename T>
+    struct RuntimeFixedContainer {
+        explicit RuntimeFixedContainer<T>(const std::size_t size)
+            : backing_storage{ std::make_unique<T[]>(size) }, span{ backing_storage.get(), size } {}
 
-    //  Vector for servo position commands.
-    std::vector<double> commands_;
+        std::unique_ptr<T[]> backing_storage;
+        std::span<T> span;
+    };
 
-    //  Message Counter
-    uint8_t msg_counter_;
-
-    //  J1939 Servo Control Control Publisher
-    std::unique_ptr<realtime_tools::RealtimePublisher<ros2_j1939_babbler_msgs::msg::ServoControl0>> realtime_pub_;
-
+    std::shared_ptr<rclcpp::Node> node_;     // Node to create publisher under - not spun because we don't need callbacks
+    RuntimeFixedContainer<double> commands_; //  Container for servo position commands.
+    RuntimeFixedContainer<std::unique_ptr<realtime_tools::RealtimePublisher<ros2_j1939_babbler_msgs::msg::ServoControl0>>>
+            realtime_publishers_;
 };
 
 #endif //UMRT_ARM_ROS_FIRMWARE_WHEELCONTROLLER_HPP

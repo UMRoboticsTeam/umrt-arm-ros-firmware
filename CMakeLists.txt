@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(umrt-arm-ros-firmware)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 20)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
     add_compile_options(-Wall -Wextra -fPIC)
