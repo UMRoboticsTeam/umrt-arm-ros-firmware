@@ -42,8 +42,11 @@ add_library(
         hardware/arduino_stepper_adapter.cpp
         #hardware/wheel_adapter.cpp TODO: Add this back in when required stuff is merged into umrt-arm-firmware-lib
         hardware/servo_adapter.cpp
-        hardware/project_perry_controller.cpp)
-target_compile_features(umrt-arm-ros-firmware PUBLIC cxx_std_17)
+        hardware/project_perry_controller.cpp
+        hardware/Crc8_J1850.c)
+target_compile_definitions(umrt-arm-ros-firmware PRIVATE
+        CRC8_USE_TABLE)
+target_compile_features(umrt-arm-ros-firmware PUBLIC cxx_std_20)
 target_include_directories(umrt-arm-ros-firmware PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
         $<INSTALL_INTERFACE:include/umrt-arm-ros-firmware>
