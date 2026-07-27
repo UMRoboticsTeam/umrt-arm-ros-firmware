@@ -21,7 +21,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
         umrt-arm-firmware-lib
         umrt-arm-encoder-driver
         realtime_tools
-        ros2_j1939_babbler
+        ros2_j1939_babbler_msgs
         )
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
     find_package(${Dependency} CONFIG REQUIRED)

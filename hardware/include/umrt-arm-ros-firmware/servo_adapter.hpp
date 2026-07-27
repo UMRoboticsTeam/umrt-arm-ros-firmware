@@ -25,7 +25,8 @@ public:
     /** Initializes an ServoAdapter. */
     ServoAdapter(
             const std::size_t num_joints,
-            const std::string& topic_name
+            const std::string& topic_name,
+            rclcpp::NodeOptions node_options = rclcpp::NodeOptions()
     );
 
     ~ServoAdapter();
@@ -36,13 +37,11 @@ public:
     /** Returns the command interface from a certain joint index */
     double& getCommandRef(std::size_t index);
 
-    /** Returns the state position from a certain joint index */
-    double& getPositionRef(std::size_t index);
-
 protected:
+    std::shared_ptr<rclcpp::Node> node_;
 
     //  Vector for servo position commands.
-    std::vector<double> commands;
+    std::vector<double> commands_;
 
     //  Message Counter
     uint8_t msg_counter_;

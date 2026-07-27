@@ -4,22 +4,25 @@
 #include <cmath>
 
 
-ServoAdapter::ServoAdapter(const std::size_t num_joints, const std::string& topic_name) {
-    this->commands.resize(num_joints);
-
+ServoAdapter::ServoAdapter(
+        const std::size_t num_joints, const std::string& topic_name, rclcpp::NodeOptions node_options
+) {
+    commands_.resize(num_joints);
     msg_counter_ = 0;
+    node_ = std::make_shared<rclcpp::Node>("servo_adapter", std::move(node_options));
 
-    auto standard_pub = hw_node_->create_publisher<ros2_j1939_babbler_msgs::msg::ServoControl0>(
-            topic_name,
-            rclcpp::SystemDefaultsQoS()
+
+    auto standard_pub =
+            node_->create_publisher<ros2_j1939_babbler_msgs::msg::ServoControl0>(topic_name, rclcpp::SystemDefaultsQoS());
+
+    realtime_pub_ = std::make_unique<realtime_tools::RealtimePublisher<ros2_j1939_babbler_msgs::msg::ServoControl0>>(
+            std::move(standard_pub)
     );
-
-    realtime_pub_ = std::make_unique<realtime_tools::RealtimePublisher<ros2_j1939_babbler_msgs::msg::ServoControl0>>(std::move(standard_pub));
 }
 
-StepperAdapter::~StepperAdapter() = default;
+ServoAdapter::~ServoAdapter() = default;
 
-void StepperAdapter::writeValues() {
+void ServoAdapter::writeValues() {
 
     if (realtime_pub_ && realtime_pub_->trylock()) { // TODO: Complete
 //        auto &msg = realtime_pub_->msg_;
@@ -41,6 +44,6 @@ void StepperAdapter::writeValues() {
     return;
 }
 
-double& WheelAdapter::getCommandRef(const std::size_t index) {
-    return this->commands[index];
+double& ServoAdapter::getCommandRef(const std::size_t index) {
+    return this->commands_[index];
 }

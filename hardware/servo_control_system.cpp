@@ -15,19 +15,10 @@
 #include "umrt-arm-ros-firmware/servo_control_system.hpp"
 #include "umrt-arm-ros-firmware/wheel_adapter.hpp"
 
-#include <hardware_interface/lexical_casts.hpp>
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 #include <rclcpp/rclcpp.hpp>
 
-#include <boost/lexical_cast.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/log/trivial.hpp>
-#include <boost/tokenizer.hpp>
-
 #include <chrono>
-#include <cmath>
-#include <cstddef>
-#include <limits>
 #include <memory>
 #include <vector>
 #include <string>
@@ -45,7 +36,6 @@ namespace umrt_arm_ros_firmware {
         std::string servo_control_topic = info.hardware_parameters.at("servo_control_topic");
 
         servos_ = std::make_unique<ServoAdapter>(info.joints.size(), servo_control_topic);
-        logger_ = rclcpp::get_logger("ServoControlSystem");
 
         return hardware_interface::CallbackReturn::SUCCESS;
 
@@ -121,6 +111,5 @@ namespace umrt_arm_ros_firmware {
 
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(
-        umrt_arm_ros_firmware::ServoControlSystem,
-        hardware_interface::SystemInterface
+        umrt_arm_ros_firmware::ServoControlSystem, hardware_interface::SystemInterface
 )

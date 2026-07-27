@@ -19,9 +19,6 @@
 
 namespace umrt_arm_ros_firmware {
     class ServoControlSystem : public hardware_interface::SystemInterface {
-        struct Config {
-        };
-
     public:
         RCLCPP_SHARED_PTR_DEFINITIONS(ServoControlSystem);
 
@@ -67,7 +64,7 @@ namespace umrt_arm_ros_firmware {
         ) override;
 
     private:
-        rclcpp::Logger logger_;
+        rclcpp::Logger logger_ = rclcpp::get_logger("ServoControlSystem");
         std::unique_ptr<ServoAdapter> servos_;
     };
 
