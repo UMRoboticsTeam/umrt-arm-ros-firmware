@@ -1,15 +1,30 @@
 #include "umrt-arm-ros-firmware/servo_adapter.hpp"
 
 #include <boost/bimap.hpp>
-#include <cmath>
+#include <unordered_set>
+#include <string>
 
+#include "third-party/Crc8_J1850.h"
 
 ServoAdapter::ServoAdapter(
-        const std::vector<ServoConfig>& servo_configs, const std::string& topic_name, rclcpp::NodeOptions node_options
+        const std::vector<ServoConfig>& servo_configs, const std::string& topic_name, rclcpp::NodeOptions&& node_options
 )
     : node_{ std::make_shared<rclcpp::Node>("servo_adapter", std::move(node_options)) }, commands_{ servo_configs.size() },
       realtime_publishers_(servo_configs.size()) {
 
+    // Ensure no duplicate IDs
+    std::unordered_set<std::uint8_t> seen;
+    for (std::size_t i = 0; i < servo_configs.size(); ++i) {
+        auto& config = servo_configs[i];
+        if (seen.insert(config.id).second) {
+            throw std::invalid_argument(
+                    "Servo ID '" + std::to_string(static_cast<int>(config.id)) + "' at joint index '" + std::to_string(i) +
+                    "' has already been assigned for ServoAdapter on topic '" + topic_name + "'"
+            );
+        }
+    }
+
+    // Set up publishers
     for (std::size_t i = 0 ; i < servo_configs.size(); ++i) {
         auto& servo_config = servo_configs[i];
         auto& realtime_publisher = realtime_publishers_.span[i];
@@ -23,7 +38,7 @@ ServoAdapter::ServoAdapter(
                         std::move(standard_pub)
                 );
         realtime_publisher->msg_.index = servo_config.id;
-        realtime_publisher->msg_.set_angle = servo_config.initial_pos;
+        realtime_publisher->msg_.set_angle = servo_config.initial_position;
         realtime_publisher->msg_.message_counter = 0x00;
         realtime_publisher->msg_.reserved = 0xFFFFFF;
         realtime_publisher->msg_.crc = 0xFF;
@@ -46,11 +61,13 @@ void ServoAdapter::writeValues() {
             //  Increment and rollback after 250 (0xFA)
             msg.message_counter = static_cast<uint8_t>((msg.message_counter + 1) % 0xFB);
 
+            msg.crc = 0xFF; // TODO: Implement CRC properly
+
             realtime_publisher->unlockAndPublish();
         }
     }
 }
 
 double& ServoAdapter::getCommandRef(const std::size_t index) {
-    return this->commands_[index];
+    return this->commands_.span[index];
 }

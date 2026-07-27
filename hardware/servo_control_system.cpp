@@ -23,6 +23,10 @@
 #include <vector>
 #include <string>
 
+namespace {
+    std::vector<ServoAdapter::ServoConfig> parse_joint_configs(hardware_interface::HardwareInfo info);
+}
+
 namespace umrt_arm_ros_firmware {
 
     hardware_interface::CallbackReturn ServoControlSystem::on_init(
@@ -35,7 +39,7 @@ namespace umrt_arm_ros_firmware {
 
         std::string servo_control_topic = info.hardware_parameters.at("servo_control_topic");
 
-        servos_ = std::make_unique<ServoAdapter>(info.joints.size(), servo_control_topic);
+        servos_ = std::make_unique<ServoAdapter>(parse_joint_configs(info), servo_control_topic);
 
         return hardware_interface::CallbackReturn::SUCCESS;
 
@@ -113,3 +117,28 @@ namespace umrt_arm_ros_firmware {
 PLUGINLIB_EXPORT_CLASS(
         umrt_arm_ros_firmware::ServoControlSystem, hardware_interface::SystemInterface
 )
+
+namespace {
+    std::vector<ServoAdapter::ServoConfig> parse_joint_configs(hardware_interface::HardwareInfo info) {
+        std::vector<ServoAdapter::ServoConfig> servo_configs;
+
+        for (std::size_t i = 0; i < info.joints.size(); ++i) {
+            hardware_interface::ComponentInfo& joint = info.joints[i];
+            ServoAdapter::ServoConfig config;
+
+            if (auto id_it = joint.parameters.find("id"); id_it != joint.parameters.end()) {
+                config.id = std::stoul(id_it->second);
+            } else {
+                throw std::invalid_argument("Joint '" + std::to_string(i) + "' must specify a servo ID");
+            }
+
+            if (auto pos_it = joint.parameters.find("initial_position"); pos_it != joint.parameters.end()) {
+                config.initial_position = std::stof(pos_it->second);
+            }
+
+            servo_configs.push_back(std::move(config));
+        }
+
+        return servo_configs;
+    }
+}

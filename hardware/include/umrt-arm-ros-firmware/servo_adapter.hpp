@@ -23,11 +23,19 @@
  */
 class ServoAdapter {
 public:
+    /**
+     * Structure to hold information for initialising a servo connection.
+     */
+    struct ServoConfig {
+       uint8_t id;
+       float initial_position = 0.0;
+    };
+
     /** Initializes an ServoAdapter. */
     ServoAdapter(
-            const std::vector<std::uint8_t>& servo_ids,
+            const std::vector<ServoConfig>& servo_configs,
             const std::string& topic_name,
-            rclcpp::NodeOptions node_options = rclcpp::NodeOptions()
+            rclcpp::NodeOptions&& node_options = rclcpp::NodeOptions()
     );
 
     ~ServoAdapter();
