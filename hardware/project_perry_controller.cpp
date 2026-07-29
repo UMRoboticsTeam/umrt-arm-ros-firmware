@@ -106,12 +106,35 @@ void ProjectPerryController::connect(const std::string device, const int baud_ra
 void ProjectPerryController::disconnect() {}
 
 void ProjectPerryController::setValues() {
+    double position_commands_remapped[EXPECTED_JOINTS] = {0};
+    double velocity_commands_remapped[EXPECTED_JOINTS] = {0};
+
     for (const auto j : NON_DIFFERENTIAL_JOINTS) {
+        position_commands_remapped[j] = this->position_commands.at(j);
+        velocity_commands_remapped[j] = this->velocity_commands.at(j);
+    }
+
+    // Account for differential wrist
+    auto wrist_pitch_pos_cmd = this->position_commands.at(WRIST_PITCH_INDEX);
+    auto wrist_roll_pos_cmd = this->position_commands.at(WRIST_ROLL_INDEX);
+    
+    auto wrist_pitch_vel_cmd = this->velocity_commands.at(WRIST_PITCH_INDEX);
+    auto wrist_roll_vel_cmd = this->velocity_commands.at(WRIST_ROLL_INDEX);
+    
+    // NOTE: This doesn't consider the reduction from the differential gears
+    // to the rolling portion of the wrist
+    position_commands_remapped[WRIST_PITCH_INDEX] = wrist_pitch_pos_cmd + (wrist_roll_pos_cmd / 2);
+    position_commands_remapped[WRIST_ROLL_INDEX] = wrist_pitch_pos_cmd - (wrist_roll_pos_cmd / 2);
+
+    velocity_commands_remapped[WRIST_PITCH_INDEX] = (wrist_pitch_vel_cmd + wrist_roll_vel_cmd) / 2;
+    velocity_commands_remapped[WRIST_ROLL_INDEX] = (wrist_pitch_vel_cmd + wrist_roll_vel_cmd) / 2;
+
+    for (int j = 0; j < EXPECTED_JOINTS; j++) {
         const auto motor_id = this->motor_ids->left.at(j); // Convert joint ID to motor ID
         const auto encoder_id = this->encoder_ids.get()->left.at(j);
         const auto reduction = this->reductions->at(j);
 
-        double target_position_rad = this->position_commands.at(j);
+        double target_position_rad = position_commands_remapped[j];
 
         // Correct for encoders, if present.
         if (encoder_id != 0) {
@@ -135,7 +158,7 @@ void ProjectPerryController::setValues() {
         // Note that the MksStepperController speed is in units of RPM (since we're using interpolated normalisation)
         auto target_position_steps =
                 static_cast<int32_t>(std::round(target_position_rad * reduction * STEPS_PER_REV / 2 / M_PI));
-        auto speed = static_cast<int16_t>(std::round(this->velocity_commands.at(j) * reduction));
+        auto speed = static_cast<int16_t>(std::round(velocity_commands_remapped[j] * reduction));
         if (speed == 0) { speed = static_cast<int16_t>(std::round(this->default_speed * reduction)); }
 
         RCLCPP_DEBUG(this->logger, "Joint %u: target_position_steps=%i", j, target_position_steps);
@@ -155,49 +178,6 @@ void ProjectPerryController::setValues() {
         // TODO: Idea for closed loop control: We should monitor SEEK_POS responses, and once we get a "COMPLETED" if
         //       there is error from target position we send some more steps
     }
-
-    // TODO: Handle the differential wrist calculations before the main loop,
-    // and then let the loop do all the work. It does seem important to keep the motors commands being sent at the same time,
-    // however.
-
-    // Handle differential wrist
-    // We define the wrist_pitch motor as the left motor, i.e. the one which moving forward produces negative pitch
-    const auto left_motor_id = this->motor_ids->left.at(WRIST_PITCH_INDEX);
-    const auto right_motor_id = this->motor_ids->left.at(WRIST_ROLL_INDEX);
-    const auto reduction = this->reductions->at(WRIST_PITCH_INDEX); // Recall we assert reductions are the same
-
-    // Kind of hacky, but we will use the average of the specified speeds
-    auto speed = static_cast<int16_t>(std::round(
-            (this->velocity_commands.at(WRIST_PITCH_INDEX) + this->velocity_commands.at(WRIST_ROLL_INDEX)) / 2 * reduction
-    ));
-    if (speed == 0) { speed = static_cast<int16_t>(std::round(this->default_speed * reduction)); }
-
-    // Calculate the pseudo-joint targets in units of steps from the zero position
-    const auto wrist_pitch_target = static_cast<int32_t>(
-            std::round(this->position_commands.at(WRIST_PITCH_INDEX) * reduction * STEPS_PER_REV / 2 / M_PI)
-    );
-    const auto wrist_roll_target = static_cast<int32_t>(
-            std::round(this->position_commands.at(WRIST_ROLL_INDEX) * reduction * STEPS_PER_REV / 2 / M_PI)
-    );
-
-    // Kinematics of a differential wrist:
-    // Pitch is the average of the motor positions, and roll is the difference in motor positions
-    // Our motor convention means that positive (CW when looking down arm) roll means that both motors are moving forwards
-    //      (i.e. left motor producing negative pitch, right motor positive pitch)
-    const auto left_motor_position = wrist_pitch_target + wrist_roll_target / 2;
-    const auto right_motor_position = wrist_pitch_target - wrist_roll_target / 2;
-
-    // If this is a new command, log it (if in debug mode)
-    if (this->last_motor_commands->at(WRIST_PITCH_INDEX) != left_motor_position) {
-        this->last_motor_commands->at(WRIST_PITCH_INDEX) = left_motor_position;
-        RCLCPP_DEBUG(this->logger, "Joint %lu: Seeking to %d at %d", WRIST_PITCH_INDEX, left_motor_position, speed);
-    }
-    if (this->last_motor_commands->at(WRIST_ROLL_INDEX) != right_motor_position) {
-        this->last_motor_commands->at(WRIST_ROLL_INDEX) = right_motor_position;
-        RCLCPP_DEBUG(this->logger, "Joint %lu: Seeking to %d at %d", WRIST_ROLL_INDEX, right_motor_position, speed);
-    }
-    this->controller->seekPosition(left_motor_id, left_motor_position, speed);
-    this->controller->seekPosition(right_motor_id, right_motor_position, speed);
 
     // Note that 255 is exactly representable in IEEE754 double
     this->gripper->send(static_cast<uint8_t>(std::round(std::clamp(gripper_position, 0.0, 255.0))));
