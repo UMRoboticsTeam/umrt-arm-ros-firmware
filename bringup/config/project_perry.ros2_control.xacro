@@ -29,7 +29,7 @@
         <param name="motor_id">1</param>
         <param name="encoder_id">81</param>
         <param name="reduction_factor">13</param>
-        <param name="fake">true</param>
+        <param name="fake">false</param>
       </joint>
       <joint name="base_pitch">
         <command_interface name="velocity"/>
@@ -39,7 +39,7 @@
         <param name="motor_id">2</param>
         <param name="encoder_id">82</param>
         <param name="reduction_factor">252</param>
-        <param name="fake">true</param>
+        <param name="fake">false</param>
       </joint>
       <joint name="elbow_pitch">
         <command_interface name="velocity"/>
@@ -49,6 +49,7 @@
         <param name="motor_id">3</param>
         <param name="encoder_id">83</param>
         <param name="reduction_factor">252</param>
+        <param name="fake">false</param>
       </joint>
       <!--
       Convention: Last two joints are the differential wrist. They must be marked differential=true. The motor ID
@@ -64,7 +65,7 @@
         <param name="encoder_id">84</param>
         <param name="reduction_factor">12</param>
         <param name="differential">true</param>
-        <param name="fake">true</param>
+        <param name="fake">false</param>
       </joint>
       <joint name="wrist_roll">
         <command_interface name="velocity"/>
@@ -75,7 +76,7 @@
         <param name="encoder_id">85</param>
         <param name="reduction_factor">12</param>
         <param name="differential">true</param>
-        <param name="fake">true</param>
+        <param name="fake">false</param>
       </joint>
       <gpio name="gripper">
         <command_interface name="position"/>
