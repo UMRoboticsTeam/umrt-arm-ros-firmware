@@ -30,7 +30,7 @@ def generate_launch_description():
                 PathJoinSubstitution([FindExecutable(name="xacro")]),
                 " ",
                 PathJoinSubstitution(
-                    [FindPackageShare("umrt-project-perry-description"), "urdf", "project_perry.urdf.xacro"]
+                    [FindPackageShare("umrt-arm-ros-firmware"), "config", "can_ppm.urdf.xacro"]
                 ),
         ]),
         value_type=str
@@ -66,15 +66,6 @@ def generate_launch_description():
         executable="robot_state_publisher",
         output="both",
         parameters=[robot_description],
-        remappings=[
-            ("/diff_drive_controller/cmd_vel_unstamped", "/cmd_vel"),
-        ],
-    )
-
-    joint_state_broadcaster_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
     )
 
     robot_controller_spawner = Node(
@@ -83,20 +74,11 @@ def generate_launch_description():
         arguments=["can_ppm_controller", "--controller-manager", "/controller_manager"],
     )
 
-    # Delay start of robot_controller after `joint_state_broadcaster`
-    delay_robot_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=joint_state_broadcaster_spawner,
-            on_exit=[robot_controller_spawner],
-        )
-    )
-
     nodes = [
         babbler_node,
         control_node,
         robot_state_pub_node,
-        joint_state_broadcaster_spawner,
-        delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
+        robot_controller_spawner,
     ]
 
     return LaunchDescription(nodes)

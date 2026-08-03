@@ -2,18 +2,13 @@ controller_manager:
   ros__parameters:
     update_rate: 10  # Hz
 
-    joint_state_broadcaster:
-      type: joint_state_broadcaster/JointStateBroadcaster
-
     can_ppm_controller:
       type: forward_command_controller/ForwardCommandController
 
-# The documentation says we need TWO controllers, not sure why but oh well.
 can_ppm_controller:
   ros__parameters:
     joints:
       - gripper_servo
       - gripper_solenoid
 
-    interface_name:
-      - position
+    interface_name: position
