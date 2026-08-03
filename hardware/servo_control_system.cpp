@@ -32,14 +32,20 @@ namespace umrt_arm_ros_firmware {
     hardware_interface::CallbackReturn ServoControlSystem::on_init(
             const hardware_interface::HardwareInfo& info
     ) {
-
         if (hardware_interface::SystemInterface::on_init(info) != hardware_interface::CallbackReturn::SUCCESS) {
             return hardware_interface::CallbackReturn::ERROR;
         }
 
-        std::string servo_control_topic = info.hardware_parameters.at("servo_control_topic");
+        std::string servo_control_topic;
+        if (auto topic_it = info.hardware_parameters.find("servo_control_topic");
+            topic_it != info.hardware_parameters.end()) {
+            servo_control_topic = topic_it->second;
+        } else {
+            RCLCPP_ERROR(logger_, "A topic to send ServoControl0 messages on must be specified");
+            return hardware_interface::CallbackReturn::ERROR;
+        }
 
-        servos_ = std::make_unique<ServoAdapter>(parse_joint_configs(info), servo_control_topic);
+        servos_ = std::make_unique<ServoAdapter>(parse_joint_configs(info), std::move(servo_control_topic));
 
         return hardware_interface::CallbackReturn::SUCCESS;
 

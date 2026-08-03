@@ -16,7 +16,7 @@ ServoAdapter::ServoAdapter(
     std::unordered_set<std::uint8_t> seen;
     for (std::size_t i = 0; i < servo_configs.size(); ++i) {
         auto& config = servo_configs[i];
-        if (seen.insert(config.id).second) {
+        if (!seen.insert(config.id).second) {
             throw std::invalid_argument(
                     "Servo ID '" + std::to_string(static_cast<int>(config.id)) + "' at joint index '" + std::to_string(i) +
                     "' has already been assigned for ServoAdapter on topic '" + topic_name + "'"
