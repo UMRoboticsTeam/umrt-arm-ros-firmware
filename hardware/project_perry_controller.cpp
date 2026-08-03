@@ -58,21 +58,21 @@ ProjectPerryController::ProjectPerryController(
 
         // [rad] = [steps] / [steps / rev] * [2 pi rad / rev]
         // Also reduction factor
-        auto position = pos / this->reductions->at(joint) / STEPS_PER_REV * 2 * M_PI;
+        double position = pos / this->reductions->at(joint) / STEPS_PER_REV * 2 * M_PI;
         RCLCPP_DEBUG(this->logger, "Joint %u: MTR(id=%u) mtr position=%f (rad)", joint, motor, position);
         this->updatePosition(joint, position);
     });
 
     // Register for encoder callbacks
-    this->encoders->angle_signal_raw.connect(
-            [this](uint32_t encoder, uint16_t angle, uint16_t angular_vel, int16_t n_rotations) -> void {
-                // [rad] = [15-bit position] / [2^15] * [2 pi rad / rev]
-                // Also number of rotations, and reduction factor
+    this->encoders->angle_signal.connect(
+            [this](uint32_t encoder, double angle, double angular_vel, int16_t n_rotations) -> void {
+                // [revolutions] = [deg] / [360.0] + n_rotations
+                // [radians] = [revolutions] * 2PI
 
-                auto joint = this->encoder_ids->right.at(encoder);
-                auto position = (angle / 32768.0 + n_rotations) * 2 * M_PI;
-                if (std::isnan(this->encoder_initial_positions.get()->at(joint))) {
-                    this->encoder_initial_positions.get()->at(joint) = position;
+                uint16_t joint = this->encoder_ids->right.at(encoder);
+                double position = (angle / 360.0 + n_rotations) * 2 * M_PI;
+                if (std::isnan(this->encoder_initial_positions->at(joint))) {
+                    this->encoder_initial_positions->at(joint) = position;
                     RCLCPP_INFO(
                             this->logger, "Joint %u: ENC(id=%u) initial encoder position = %f (rad), %f (deg)", joint,
                             encoder, position, position * 180.0 / M_PI
@@ -90,7 +90,7 @@ ProjectPerryController::ProjectPerryController(
     this->continue_polling = true;
     this->polling_thread = std::thread([this]() -> void { this->poll(); });
     this->querying_thread = std::thread([this, query_period]() -> void { this->queryPoll(query_period); });
-    this->encoders_thread = std::thread([this]() -> void { this->encoders.get()->begin_read_loop(); });
+    this->encoders_thread = std::thread([this]() -> void { this->encoders->begin_read_loop(); });
 }
 
 ProjectPerryController::~ProjectPerryController() {
@@ -131,14 +131,14 @@ void ProjectPerryController::setValues() {
 
     for (int j = 0; j < EXPECTED_JOINTS; j++) {
         const auto motor_id = this->motor_ids->left.at(j); // Convert joint ID to motor ID
-        const auto encoder_id = this->encoder_ids.get()->left.at(j);
+        const auto encoder_id = this->encoder_ids->left.at(j);
         const auto reduction = this->reductions->at(j);
 
         double target_position_rad = position_commands_remapped[j];
 
         // Correct for encoders, if present.
         if (encoder_id != 0) {
-            auto offset = this->encoder_initial_positions.get()->at(j);
+            auto offset = this->encoder_initial_positions->at(j);
             if (std::isnan(offset)) {
                 auto clk = rclcpp::Clock();
                 RCLCPP_WARN_THROTTLE(
@@ -150,9 +150,9 @@ void ProjectPerryController::setValues() {
                 );
                 continue;
             }
-            RCLCPP_DEBUG(this->logger, "Joint %u: target_position_rad=%f", j, target_position_rad);
+            // RCLCPP_DEBUG(this->logger, "Joint %u: target_position_rad=%f", j, target_position_rad);
             target_position_rad -= offset;
-            RCLCPP_DEBUG(this->logger, "Joint %u: offset target_position_rad=%f", j, target_position_rad);
+            // RCLCPP_DEBUG(this->logger, "Joint %u: offset target_position_rad=%f", j, target_position_rad);
         }
 
         // Note that the MksStepperController speed is in units of RPM (since we're using interpolated normalisation)
@@ -161,12 +161,10 @@ void ProjectPerryController::setValues() {
         auto speed = static_cast<int16_t>(std::round(velocity_commands_remapped[j] * reduction));
         if (speed == 0) { speed = static_cast<int16_t>(std::round(this->default_speed * reduction)); }
 
-        RCLCPP_DEBUG(this->logger, "Joint %u: target_position_steps=%i", j, target_position_steps);
-
         // If this is a new command, log it (if in debug mode)
         if (this->last_motor_commands->at(j) != target_position_steps) {
             this->last_motor_commands->at(j) = target_position_steps;
-            RCLCPP_DEBUG(this->logger, "Joint %lu: Seeking to %d at %d", j, target_position_steps, speed);
+            RCLCPP_DEBUG(this->logger, "Joint %lu: Seeking to %d (%f rad) at a speed of %d", j, target_position_steps, target_position_rad, speed);
             this->controller->seekPosition(motor_id, target_position_steps, speed);
         }
         // TODO: Consider only sending commands to the controller if they are new, and sending a stop beforehand so the
