@@ -170,8 +170,7 @@ void ProjectPerryController::setValues() {
         double target_position_rad = position_commands_remapped[j];
 
         // Correct for encoders, if present.
-        double offset_enc = 0.0;
-        offset_enc = this->encoder_initial_positions->at(j);
+        double offset_enc = this->encoder_initial_positions->at(j);
         if (std::isnan(offset_enc)) {
             auto clk = rclcpp::Clock();
             RCLCPP_WARN_THROTTLE(
