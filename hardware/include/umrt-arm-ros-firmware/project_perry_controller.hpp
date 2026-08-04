@@ -102,6 +102,11 @@ protected:
     /** Maps joint index to the position (rad) of the encoder on powerup. */
     std::unique_ptr<std::unordered_map<uint16_t, double>> encoder_initial_positions;
 
+    /** Maps joint index to the position (steps) of the motor on powerup.
+     * A value of 2^63-1 (`std::numeric_limits<int64_t>::max()`) represents being unset
+     * int64_t used to ensure the max value is outside of the range expected during normal use. */
+    std::unique_ptr<std::unordered_map<uint16_t, int64_t>> motor_initial_positions;
+
     /** Method to indefinitely poll @ref controller for responses */
     void poll();
 

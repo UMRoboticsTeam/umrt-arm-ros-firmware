@@ -10,6 +10,10 @@ inline constexpr size_t WRIST_PITCH_INDEX = 3;
 inline constexpr size_t WRIST_ROLL_INDEX = 4;
 inline constexpr size_t NON_DIFFERENTIAL_JOINTS[] = { 0, 1, 2 };
 
+// Note that this value is outside of the range of int32_t used to store number of steps for
+// the motors, so the motor position will never naturally be set to this value.
+inline constexpr int64_t MOTOR_POSITION_UNSET = static_cast<int64_t>(std::numeric_limits<uint32_t>::max()) + 1;
+
 namespace {
     void validate_joints(const std::vector<StepperAdapter::JointInfo>& joint_infos, rclcpp::Logger& logger);
 }
@@ -32,14 +36,22 @@ ProjectPerryController::ProjectPerryController(
     this->reductions = std::make_unique<std::unordered_map<uint16_t, double>>();
     this->last_motor_commands = std::make_unique<std::unordered_map<uint16_t, int32_t>>();
     this->encoder_initial_positions = std::make_unique<std::unordered_map<uint16_t, double>>();
+    this->motor_initial_positions = std::make_unique<std::unordered_map<uint16_t, int64_t>>();
     for (size_t i = 0; i < joint_infos.size(); ++i) {
         const JointInfo& j = joint_infos.at(i);
+        RCLCPP_INFO(this->logger, "Joint %ld: Registering motor id %d", i, j.motor_id);
         motor_ids_for_controller->insert(j.motor_id);
         this->motor_ids->insert(boost::bimap<uint16_t, uint16_t>::value_type(i, j.motor_id));
         this->reductions->emplace(i, j.reduction_factor);
         this->last_motor_commands->emplace(i, 0);
-        if (j.encoder_id != 0) {
+        if (j.encoder_id == 0) {
+            // Since there is no encoder to ensure absolute positions in the first place, these offsets are not useful.
+            this->motor_initial_positions->emplace(i, 0);
+            this->encoder_initial_positions->emplace(i, 0.0);
+        } else {
+            RCLCPP_INFO(this->logger, "Joint %ld: Registering encoder id %d", i, j.encoder_id);
             encoder_ids_for_interface->insert(j.encoder_id);
+            this->motor_initial_positions->emplace(i, MOTOR_POSITION_UNSET);
             this->encoder_initial_positions->emplace(i, NAN);
             this->encoder_ids->insert(boost::bimap<uint16_t, uint16_t>::value_type(i, j.encoder_id));
         }
@@ -54,7 +66,17 @@ ProjectPerryController::ProjectPerryController(
     this->controller->EGetPosition.connect([this](const uint16_t motor, const int32_t pos) -> void {
         const auto joint = this->motor_ids->right.at(motor);
         // If we have an encoder for this motor, skip motor feedback
-        if (this->encoder_ids->left.find(joint) != this->encoder_ids->left.end()) { return; }
+        if (this->encoder_ids->left.find(joint) != this->encoder_ids->left.end()) {
+            if (this->motor_initial_positions->at(joint) == MOTOR_POSITION_UNSET) {
+                double position = pos / this->reductions->at(joint) / STEPS_PER_REV * 2 * M_PI;
+                this->motor_initial_positions->at(joint) = (int64_t)pos;
+                RCLCPP_INFO(
+                    this->logger, "Joint %u: MTR(id=%u) initial motor position = %d (steps), %f (rad), %f (deg)", joint,
+                    motor, pos, position, position * 180.0 / M_PI
+                );
+            }
+            return;
+        }
 
         // [rad] = [steps] / [steps / rev] * [2 pi rad / rev]
         // Also reduction factor
@@ -78,8 +100,9 @@ ProjectPerryController::ProjectPerryController(
                             encoder, position, position * 180.0 / M_PI
                     );
                 }
-                RCLCPP_DEBUG(
-                        this->logger, "Joint %u: ENC(id=%u) mtr position=%f (rad), %f (deg)", joint, encoder, position,
+                auto clk = rclcpp::Clock();
+                RCLCPP_DEBUG_THROTTLE(
+                        this->logger, clk, 2500, "Joint %u: ENC(id=%u) mtr position=%f (rad), %f (deg)", joint, encoder, position,
                         position * 180.0 / M_PI
                 );
                 this->updatePosition(joint, position);
@@ -106,8 +129,8 @@ void ProjectPerryController::connect(const std::string device, const int baud_ra
 void ProjectPerryController::disconnect() {}
 
 void ProjectPerryController::setValues() {
-    double position_commands_remapped[EXPECTED_JOINTS] = {0};
-    double velocity_commands_remapped[EXPECTED_JOINTS] = {0};
+    double position_commands_remapped[EXPECTED_JOINTS] = { 0 };
+    double velocity_commands_remapped[EXPECTED_JOINTS] = { 0 };
 
     for (const auto j : NON_DIFFERENTIAL_JOINTS) {
         position_commands_remapped[j] = this->position_commands.at(j);
@@ -117,10 +140,10 @@ void ProjectPerryController::setValues() {
     // Account for differential wrist
     auto wrist_pitch_pos_cmd = this->position_commands.at(WRIST_PITCH_INDEX);
     auto wrist_roll_pos_cmd = this->position_commands.at(WRIST_ROLL_INDEX);
-    
+
     auto wrist_pitch_vel_cmd = this->velocity_commands.at(WRIST_PITCH_INDEX);
     auto wrist_roll_vel_cmd = this->velocity_commands.at(WRIST_ROLL_INDEX);
-    
+
     // NOTE: This doesn't consider the reduction from the differential gears
     // to the rolling portion of the wrist
     position_commands_remapped[WRIST_PITCH_INDEX] = wrist_pitch_pos_cmd + (wrist_roll_pos_cmd / 2);
@@ -129,7 +152,7 @@ void ProjectPerryController::setValues() {
     velocity_commands_remapped[WRIST_PITCH_INDEX] = (wrist_pitch_vel_cmd + wrist_roll_vel_cmd) / 2;
     velocity_commands_remapped[WRIST_ROLL_INDEX] = (wrist_pitch_vel_cmd + wrist_roll_vel_cmd) / 2;
 
-    for (int j = 0; j < EXPECTED_JOINTS; j++) {
+    for (int j = 0; j < (int)EXPECTED_JOINTS; j++) {
         const auto motor_id = this->motor_ids->left.at(j); // Convert joint ID to motor ID
         const auto encoder_id = this->encoder_ids->left.at(j);
         const auto reduction = this->reductions->at(j);
@@ -137,34 +160,57 @@ void ProjectPerryController::setValues() {
         double target_position_rad = position_commands_remapped[j];
 
         // Correct for encoders, if present.
-        if (encoder_id != 0) {
-            auto offset = this->encoder_initial_positions->at(j);
-            if (std::isnan(offset)) {
-                auto clk = rclcpp::Clock();
-                RCLCPP_WARN_THROTTLE(
-                        this->logger, clk, 10000,
-                        "Joint %u: Tried to send a position to a motor(id=%u) with a configured encoder(id=%u) before the "
-                        "encoder's first position response.\nCannot determine the encoder offset. No action will be taken. "
-                        "If multiple motors have this issue, only one will show in the logs.",
-                        j, motor_id, encoder_id
-                );
-                continue;
-            }
-            // RCLCPP_DEBUG(this->logger, "Joint %u: target_position_rad=%f", j, target_position_rad);
-            target_position_rad -= offset;
-            // RCLCPP_DEBUG(this->logger, "Joint %u: offset target_position_rad=%f", j, target_position_rad);
+        double offset_enc = 0.0;
+        offset_enc = this->encoder_initial_positions->at(j);
+        if (std::isnan(offset_enc)) {
+            auto clk = rclcpp::Clock();
+            RCLCPP_WARN_THROTTLE(
+                this->logger, clk, 10000,
+                    "Joint %u: NO_ENCODER_INITIAL_POS: Tried to send a position to a motor(id=%u) with a configured "
+                    "encoder(id=%u) before the encoder's first position response.\nCannot determine the encoder offset. "
+                    "No action will be taken. If multiple motors have this issue, only one will show in the logs.",
+                    j, motor_id, encoder_id
+            );
+            continue;
         }
+  
+        int64_t offset_mtr = this->motor_initial_positions->at(j);
+        if (offset_mtr == MOTOR_POSITION_UNSET) {
+            auto clk = rclcpp::Clock();
+            RCLCPP_WARN_THROTTLE(
+                    this->logger, clk, 10000,
+                    "Joint %u: NO_MOTOR_INITIAL_POS: Tried to send a position to a motor(id=%u) with a configured "
+                    "encoder(id=%u) before knowing the motor's initial position.\nCannot determine the motor offset, making "
+                    "absolute positioning useless. No action will be taken. If multiple motors have this issue, only one "
+                    "will show in the logs.",
+                    j, motor_id, encoder_id
+            );
+            continue;
+        }
+
+        // Offset on the reading side
+        // RCLCPP_DEBUG(this->logger, "Joint %u: target_position_rad=%f", j, target_position_rad);
+        target_position_rad -= offset_enc;
+        // RCLCPP_DEBUG(this->logger, "Joint %u: offset target_position_rad=%f", j, target_position_rad);
 
         // Note that the MksStepperController speed is in units of RPM (since we're using interpolated normalisation)
         auto target_position_steps =
                 static_cast<int32_t>(std::round(target_position_rad * reduction * STEPS_PER_REV / 2 / M_PI));
         auto speed = static_cast<int16_t>(std::round(velocity_commands_remapped[j] * reduction));
         if (speed == 0) { speed = static_cast<int16_t>(std::round(this->default_speed * reduction)); }
+      
 
+        // This offset will be non-zero only when the motor controllers power up and move
+        // before the control software is enabled.
+        target_position_steps += offset_mtr;
+        // auto clk = rclcpp::Clock();
+        // RCLCPP_DEBUG_THROTTLE(
+        //     this->logger, clk, 2500,
+        //     "Joint %u: target_position=%d (steps), %f (rad)", j, target_position_steps, position_commands_remapped[j]);
         // If this is a new command, log it (if in debug mode)
         if (this->last_motor_commands->at(j) != target_position_steps) {
             this->last_motor_commands->at(j) = target_position_steps;
-            RCLCPP_DEBUG(this->logger, "Joint %lu: Seeking to %d (%f rad) at a speed of %d", j, target_position_steps, target_position_rad, speed);
+            RCLCPP_DEBUG(this->logger, "Joint %u: target_position=%d (steps), %f (rad); speed=%d", j, target_position_steps, position_commands_remapped[j], speed);
             this->controller->seekPosition(motor_id, target_position_steps, speed);
         }
         // TODO: Consider only sending commands to the controller if they are new, and sending a stop beforehand so the
@@ -193,7 +239,10 @@ void ProjectPerryController::poll() {
 void ProjectPerryController::queryController() {
     for (auto j = 0u; j < NUM_JOINTS; ++j) {
         // Only query controllers which we don't have encoders for
-        if (this->encoder_ids->left.find(j) == this->encoder_ids->left.end()) {
+        // and don't have the start position set.
+        bool has_encoder = this->encoder_ids->left.find(j) != this->encoder_ids->left.end();
+        bool needs_motor_initial_pos = this->motor_initial_positions->at(j) == MOTOR_POSITION_UNSET;
+        if (!has_encoder || (has_encoder && needs_motor_initial_pos)) {
             this->controller->getPosition(this->motor_ids->left.at(j));
         }
     }
