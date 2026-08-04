@@ -106,8 +106,15 @@ namespace umrt_arm_ros_firmware {
                 differential = x->second == "true";
             }
 
-            RCLCPP_DEBUG(this->logger, "Got joint: motor_id=%lu, encoder_id=%lu, reduction_factor=%lu, differential=%u", motor_id, encoder_id, reduction_factor, differential);
-            cfg->joint_infos.emplace_back(motor_id, encoder_id, reduction_factor, differential);
+            bool fake;
+            if (const auto x = joint.parameters.find("fake"); x == joint.parameters.end()) {
+                fake = false;
+            } else {
+                fake = x->second == "true";
+            }
+
+            RCLCPP_DEBUG(this->logger, "Got joint: motor_id=%lu, encoder_id=%lu, reduction_factor=%u, differential=%u, fake=%u", motor_id, encoder_id, reduction_factor, differential, fake);
+            cfg->joint_infos.emplace_back(motor_id, encoder_id, reduction_factor, differential, fake);
         }
 
         for (const hardware_interface::ComponentInfo& gpio : info_.gpios) {
