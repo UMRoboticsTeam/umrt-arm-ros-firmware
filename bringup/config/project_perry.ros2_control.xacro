@@ -29,7 +29,7 @@
         <param name="motor_id">1</param>
         <param name="encoder_id">81</param>
         <param name="reduction_factor">13</param>
-        <param name="fake">false</param>
+        <param name="fake">true</param>
       </joint>
       <joint name="base_pitch">
         <command_interface name="velocity"/>
@@ -38,8 +38,8 @@
         <state_interface name="velocity"/>
         <param name="motor_id">2</param>
         <param name="encoder_id">82</param>
-        <param name="reduction_factor">252</param>
-        <param name="fake">false</param>
+        <param name="reduction_factor">179.2</param>
+        <param name="fake">true</param>
       </joint>
       <joint name="elbow_pitch">
         <command_interface name="velocity"/>
@@ -48,8 +48,8 @@
         <state_interface name="velocity"/>
         <param name="motor_id">3</param>
         <param name="encoder_id">83</param>
-        <param name="reduction_factor">252</param>
-        <param name="fake">false</param>
+        <param name="reduction_factor">179.2</param>
+        <param name="fake">true</param>
       </joint>
       <!--
       Convention: Last two joints are the differential wrist. They must be marked differential=true. The motor ID
@@ -63,9 +63,10 @@
         <state_interface name="velocity"/>
         <param name="motor_id">4</param>
         <param name="encoder_id">84</param>
-        <param name="reduction_factor">12</param>
+        <!-- Note: Reduction is from both wrist motors to both small bevel gears. -->
+        <param name="reduction_factor">7</param>
         <param name="differential">true</param>
-        <param name="fake">false</param>
+        <param name="fake">true</param>
       </joint>
       <joint name="wrist_roll">
         <command_interface name="velocity"/>
@@ -74,9 +75,11 @@
         <state_interface name="velocity"/>
         <param name="motor_id">5</param>
         <param name="encoder_id">85</param>
-        <param name="reduction_factor">12</param>
+        <!-- Note: Reduction is from both small bevel gears to differential plate (i.e. gripper interface) -->
+        <!-- TODO: Change expected  -->
+        <param name="reduction_factor">7</param>
         <param name="differential">true</param>
-        <param name="fake">false</param>
+        <param name="fake">true</param>
       </joint>
       <gpio name="gripper">
         <command_interface name="position"/>
