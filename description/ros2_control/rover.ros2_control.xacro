@@ -22,7 +22,7 @@
           <!-- Configurations -->
           <param name="can_interface">can0</param>
           <param name="rover_speed_topic">/umrt_ros_controller/RoverSpeedControl/tx</param>
-          <param name="param_wheel_radius">0.3048</param>
+          <param name="param_wheel_radius">0.17</param>
         </hardware>
       </xacro:unless>
       

@@ -8,10 +8,6 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
 
-    # package_name = "ros2_control_demo_example_2"
-
-    # joy_params = os.path.join(get_package_share_directory(package_name),'config','joystick.yaml')
-
     joy_params = PathJoinSubstitution([FindPackageShare("umrt-arm-ros-firmware"),'config','joystick.yaml'])
 
     joy_node = Node(

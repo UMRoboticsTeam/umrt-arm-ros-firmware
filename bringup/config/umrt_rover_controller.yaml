@@ -16,9 +16,9 @@ rover_controller:
     use_stamped_vel: false
 
     # These values are still TBD
-    wheel_separation: 0.7721 # 2 * the value of y_offset in diffbot_description.urdf.xacro
+    wheel_separation: 0.81 # 2 * the value of y_offset in diffbot_description.urdf.xacro
     wheels_per_side: 2  # actually 2, but both are controlled by 1 signal
-    wheel_radius: 0.1524 # TBD
+    wheel_radius: 0.17
 
     wheel_separation_multiplier: 1.0
     left_wheel_radius_multiplier: 1.0
