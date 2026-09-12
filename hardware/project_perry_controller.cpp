@@ -35,7 +35,9 @@ ProjectPerryController::ProjectPerryController(
     this->encoder_ids = std::make_unique<boost::bimap<uint16_t, uint16_t>>();
     this->reductions = std::make_unique<std::unordered_map<uint16_t, double>>();
     this->isfake = std::make_unique<std::unordered_map<uint16_t, bool>>();
-    this->last_motor_commands = std::make_unique<std::unordered_map<uint16_t, int32_t>>();
+    this->last_motor_commands = std::make_unique<std::unordered_map<uint16_t, std::pair<int64_t, int16_t>>>();
+    this->queued_motor_commands = std::make_unique<std::unordered_map<uint16_t, std::pair<int64_t, int16_t>>>();
+    this->cmd_in_progress = std::make_unique<std::unordered_map<uint16_t, bool>>();
     this->encoder_initial_positions = std::make_unique<std::unordered_map<uint16_t, double>>();
     this->motor_initial_positions = std::make_unique<std::unordered_map<uint16_t, int64_t>>();
     for (size_t i = 0; i < joint_infos.size(); ++i) {
@@ -43,7 +45,9 @@ ProjectPerryController::ProjectPerryController(
         this->motor_ids->insert(boost::bimap<uint16_t, uint16_t>::value_type(i, j.motor_id));
         this->reductions->emplace(i, j.reduction_factor);
         this->isfake->emplace(i, j.fake);
-        this->last_motor_commands->emplace(i, 0);
+        this->last_motor_commands->emplace(i, std::make_pair(MOTOR_POSITION_UNSET, 0));
+        this->queued_motor_commands->emplace(i, std::make_pair(MOTOR_POSITION_UNSET, 0));
+        this->cmd_in_progress->emplace(i, false);
         if (!j.fake) {
             RCLCPP_INFO(this->logger, "Joint %ld: Registering motor id %d", i, j.motor_id);
             motor_ids_for_controller->insert(j.motor_id);
@@ -93,6 +97,28 @@ ProjectPerryController::ProjectPerryController(
         double position = pos / this->reductions->at(joint) / STEPS_PER_REV * 2 * M_PI;
         RCLCPP_DEBUG(this->logger, "Joint %u: MTR(id=%u) mtr position=%f (rad)", joint, motor, position);
         this->updatePosition(joint, position);
+    });
+
+    this->controller->ESeekPosition.connect([this](uint16_t motor, MksMoveResponse resp) -> void {
+        const auto joint = this->motor_ids->right.at(motor);
+        if (resp == MksMoveResponse::COMPLETED) {
+            const auto [queued_cmd, queued_speed] = this->queued_motor_commands->at(joint);
+            if (queued_cmd == MOTOR_POSITION_UNSET) {
+                RCLCPP_DEBUG(this->logger, "Joint %u: [COMPLETED]", joint);
+                this->cmd_in_progress->at(joint) = false;
+            } else {
+                this->last_motor_commands->at(joint) = this->queued_motor_commands->at(joint);
+                this->queued_motor_commands->at(joint) = std::make_pair(MOTOR_POSITION_UNSET, 0);
+                RCLCPP_DEBUG(this->logger, "Joint %u: [EXECUTE] target_position=%d (steps), ? (rad); speed=%d", joint, queued_cmd, queued_speed);
+                this->controller->seekPosition(motor, queued_cmd, queued_speed);
+            }
+        }
+        if (resp == MksMoveResponse::FAILED) {
+            RCLCPP_WARN(this->logger, "Joint %u: Got FAILED status response.", joint);
+        }
+        if (resp == MksMoveResponse::MOVING) {
+            this->cmd_in_progress->at(joint) = true;
+        }
     });
 
     // Register for encoder callbacks
@@ -205,7 +231,8 @@ void ProjectPerryController::setValues() {
         // Note that the MksStepperController speed is in units of RPM (since we're using interpolated normalisation)
         auto target_position_steps =
                 static_cast<int32_t>(std::round(target_position_rad * reduction * STEPS_PER_REV / 2 / M_PI));
-        auto speed = static_cast<int16_t>(std::round(velocity_commands_remapped[j] * reduction));
+        // Convert from rad/s to RPM
+        auto speed = static_cast<int16_t>(std::round(velocity_commands_remapped[j] * 30 * reduction / M_PI));
         if (speed == 0) { speed = static_cast<int16_t>(std::round(this->default_speed * reduction)); }
       
 
@@ -217,14 +244,17 @@ void ProjectPerryController::setValues() {
         //     this->logger, clk, 2500,
         //     "Joint %u: target_position=%d (steps), %f (rad)", j, target_position_steps, position_commands_remapped[j]);
         // If this is a new command, log it (if in debug mode)
-        if (this->last_motor_commands->at(j) != target_position_steps) {
-            this->last_motor_commands->at(j) = target_position_steps;
-            RCLCPP_DEBUG(this->logger, "Joint %u: target_position=%d (steps), %f (rad); speed=%d", j, target_position_steps, position_commands_remapped[j], speed);
-            this->controller->seekPosition(motor_id, target_position_steps, speed);
-            if (this->isfake.get()->at(j)) {
-                // Set the current position to the target position
-                // fake it
-                this->updatePosition(j, this->position_commands.at(j));
+        if (std::get<0>(this->last_motor_commands->at(j)) != target_position_steps) {
+            this->last_motor_commands->at(j) = std::make_pair(target_position_steps, speed);
+            if (!this->isfake->at(j) && this->cmd_in_progress->at(j)) {
+                RCLCPP_DEBUG(this->logger, "Joint %u: [QUEUE] target_position=%d (steps), %f (rad); speed=%d", j, target_position_steps, position_commands_remapped[j], speed);
+                this->queued_motor_commands->at(j) = std::make_pair(target_position_steps, speed);
+            } else {
+                RCLCPP_DEBUG(this->logger, "Joint %u: [EXECUTE] target_position=%d (steps), %f (rad); speed=%d", j, target_position_steps, position_commands_remapped[j], speed);
+                this->controller->seekPosition(motor_id, target_position_steps, speed);
+                if (this->isfake->at(j)) {
+                    this->updatePosition(j, this->position_commands.at(j));
+                }
             }
         }
         // TODO: Consider only sending commands to the controller if they are new, and sending a stop beforehand so the

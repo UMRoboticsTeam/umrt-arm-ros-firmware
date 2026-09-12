@@ -99,8 +99,14 @@ protected:
     /** Maps joint index to if the motor is fake or not. */
     std::unique_ptr<std::unordered_map<uint16_t, bool>> isfake;
 
-    /** Maps joint index to last commanded position, used for debug logging. */
-    std::unique_ptr<std::unordered_map<uint16_t, int32_t>> last_motor_commands;
+    /** Maps joint index to last command (pos, speed), used for logging and . */
+    std::unique_ptr<std::unordered_map<uint16_t, std::pair<int64_t, int16_t>>> last_motor_commands;
+
+    /** Maps joint index to next queued motor command (pos, speed), which will be executed after the previous one finishes. */
+    std::unique_ptr<std::unordered_map<uint16_t, std::pair<int64_t, int16_t>>> queued_motor_commands;
+
+    /** Maps joint index to if there is a motor command in progress. */
+    std::unique_ptr<std::unordered_map<uint16_t, bool>> cmd_in_progress;
 
     /** Maps joint index to the position (rad) of the encoder on powerup. */
     std::unique_ptr<std::unordered_map<uint16_t, double>> encoder_initial_positions;
