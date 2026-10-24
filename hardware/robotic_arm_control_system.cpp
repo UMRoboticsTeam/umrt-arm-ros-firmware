@@ -23,7 +23,7 @@
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "enchantum_single_header.hpp"
+#include "third-party/enchantum_single_header.hpp"
 
 #include <chrono>
 #include <optional>
