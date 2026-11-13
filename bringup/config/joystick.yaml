@@ -2,7 +2,7 @@ joy_node:
   ros__parameters:
     device_id: 0
     deadzone: 0.1
-    autorepeat_rate: 20.0 # ms
+    autorepeat_rate: 20.0 # hz
 
 teleop_node:
   ros__parameters:
