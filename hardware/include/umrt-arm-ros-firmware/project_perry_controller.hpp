@@ -81,6 +81,9 @@ protected:
     /** Thread used to periodically query motor speed/position. */
     std::thread querying_thread;
 
+    /** Thread used to read the encoder values. */
+    std::thread encoders_thread;
+
     /** Signal used to shutdown the polling threads. */
     std::atomic<bool> continue_polling = false;
 
@@ -93,8 +96,16 @@ protected:
     /** Maps joint index to reduction ratio factor. */
     std::unique_ptr<std::unordered_map<uint16_t, double>> reductions;
 
-    /** Maps motor CAN IDs to last commanded position, used for debug logging. */
+    /** Maps joint index to last commanded position, used for debug logging. */
     std::unique_ptr<std::unordered_map<uint16_t, int32_t>> last_motor_commands;
+
+    /** Maps joint index to the position (rad) of the encoder on powerup. */
+    std::unique_ptr<std::unordered_map<uint16_t, double>> encoder_initial_positions;
+
+    /** Maps joint index to the position (steps) of the motor on powerup.
+     * A value of 2^63-1 (`std::numeric_limits<int64_t>::max()`) represents being unset
+     * int64_t used to ensure the max value is outside of the range expected during normal use. */
+    std::unique_ptr<std::unordered_map<uint16_t, int64_t>> motor_initial_positions;
 
     /** Method to indefinitely poll @ref controller for responses */
     void poll();
