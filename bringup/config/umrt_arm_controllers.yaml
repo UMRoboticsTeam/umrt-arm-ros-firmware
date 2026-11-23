@@ -54,8 +54,8 @@ gripper_controller:
       - wrist_roll
 
     command_interfaces:
-      - velocity
       - position
+      - velocity
 
     state_interfaces:
       - position
